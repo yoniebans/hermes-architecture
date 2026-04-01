@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent — Diátaxis Documentation Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ THEME — Editorial aesthetic ============ */
+  :root {
+    --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface2: #f5f5f4;
+    --surface-elevated: #ffffff;
+    --border: rgba(28, 25, 23, 0.08);
+    --border-bright: rgba(28, 25, 23, 0.16);
+    --text: #1c1917;
+    --text-dim: #78716c;
+    --text-bright: #0c0a09;
+
+    /* Diátaxis quadrant colors */
+    --tutorial: #0d9488;
+    --tutorial-dim: rgba(13, 148, 136, 0.08);
+    --howto: #0284c7;
+    --howto-dim: rgba(2, 132, 199, 0.08);
+    --reference: #b45309;
+    --reference-dim: rgba(180, 83, 9, 0.08);
+    --explanation: #9333ea;
+    --explanation-dim: rgba(147, 51, 234, 0.08);
+
+    --green: #059669;
+    --green-dim: rgba(5, 150, 105, 0.08);
+    --red: #dc2626;
+    --red-dim: rgba(220, 38, 38, 0.06);
+    --amber: #d97706;
+    --amber-dim: rgba(217, 119, 6, 0.08);
+    --slate: #475569;
+    --slate-dim: rgba(71, 85, 105, 0.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0a09;
+      --surface: #1c1917;
+      --surface2: #292524;
+      --surface-elevated: #292524;
+      --border: rgba(245, 245, 244, 0.06);
+      --border-bright: rgba(245, 245, 244, 0.14);
+      --text: #fafaf9;
+      --text-dim: #a8a29e;
+      --text-bright: #fafaf9;
+
+      --tutorial: #2dd4bf;
+      --tutorial-dim: rgba(45, 212, 191, 0.12);
+      --howto: #38bdf8;
+      --howto-dim: rgba(56, 189, 248, 0.1);
+      --reference: #fbbf24;
+      --reference-dim: rgba(251, 191, 36, 0.1);
+      --explanation: #c084fc;
+      --explanation-dim: rgba(192, 132, 252, 0.1);
+
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.1);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.1);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.1);
+      --slate: #94a3b8;
+      --slate-dim: rgba(148, 163, 184, 0.1);
+    }
+  }
+
+  /* ============ RESET + BASE ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 25% 0%, var(--tutorial-dim) 0%, transparent 45%),
+      radial-gradient(ellipse at 75% 100%, var(--explanation-dim) 0%, transparent 40%);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px;
+    min-height: 100vh;
+    overflow-wrap: break-word;
+  }
+
+  /* ============ ANIMATION ============ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .anim {
+    animation: fadeUp 0.4s ease-out both;
+    animation-delay: calc(var(--i, 0) * 0.05s);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ============ LAYOUT ============ */
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0 40px;
+  }
+  .main { min-width: 0; grid-column: 2; }
+
+  /* ============ TOC ============ */
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 14px 0;
+    grid-row: 1 / -1;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+  .toc::-webkit-scrollbar { width: 3px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 2px; }
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 0 0 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    line-height: 1.4;
+    margin-bottom: 1px;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface2); }
+  .toc a.active { color: var(--text); border-left-color: var(--explanation); }
+
+  /* ============ TYPOGRAPHY ============ */
+  h1 {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    margin-bottom: 12px;
+  }
+  .lead {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 40px;
+    max-width: 65ch;
+  }
+  .sec-head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 24px 0 14px;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    scroll-margin-top: 24px;
+  }
+  .sec-head .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 400;
+    margin: 4px 0 12px;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    letter-spacing: -0.2px;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.65;
+    margin-bottom: 20px;
+    max-width: 65ch;
+  }
+  .prose {
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 65ch;
+    color: var(--text);
+  }
+  .prose p { margin-bottom: 14px; }
+  .prose strong { color: var(--text-bright); font-weight: 600; }
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ CARDS ============ */
+  .ve-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .ve-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  }
+  .ve-card--hero {
+    background: color-mix(in srgb, var(--surface) 94%, var(--explanation) 6%);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border-color: color-mix(in srgb, var(--border) 40%, var(--explanation) 60%);
+  }
+  .ve-card--recessed {
+    background: var(--surface2);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .ve-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ve-card__label::before {
+    content: '';
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Color accents */
+  .c-tutorial { border-left: 3px solid var(--tutorial); }
+  .c-tutorial .ve-card__label { color: var(--tutorial); }
+  .c-howto { border-left: 3px solid var(--howto); }
+  .c-howto .ve-card__label { color: var(--howto); }
+  .c-reference { border-left: 3px solid var(--reference); }
+  .c-reference .ve-card__label { color: var(--reference); }
+  .c-explanation { border-left: 3px solid var(--explanation); }
+  .c-explanation .ve-card__label { color: var(--explanation); }
+  .c-slate { border-left: 3px solid var(--slate); }
+  .c-slate .ve-card__label { color: var(--slate); }
+
+  /* ============ GRIDS ============ */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .gap-24 { gap: 24px; }
+
+  /* ============ QUADRANT GRID ============ */
+  .quadrant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 2px;
+    margin-bottom: 28px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .quadrant {
+    padding: 28px 24px;
+    position: relative;
+  }
+  .quadrant__corner {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    opacity: 0.6;
+  }
+  .quadrant__title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .quadrant__desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .quadrant__question {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--text);
+    opacity: 0.8;
+  }
+  .q-tutorial { background: var(--tutorial-dim); }
+  .q-tutorial .quadrant__title { color: var(--tutorial); }
+  .q-howto { background: var(--howto-dim); }
+  .q-howto .quadrant__title { color: var(--howto); }
+  .q-reference { background: var(--reference-dim); }
+  .q-reference .quadrant__title { color: var(--reference); }
+  .q-explanation { background: var(--explanation-dim); }
+  .q-explanation .quadrant__title { color: var(--explanation); }
+
+  /* Axis labels */
+  .axis-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 10px;
+  }
+
+  /* ============ NODE LIST ============ */
+  .node-list {
+    list-style: none;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .node-list li {
+    padding-left: 14px;
+    position: relative;
+  }
+  .node-list li::before {
+    content: '›';
+    color: var(--text-dim);
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+  }
+  .node-list code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ PRINCIPLE CARD ============ */
+  .principle {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .principle__num {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--text-dim);
+    opacity: 0.4;
+    flex-shrink: 0;
+    line-height: 1;
+    padding-top: 4px;
+    min-width: 28px;
+  }
+  .principle__body { flex: 1; min-width: 0; }
+  .principle__title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .principle__desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .principle__desc code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ CALLOUT ============ */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    margin: 20px 0;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  .callout strong { color: var(--text-bright); }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .callout--tutorial { border-color: var(--tutorial); background: var(--tutorial-dim); }
+  .callout--howto { border-color: var(--howto); background: var(--howto-dim); }
+  .callout--reference { border-color: var(--reference); background: var(--reference-dim); }
+  .callout--explanation { border-color: var(--explanation); background: var(--explanation-dim); }
+
+  /* ============ PULLQUOTE ============ */
+  .pullquote {
+    margin: 32px 0;
+    padding-left: 24px;
+    border-left: 3px solid var(--explanation);
+  }
+  .pullquote p {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--text-bright);
+    margin: 0;
+  }
+  .pullquote cite {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-style: normal;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  /* ============ TAG ============ */
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 1px 2px;
+  }
+  .tag--tutorial { background: var(--tutorial-dim); color: var(--tutorial); }
+  .tag--howto { background: var(--howto-dim); color: var(--howto); }
+  .tag--reference { background: var(--reference-dim); color: var(--reference); }
+  .tag--explanation { background: var(--explanation-dim); color: var(--explanation); }
+
+  /* ============ COLLAPSIBLE ============ */
+  details.collapsible {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  details.collapsible summary {
+    padding: 14px 20px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    transition: background 0.15s ease;
+  }
+  details.collapsible summary:hover { background: var(--surface-elevated); }
+  details.collapsible summary::-webkit-details-marker { display: none; }
+  details.collapsible summary::before {
+    content: '▸';
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: transform 0.15s ease;
+  }
+  details.collapsible[open] summary::before { transform: rotate(90deg); }
+  details.collapsible .collapsible__body {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  /* ============ MERMAID ============ */
+  .mermaid-wrap {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 360px;
+    cursor: grab;
+  }
+  .mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
+  .mermaid .nodeLabel { color: var(--text) !important; }
+  .mermaid .edgeLabel { color: var(--text-dim) !important; background-color: var(--bg) !important; }
+  .mermaid .edgeLabel rect { fill: var(--bg) !important; }
+  .mermaid .node rect, .mermaid .node circle, .mermaid .node polygon { stroke-width: 1.5px; }
+  .mermaid .edgeLabel { font-family: var(--font-mono) !important; font-size: 11px !important; }
+  .mermaid .nodeLabel { font-family: var(--font-body) !important; font-size: 14px !important; }
+  .zoom-controls {
+    position: absolute; top: 8px; right: 8px;
+    display: flex; gap: 2px; z-index: 10;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px;
+  }
+  .zoom-controls button {
+    width: 28px; height: 28px; border: none; background: transparent;
+    color: var(--text-dim); font-family: var(--font-mono); font-size: 14px;
+    cursor: pointer; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease;
+  }
+  .zoom-controls button:hover { background: var(--border); color: var(--text); }
+  .zoom-label {
+    font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+    padding: 0 6px; white-space: nowrap; display: flex; align-items: center;
+  }
+  .mermaid-viewport { position: relative; overflow: hidden; width: 100%; height: 100%; min-height: 300px; }
+  .mermaid-canvas { position: absolute; top: 0; left: 0; }
+  .diagram-shell { margin-bottom: 24px; }
+  .diagram-shell__hint {
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
+    margin-bottom: 8px; opacity: 0.7;
+  }
+
+  /* ============ DIVIDER ============ */
+  hr {
+    border: none; height: 1px; background: var(--border); margin: 40px 0;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; }
+    body { padding: 20px; }
+    .toc {
+      position: sticky; top: 0; z-index: 200; max-height: none;
+      display: flex; gap: 4px; align-items: center;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 10px 0; margin: 0 -20px; padding-left: 20px; padding-right: 20px;
+      grid-row: auto;
+    }
+    .toc::-webkit-scrollbar { display: none; }
+    .toc-title { display: none; }
+    .toc a {
+      white-space: nowrap; flex-shrink: 0; border-left: none;
+      border-bottom: 2px solid transparent; border-radius: 4px 4px 0 0;
+      padding: 6px 10px; font-size: 10px;
+    }
+    .toc a.active { border-left: none; border-bottom-color: var(--explanation); background: var(--surface); }
+    .main { padding-top: 20px; grid-column: 1; }
+    .sec-head { scroll-margin-top: 52px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .quadrant-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc" id="toc">
+    <div class="toc-title">Diátaxis</div>
+    <a href="#s0">The Framework</a>
+    <a href="#s1">Tutorial</a>
+    <a href="#s2">How-to</a>
+    <a href="#s3">Reference</a>
+    <a href="#s4">Explanation</a>
+    <a href="#s5">Design Decisions</a>
+    <a href="#s6">Cross-cutting</a>
+    <a href="#s7">Extension Map</a>
+  </nav>
+
+  <div class="main">
+
+    <!-- ====== HEADER ====== -->
+    <h1 class="anim" style="--i:0">Hermes Agent, Understood</h1>
+    <p class="subtitle anim" style="--i:1">Diátaxis documentation map &mdash; v0.6.0 &mdash; Nous Research</p>
+    <p class="lead anim" style="--i:2">
+      The C4 diagrams show <em>what</em> Hermes is built from and <em>how</em> parts connect.
+      This page fills in the rest: <em>why</em> the architecture is shaped this way, <em>how</em>
+      to extend it, the mental model a newcomer needs, and the reference surfaces for daily work.
+      It follows the <strong>Diátaxis</strong> framework &mdash; four documentation quadrants,
+      each serving a different human need.
+    </p>
+
+    <!-- ============================== -->
+    <!-- THE FRAMEWORK                  -->
+    <!-- ============================== -->
+    <div id="s0" class="sec-head anim" style="--i:3; color:var(--text-dim)">
+      <span class="dot" style="background:var(--text-dim)"></span> The Diátaxis Framework
+    </div>
+    <h2 class="anim" style="--i:4">Four kinds of documentation, four human needs</h2>
+    <p class="section-desc anim" style="--i:5">
+      Diátaxis identifies four modes of documentation that shouldn't be mixed.
+      Each has a different relationship to <strong>action vs. knowledge</strong> and
+      <strong>learning vs. working</strong>. Hermes needs all four.
+    </p>
+
+    <!-- The 2x2 quadrant -->
+    <div class="quadrant-grid anim" style="--i:6">
+      <div class="quadrant q-tutorial">
+        <div class="quadrant__corner">Practical + Learning</div>
+        <div class="quadrant__title">Tutorials</div>
+        <div class="quadrant__desc">Learning-oriented. Walk a newcomer through Hermes so they build a working mental model. Like a cooking lesson with a child.</div>
+        <div class="quadrant__question">"Walk me through this system"</div>
+      </div>
+      <div class="quadrant q-howto">
+        <div class="quadrant__corner">Practical + Working</div>
+        <div class="quadrant__title">How-to Guides</div>
+        <div class="quadrant__desc">Goal-oriented. Show how to accomplish specific tasks: add a tool, build a platform adapter, write a plugin. Like a recipe.</div>
+        <div class="quadrant__question">"How do I extend this?"</div>
+      </div>
+      <div class="quadrant q-explanation">
+        <div class="quadrant__corner">Theoretical + Learning</div>
+        <div class="quadrant__title">Explanation</div>
+        <div class="quadrant__desc">Understanding-oriented. Why the architecture is shaped this way. Design decisions, trade-offs, constraints. Readable in the bath.</div>
+        <div class="quadrant__question">"Why is it designed this way?"</div>
+      </div>
+      <div class="quadrant q-reference">
+        <div class="quadrant__corner">Theoretical + Working</div>
+        <div class="quadrant__title">Reference</div>
+        <div class="quadrant__desc">Information-oriented. Austere, factual, complete. Module maps, config keys, API surfaces. Like food packaging labels.</div>
+        <div class="quadrant__question">"Give me the facts"</div>
+      </div>
+    </div>
+
+    <div class="callout callout--explanation anim" style="--i:7">
+      <strong>Where C4 fits.</strong> The C4 architecture page you already have is predominantly
+      <span class="tag tag--reference">Reference</span> (component maps, data flows, tech stack) with
+      some <span class="tag tag--explanation">Explanation</span> (the "Key Data Flows" section).
+      This page fills the gaps &mdash; especially the deep Explanation and How-to quadrants
+      that component diagrams can't capture.
+    </div>
+
+    <!-- ============================== -->
+    <!-- TUTORIAL QUADRANT              -->
+    <!-- ============================== -->
+    <div id="s1" class="sec-head anim" style="--i:8; color:var(--tutorial)">
+      <span class="dot" style="background:var(--tutorial)"></span> Tutorial &mdash; The Mental Model
+    </div>
+    <h2 class="anim" style="--i:9">Think of Hermes as a switchboard operator</h2>
+
+    <div class="prose anim" style="--i:10">
+      <p>
+        Before diving into modules and code, build this picture in your head:
+      </p>
+      <p>
+        <strong>A message arrives</strong> &mdash; from a human typing in a terminal, a Telegram chat,
+        a Slack channel, an editor plugin, or a scheduled timer. It doesn't matter where it came from.
+        The message gets normalized into the same shape and handed to one thing: <strong>the Agent</strong>.
+      </p>
+      <p>
+        <strong>The Agent thinks</strong> &mdash; it assembles context (who is the user, what skills are available,
+        what do I remember from last time), packs it all into a system prompt, and sends it along with the
+        message to a Large Language Model. It streams the response back.
+      </p>
+      <p>
+        <strong>The Agent acts</strong> &mdash; if the LLM says "call the terminal tool with this command,"
+        the Agent executes it and feeds the result back. This loop repeats &mdash; think, act, think, act &mdash;
+        until the LLM produces a final text answer.
+      </p>
+      <p>
+        <strong>The answer goes back</strong> &mdash; routed to wherever the message came from. Telegram gets
+        a Telegram message, Discord gets a Discord message, the CLI gets streamed text.
+      </p>
+      <p>
+        That's the entire system. Everything else &mdash; the 30+ tools, the 16 platform adapters, the
+        credential pool, the context compressor, the cron scheduler &mdash; is <strong>supporting infrastructure</strong>
+        around this single loop.
+      </p>
+    </div>
+
+    <div class="ve-card ve-card--hero c-tutorial anim" style="--i:11; margin:20px 0">
+      <div class="ve-card__label">The three concentric rings</div>
+      <div class="grid-3 gap-24" style="margin:0">
+        <div>
+          <h3 style="color:var(--tutorial)">Ring 1: Entry Points</h3>
+          <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
+            CLI, Gateway, ACP, MCP Server. These accept messages from different worlds and
+            normalize them. They are <em>thin</em> &mdash; as little logic as possible.
+          </p>
+        </div>
+        <div>
+          <h3 style="color:var(--tutorial)">Ring 2: The Agent Core</h3>
+          <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
+            <code>AIAgent</code> + its intelligence modules. This is where decisions are made:
+            which model to call, how to build the prompt, when to compress, when to stop.
+          </p>
+        </div>
+        <div>
+          <h3 style="color:var(--tutorial)">Ring 3: The Tool Surface</h3>
+          <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
+            30+ tools that the Agent can invoke. Terminal, files, web, browser, memory, delegation.
+            Each is self-contained; the Agent doesn't know their internals.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout--tutorial anim" style="--i:12">
+      <strong>The key insight for newcomers:</strong> Hermes is NOT a monolith with 16 messaging
+      integrations. It's a single agent loop with a <em>pluggable front door</em> (platforms) and
+      a <em>pluggable toolkit</em> (tools). Everything else is glue.
+    </div>
+
+    <!-- ============================== -->
+    <!-- HOW-TO QUADRANT                -->
+    <!-- ============================== -->
+    <div id="s2" class="sec-head anim" style="--i:13; color:var(--howto)">
+      <span class="dot" style="background:var(--howto)"></span> How-to &mdash; Extension Points
+    </div>
+    <h2 class="anim" style="--i:14">How to extend Hermes</h2>
+    <p class="section-desc anim" style="--i:15">
+      Hermes has five well-defined extension surfaces. For each one: what it is,
+      when to use it, and what's involved.
+    </p>
+
+    <!-- Extension point cards -->
+    <div class="ve-card c-howto anim" style="--i:16; margin-bottom:16px">
+      <div class="ve-card__label">Add a New Tool (3 files)</div>
+      <div class="grid-2 gap-24" style="margin:0">
+        <div>
+          <div class="prose">
+            <p><strong>When:</strong> You need the agent to do something that requires end-to-end API key
+            integration, custom processing logic that must execute precisely, or binary data / streaming
+            / real-time events.</p>
+            <p><strong>Important:</strong> If it can be expressed as instructions + shell commands, make
+            it a <em>skill</em> instead. The answer is almost always skill, not tool.</p>
+          </div>
+        </div>
+        <div>
+          <ul class="node-list">
+            <li>Create <code>tools/your_tool.py</code> with schema + handler + <code>registry.register()</code></li>
+            <li>Add import to <code>model_tools.py</code> <code>_modules</code> list</li>
+            <li>Add to <code>toolsets.py</code> (<code>_HERMES_CORE_TOOLS</code> or new toolset)</li>
+            <li>Tools self-register at import time &mdash; no manifest file</li>
+            <li>Provide a <code>check_fn</code> for runtime availability gating</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="ve-card c-howto anim" style="--i:17; margin-bottom:16px">
+      <div class="ve-card__label">Add a Platform Adapter (1 class)</div>
+      <div class="grid-2 gap-24" style="margin:0">
+        <div>
+          <div class="prose">
+            <p><strong>When:</strong> You want Hermes to speak a new messaging platform
+            (e.g., Zulip, IRC, a custom webhook format).</p>
+            <p><strong>Interface:</strong> Subclass <code>BasePlatformAdapter</code> and implement three
+            abstract methods. You get media caching, session tracking, and interrupt support for free.</p>
+          </div>
+        </div>
+        <div>
+          <ul class="node-list">
+            <li>Required: <code>connect()</code> → bool</li>
+            <li>Required: <code>disconnect()</code> → None</li>
+            <li>Required: <code>send(chat_id, content, ...)</code> → SendResult</li>
+            <li>Optional: <code>send_image</code>, <code>send_voice</code>, <code>send_document</code>, <code>edit_message</code></li>
+            <li>Incoming messages emit <code>MessageEvent</code> (normalized format)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="ve-card c-howto anim" style="--i:18; margin-bottom:16px">
+      <div class="ve-card__label">Add an Execution Backend (1 class)</div>
+      <div class="grid-2 gap-24" style="margin:0">
+        <div>
+          <div class="prose">
+            <p><strong>When:</strong> You want the terminal tool to execute commands somewhere new
+            (e.g., Kubernetes pods, AWS Lambda, a custom sandbox).</p>
+            <p><strong>Interface:</strong> Subclass <code>BaseEnvironment</code>. Two methods.</p>
+          </div>
+        </div>
+        <div>
+          <ul class="node-list">
+            <li>Required: <code>execute(command, cwd, timeout)</code> → dict with output + returncode</li>
+            <li>Required: <code>cleanup()</code> → release resources</li>
+            <li>Shared helpers: <code>_prepare_command()</code>, <code>_timeout_result()</code></li>
+            <li>Register via <code>TERMINAL_ENV</code> environment variable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24 anim" style="--i:19">
+      <div class="ve-card c-howto">
+        <div class="ve-card__label">Write a Plugin (plugin.yaml + register)</div>
+        <ul class="node-list">
+          <li>Drop folder in <code>~/.hermes/plugins/&lt;name&gt;/</code></li>
+          <li>Provide <code>plugin.yaml</code> manifest + <code>__init__.py</code></li>
+          <li>Implement <code>register(ctx: PluginContext)</code></li>
+          <li><code>ctx.register_tool()</code> &mdash; add custom tools</li>
+          <li><code>ctx.register_hook()</code> &mdash; pre/post tool/LLM calls</li>
+          <li><code>ctx.inject_message()</code> &mdash; inject into conversation</li>
+          <li>Hooks: <code>pre_tool_call</code>, <code>post_tool_call</code>, <code>pre_llm_call</code>, <code>post_llm_call</code>, <code>on_session_start</code>, <code>on_session_end</code></li>
+        </ul>
+      </div>
+      <div class="ve-card c-howto">
+        <div class="ve-card__label">Create a Skill (SKILL.md)</div>
+        <ul class="node-list">
+          <li>Create <code>~/.hermes/skills/&lt;category&gt;/&lt;name&gt;/SKILL.md</code></li>
+          <li>YAML frontmatter + Markdown instructions</li>
+          <li>Can include <code>references/</code>, <code>templates/</code>, <code>scripts/</code></li>
+          <li>No code needed &mdash; just instructions the agent follows</li>
+          <li><strong>Prefer skills over tools</strong> for anything expressible as instructions + shell commands</li>
+          <li>Skills Hub available for community sharing</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- REFERENCE QUADRANT             -->
+    <!-- ============================== -->
+    <div id="s3" class="sec-head anim" style="--i:20; color:var(--reference)">
+      <span class="dot" style="background:var(--reference)"></span> Reference &mdash; Module Map
+    </div>
+    <h2 class="anim" style="--i:21">Where everything lives</h2>
+    <p class="section-desc anim" style="--i:22">
+      Factual, austere, meant to be consulted. The structure of the documentation
+      mirrors the structure of the code.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:23">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:520px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        graph TD
+          subgraph entry["Entry Layer"]
+            cli["cli.py<br/><small>7900 lines &middot; HermesCLI</small>"]
+            gwrun["gateway/run.py<br/><small>GatewayRunner</small>"]
+            acpsrv["acp_adapter/server.py<br/><small>ACP protocol</small>"]
+            mcpsrv["mcp_serve.py<br/><small>MCP stdio server</small>"]
+          end
+
+          subgraph core["Agent Core"]
+            runagent["run_agent.py<br/><small>8500 lines &middot; AIAgent</small>"]
+            promptb["agent/prompt_builder.py"]
+            compress["agent/context_compressor.py"]
+            routing["agent/smart_model_routing.py"]
+            creds["agent/credential_pool.py"]
+            pricing["agent/usage_pricing.py"]
+            cache["agent/prompt_caching.py"]
+          end
+
+          subgraph toolsys["Tool System"]
+            mt["model_tools.py"]
+            reg["tools/registry.py"]
+            ts["toolsets.py"]
+          end
+
+          subgraph state["State"]
+            sdb["hermes_state.py<br/><small>SQLite + FTS5</small>"]
+            mem["tools/memory_tool.py"]
+            config["hermes_cli/config.py"]
+          end
+
+          cli --> runagent
+          gwrun --> runagent
+          acpsrv --> runagent
+          mcpsrv --> runagent
+
+          runagent --> promptb
+          runagent --> compress
+          runagent --> routing
+          runagent --> creds
+          runagent --> mt
+
+          mt --> reg
+          mt --> ts
+
+          runagent --> sdb
+          runagent --> mem
+
+          classDef entry fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
+          classDef core fill:#0d948822,stroke:#0d9488,stroke-width:2px
+          classDef tool fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+          classDef st fill:#933eea11,stroke:#933eea44,stroke-width:1.5px
+
+          class cli,gwrun,acpsrv,mcpsrv entry
+          class runagent,promptb,compress,routing,creds,pricing,cache core
+          class mt,reg,ts tool
+          class sdb,mem,config st
+      </script>
+    </section>
+
+    <!-- Config reference -->
+    <details class="collapsible anim" style="--i:24">
+      <summary>Configuration Reference (config.yaml)</summary>
+      <div class="collapsible__body">
+        <div class="grid-2">
+          <div>
+            <h3>Core Settings</h3>
+            <ul class="node-list">
+              <li><code>model</code> &mdash; default LLM model identifier</li>
+              <li><code>provider</code> &mdash; LLM provider name</li>
+              <li><code>base_url</code> &mdash; custom API endpoint</li>
+              <li><code>api_key</code> &mdash; API key (prefer .env)</li>
+              <li><code>personality</code> &mdash; SOUL.md persona file</li>
+              <li><code>max_iterations</code> &mdash; agent loop budget (default: 90)</li>
+              <li><code>reasoning_effort</code> &mdash; xhigh/high/medium/low/none</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Terminal Settings</h3>
+            <ul class="node-list">
+              <li><code>terminal.backend</code> &mdash; local/docker/ssh/modal/daytona/singularity</li>
+              <li><code>terminal.timeout</code> &mdash; command timeout seconds</li>
+              <li><code>terminal.docker_image</code> &mdash; container image</li>
+              <li><code>terminal.container_persistent</code> &mdash; survive sessions</li>
+              <li><code>terminal.env_passthrough</code> &mdash; env vars to forward</li>
+            </ul>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div>
+            <h3>Compression</h3>
+            <ul class="node-list">
+              <li><code>compression.enabled</code> &mdash; auto-compress on/off</li>
+              <li><code>compression.threshold_percent</code> &mdash; trigger at % of context</li>
+              <li><code>compression.protect_last_n</code> &mdash; messages to protect</li>
+              <li><code>compression.summary_model</code> &mdash; override auxiliary model</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Auxiliary Models</h3>
+            <ul class="node-list">
+              <li><code>auxiliary.vision</code> &mdash; image analysis model</li>
+              <li><code>auxiliary.web_extract</code> &mdash; content extraction model</li>
+              <li><code>auxiliary.compression</code> &mdash; summarization model</li>
+              <li><code>auxiliary.approval</code> &mdash; command safety check model</li>
+              <li>Each has: model, provider, base_url, api_key, timeout</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="collapsible anim" style="--i:25">
+      <summary>File System Layout (~/.hermes/)</summary>
+      <div class="collapsible__body" style="font-family:var(--font-mono);font-size:12px;line-height:1.7;white-space:pre">~/.hermes/
+├── config.yaml          <span style="color:var(--text-dim)">— main configuration</span>
+├── .env                 <span style="color:var(--text-dim)">— API keys (0600 perms)</span>
+├── auth.json            <span style="color:var(--text-dim)">— credential pool state</span>
+├── SOUL.md              <span style="color:var(--text-dim)">— agent personality</span>
+├── MEMORY.md            <span style="color:var(--text-dim)">— agent knowledge store</span>
+├── USER.md              <span style="color:var(--text-dim)">— user profile store</span>
+├── state.db             <span style="color:var(--text-dim)">— SQLite sessions + messages</span>
+├── skills/              <span style="color:var(--text-dim)">— installed skills (SKILL.md files)</span>
+├── plugins/             <span style="color:var(--text-dim)">— user plugins</span>
+├── cron/
+│   ├── jobs.json        <span style="color:var(--text-dim)">— scheduled job definitions</span>
+│   └── output/          <span style="color:var(--text-dim)">— job execution logs</span>
+├── sessions/            <span style="color:var(--text-dim)">— legacy session files</span>
+├── profiles/            <span style="color:var(--text-dim)">— multi-instance profiles</span>
+└── hermes-agent/        <span style="color:var(--text-dim)">— the codebase itself</span></div>
+    </details>
+
+    <!-- ============================== -->
+    <!-- EXPLANATION QUADRANT           -->
+    <!-- ============================== -->
+    <div id="s4" class="sec-head anim" style="--i:26; color:var(--explanation)">
+      <span class="dot" style="background:var(--explanation)"></span> Explanation &mdash; Design Rationale
+    </div>
+    <h2 class="anim" style="--i:27">Why the architecture is shaped this way</h2>
+    <p class="section-desc anim" style="--i:28">
+      Every architectural choice has a trade-off. These are the ones that matter most
+      for understanding Hermes &mdash; the decisions that would confuse you if you didn't
+      know the reasoning.
+    </p>
+
+    <div class="pullquote anim" style="--i:29">
+      <p>Without explanation, the practitioner's knowledge of their craft is loose and fragmented,
+      and their exercise of it is anxious.</p>
+      <cite>&mdash; Diátaxis, on the value of explanation</cite>
+    </div>
+
+    <div id="s5" class="sec-head anim" style="--i:30; color:var(--explanation)">
+      <span class="dot" style="background:var(--explanation)"></span> Key Design Decisions
+    </div>
+
+    <div class="anim" style="--i:31">
+      <div class="principle">
+        <div class="principle__num">1</div>
+        <div class="principle__body">
+          <div class="principle__title">Prompt cache preservation is a first-class architectural concern</div>
+          <div class="principle__desc">
+            Anthropic's prompt caching charges dramatically less for cache hits than misses. This
+            single fact shapes multiple subsystems: <strong>Memory</strong> uses a "frozen snapshot" pattern
+            (injected at session start, writes go to disk only, never updating the system prompt mid-session).
+            <strong>Honcho integration</strong> appends to user messages rather than the system prompt to
+            preserve the stable prefix. <strong>Context compression</strong> is the ONLY operation allowed to
+            modify past context. The codebase explicitly documents: <em>"Do NOT implement changes that alter past
+            context, change toolsets, reload memories, or rebuild system prompts mid-conversation."</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">2</div>
+        <div class="principle__body">
+          <div class="principle__title">Skills over tools &mdash; almost always</div>
+          <div class="principle__desc">
+            A recurring architectural question: "Should this capability be a tool or a skill?" Hermes
+            draws a clear line. <strong>Tools</strong> are for: end-to-end API key integration, custom
+            processing logic that must execute precisely, binary data / streaming / real-time events.
+            <strong>Everything else</strong> &mdash; anything expressible as instructions + shell commands &mdash;
+            should be a skill. Skills are procedural memory (Markdown files). Tools are code. This keeps
+            the codebase small and the extension surface approachable.
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">3</div>
+        <div class="principle__body">
+          <div class="principle__title">Safety-first parallel execution</div>
+          <div class="principle__desc">
+            When the LLM returns multiple tool calls, the agent analyzes whether they can run in parallel.
+            It maintains three lists: <code>_PARALLEL_SAFE_TOOLS</code> (read-only tools),
+            <code>_NEVER_PARALLEL_TOOLS</code> (interactive tools like <code>clarify</code>), and
+            <code>_PATH_SCOPED_TOOLS</code> (safe only if targeting different file paths). The key
+            trade-off: <strong>if ANY tool in a batch is unknown or has unparseable args, the entire batch
+            falls back to sequential.</strong> Safety over speed, always.
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">4</div>
+        <div class="principle__body">
+          <div class="principle__title">Callback-based platform abstraction</div>
+          <div class="principle__desc">
+            <code>AIAgent</code> takes ~10 callback parameters: <code>stream_callback</code>,
+            <code>tool_progress</code>, <code>thinking</code>, <code>clarify</code>,
+            <code>step</code>, <code>status</code>, etc. This makes the agent completely platform-agnostic.
+            The CLI injects terminal spinners and prompt_toolkit rendering. The Gateway injects platform
+            message sending. ACP injects editor protocol responses. Same agent, different shells.
+            The trade-off: <code>AIAgent.__init__</code> has 50+ parameters. It's a "god class" in the
+            traditional sense, but it's cohesive around a single conversation lifecycle.
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">5</div>
+        <div class="principle__body">
+          <div class="principle__title">Self-registering tools eliminate the manifest</div>
+          <div class="principle__desc">
+            Each tool file calls <code>registry.register()</code> at module import time. The registry
+            (<code>tools/registry.py</code>) has zero imports from tool files &mdash; preventing circular
+            dependencies. Discovery happens when <code>model_tools.py</code> imports all tool modules.
+            This means adding a tool requires only creating the file, importing it, and declaring its toolset.
+            No central manifest to keep in sync. The trade-off: tool registration is a side effect of
+            importing, which is unusual in Python.
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">6</div>
+        <div class="principle__body">
+          <div class="principle__title">Pragmatic heuristics over perfect analysis</div>
+          <div class="principle__desc">
+            Destructive command detection (<code>_is_destructive_command()</code>) uses regex heuristics
+            for <code>rm</code>, <code>mv</code>, <code>dd</code>, <code>git reset --hard</code>.
+            Path overlap detection uses prefix comparison rather than inode resolution (because "the file
+            may not exist yet"). Context compression uses character limits, not token counts (because
+            "char counts are model-independent"). Smart model routing checks message length (&lt;160 chars,
+            &lt;28 words) and a keyword blocklist. These are all <strong>conscious simplicity choices</strong>
+            that trade precision for reliability and portability.
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">7</div>
+        <div class="principle__body">
+          <div class="principle__title">Subagents are deliberately restricted</div>
+          <div class="principle__desc">
+            Delegated children cannot: <code>delegate_task</code> (prevents fork bombs),
+            <code>clarify</code> (would confuse the user &mdash; they didn't talk to this agent),
+            <code>memory</code> (prevents shared state corruption), <code>send_message</code>
+            (no cross-platform side effects), <code>execute_code</code> (children should reason
+            step-by-step). Max depth is 2. Max concurrent children is 3. The parent only sees
+            the delegation call + summary result, never intermediate tool calls &mdash;
+            <strong>information hiding for context efficiency.</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="principle">
+        <div class="principle__num">8</div>
+        <div class="principle__body">
+          <div class="principle__title">Generous credential exhaustion cooldowns</div>
+          <div class="principle__desc">
+            When an API key hits a rate limit (HTTP 429), it's marked exhausted for <strong>1 hour</strong>.
+            When it hits a billing limit (HTTP 402), it's marked exhausted for <strong>24 hours</strong>.
+            These are intentionally generous &mdash; they avoid hammering providers at the cost of
+            potential under-utilization. The credential pool supports 4 selection strategies
+            (<code>fill_first</code>, <code>round_robin</code>, <code>random</code>,
+            <code>least_used</code>), with <code>fill_first</code> as default because it maximizes
+            provider-side cache hits.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- CROSS-CUTTING THEMES           -->
+    <!-- ============================== -->
+    <div id="s6" class="sec-head anim" style="--i:32; color:var(--slate)">
+      <span class="dot" style="background:var(--slate)"></span> Cross-cutting Architectural Themes
+    </div>
+    <h2 class="anim" style="--i:33">Patterns that show up everywhere</h2>
+
+    <div class="grid-2 gap-24 anim" style="--i:34">
+      <div class="ve-card c-explanation">
+        <div class="ve-card__label">Graceful Degradation</div>
+        <div class="prose">
+          <p>Config loading never crashes. Credential pool rotates on failure. Compression fires
+          automatically. Windows gets no-op stubs for Unix-only features (<code>fcntl</code> → <code>msvcrt</code>
+          fallback). Plugin hooks are fault-tolerant: each callback is wrapped in try/except so a
+          misbehaving plugin cannot break the core loop.</p>
+        </div>
+      </div>
+      <div class="ve-card c-explanation">
+        <div class="ve-card__label">Defense in Depth</div>
+        <div class="prose">
+          <p>Context files are scanned for prompt injection before ingestion. Memory entries are scanned
+          for exfiltration patterns (curl, SSH backdoors, invisible unicode). File permissions are
+          restrictive (0600 for secrets, 0700 for directories). The <code>tirith</code> binary does
+          pre-execution security scanning. Multiple layers, each catching different threat vectors.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24 anim" style="--i:35">
+      <div class="ve-card c-explanation">
+        <div class="ve-card__label">Ephemeral vs Persistent Separation</div>
+        <div class="prose">
+          <p>System prompts and prefill messages are injected at API call time but never persisted to the
+          database. <code>ephemeral_system_prompt</code> is used during execution but excluded from RL
+          training trajectories. This keeps stored conversations clean, reproducible, and free of
+          runtime-specific scaffolding.</p>
+        </div>
+      </div>
+      <div class="ve-card c-explanation">
+        <div class="ve-card__label">Profile Isolation</div>
+        <div class="prose">
+          <p><code>get_hermes_home()</code> is the SOLE accessor for the Hermes directory &mdash; <code>Path.home() / ".hermes"</code>
+          is never used directly. Profile switching sets <code>HERMES_HOME</code> before any module imports,
+          so all 119+ references resolve to the active profile. Profile operations themselves are
+          HOME-anchored (not HERMES_HOME), so <code>hermes -p coder profile list</code> can see all profiles.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- EXTENSION MAP (Mermaid)        -->
+    <!-- ============================== -->
+    <div id="s7" class="sec-head anim" style="--i:36; color:var(--howto)">
+      <span class="dot" style="background:var(--howto)"></span> Extension Surface Map
+    </div>
+    <h2 class="anim" style="--i:37">Where the pluggable boundaries are</h2>
+    <p class="section-desc anim" style="--i:38">
+      A visual summary of every extension point and what it takes to use each one.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:39">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:480px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        graph TD
+          subgraph extend["Extension Surfaces"]
+            skill["Skill<br/><small>SKILL.md file</small>"]
+            tool["Tool<br/><small>tools/*.py + register</small>"]
+            plugin["Plugin<br/><small>plugin.yaml + register(ctx)</small>"]
+            adapter["Platform Adapter<br/><small>BasePlatformAdapter subclass</small>"]
+            env["Exec Backend<br/><small>BaseEnvironment subclass</small>"]
+          end
+
+          subgraph effort["Implementation Effort"]
+            e1["Markdown only<br/><small>No code</small>"]
+            e2["1 Python file<br/><small>3 touch points</small>"]
+            e3["1 folder + 2 files<br/><small>Uses PluginContext API</small>"]
+            e4["1 Python class<br/><small>3 abstract methods</small>"]
+            e5["1 Python class<br/><small>2 abstract methods</small>"]
+          end
+
+          skill --> e1
+          tool --> e2
+          plugin --> e3
+          adapter --> e4
+          env --> e5
+
+          classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+          classDef eff fill:#933eea11,stroke:#933eea44,stroke-width:1px
+
+          class skill,tool,plugin,adapter,env ext
+          class e1,e2,e3,e4,e5 eff
+      </script>
+    </section>
+
+    <div class="callout callout--howto anim" style="--i:40">
+      <strong>Start with skills.</strong> If you're unsure whether you need a tool, plugin, or skill &mdash;
+      start with a skill. Skills are Markdown files with instructions. They require zero code,
+      zero restart, and can be iterated in seconds. Promote to a tool or plugin only when you
+      hit a capability wall (API keys, binary data, lifecycle hooks).
+    </div>
+
+    <hr class="anim" style="--i:41">
+
+    <div class="ve-card ve-card--recessed anim" style="--i:42; margin-bottom:60px">
+      <div class="ve-card__label" style="color:var(--text-dim)">Companion Pages</div>
+      <div class="prose">
+        <p>
+          <strong>C4 Architecture</strong> &mdash; <code>hermes-architecture.html</code> &mdash;
+          Component diagrams, container views, data flows, and the full technology stack.
+          That page is the <span class="tag tag--reference">Reference</span> complement to this one.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /wrap -->
+
+<!-- ====== MERMAID + ZOOM ENGINE ====== -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  const config = {
+    fitPadding: 28, minHeight: 360, maxHeightPx: 960, maxHeightVh: 0.84,
+    maxInitialZoom: 1.8, minZoom: 0.08, maxZoom: 6.5, zoomStep: 0.14,
+    readabilityFloor: 0.58
+  };
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  let activeDrag = null;
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+  mermaid.initialize({
+    startOnLoad: false, theme: 'base', look: 'classic',
+    themeVariables: {
+      fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+      fontSize: '14px',
+      primaryColor: isDark ? '#292524' : '#fafaf9',
+      primaryBorderColor: isDark ? '#a8a29e' : '#78716c',
+      primaryTextColor: isDark ? '#fafaf9' : '#1c1917',
+      secondaryColor: isDark ? '#1a2332' : '#f0f9ff',
+      secondaryBorderColor: isDark ? '#38bdf8' : '#0284c7',
+      secondaryTextColor: isDark ? '#fafaf9' : '#1c1917',
+      tertiaryColor: isDark ? '#2e2618' : '#fffbeb',
+      tertiaryBorderColor: isDark ? '#fbbf24' : '#d97706',
+      tertiaryTextColor: isDark ? '#fafaf9' : '#1c1917',
+      lineColor: isDark ? '#78716c' : '#a8a29e',
+      noteBkgColor: isDark ? '#292524' : '#fefce8',
+      noteTextColor: isDark ? '#fafaf9' : '#1c1917',
+      noteBorderColor: isDark ? '#fbbf24' : '#d97706',
+    }
+  });
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+    if (!wrap || !viewport || !canvas || !source || !label) return;
+
+    let zoom = 1, fitMode = 'contain', panX = 0, panY = 0, svgW = 0, svgH = 0;
+    let sx = 0, sy = 0, spx = 0, spy = 0, touchDist = 0, touchCx = 0, touchCy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const rW = svgW * zoom, rH = svgH * zoom, pad = config.fitPadding;
+      panX = (rW + pad * 2 <= vpW) ? (vpW - rW) / 2 : clamp(panX, vpW - rW - pad, pad);
+      panY = (rH + pad * 2 <= vpH) ? (vpH - rH) / 2 : clamp(panY, vpH - rH - pad, pad);
+    }
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+      constrainPan();
+      svg.style.width = (svgW * zoom) + 'px';
+      svg.style.height = (svgH * zoom) + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '% \u2014 ' + fitMode;
+    }
+    function canPan() {
+      return svgW * zoom + config.fitPadding * 2 > viewport.clientWidth
+          || svgH * zoom + config.fitPadding * 2 > viewport.clientHeight;
+    }
+    function computeSmartFit() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const aW = Math.max(80, vpW - config.fitPadding * 2);
+      const aH = Math.max(80, vpH - config.fitPadding * 2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+      let z = contain, mode = 'contain';
+      if (contain < config.readabilityFloor) {
+        if (svgH / svgW >= vpH / Math.max(vpW, 1)) { z = aW / svgW; mode = 'width-priority'; }
+        else { z = aH / svgH; mode = 'height-priority'; }
+      }
+      return { zoom: clamp(z, config.minZoom, config.maxInitialZoom), mode };
+    }
+    function fitDiagram() {
+      if (!svgW) return;
+      const fit = computeSmartFit();
+      zoom = fit.zoom; fitMode = fit.mode;
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function setOneToOne() {
+      zoom = clamp(1, config.minZoom, config.maxZoom); fitMode = '1:1';
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom);
+      const ratio = next / zoom;
+      panX = cx - ratio * (cx - panX); panY = cy - ratio * (cy - panY);
+      zoom = next; fitMode = 'custom'; applyTransform();
+    }
+    function readSvgNaturalSize(svg) {
+      let w = 0, h = 0;
+      if (svg.viewBox?.baseVal?.width > 0) { w = svg.viewBox.baseVal.width; h = svg.viewBox.baseVal.height; }
+      if (!w) { w = parseFloat(svg.getAttribute('width')) || 0; h = parseFloat(svg.getAttribute('height')) || 0; }
+      if (!w) { const b = svg.getBBox(); w = b.width; h = b.height; }
+      if (!w) { const r = svg.getBoundingClientRect(); w = r.width || 1000; h = r.height || 700; }
+      if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      return { w, h };
+    }
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const maxVp = Math.floor(innerHeight * config.maxHeightVh);
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, maxVp));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+    function openInNewTab() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true); clone.style.width = ''; clone.style.height = '';
+      const bg = isDark ? '#0c0a09' : '#fafaf9';
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Diagram</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:${bg};padding:40px;box-sizing:border-box}svg{max-width:100%;max-height:90vh;height:auto}</style></head><body>${clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+
+    async function render() {
+      try {
+        const code = source.textContent.trim();
+        if (!code) { label.textContent = 'Error: Empty source'; return; }
+        const id = 'diagram-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { svg } = await mermaid.render(id, code);
+        canvas.innerHTML = svg;
+        const svgNode = canvas.querySelector('svg');
+        if (!svgNode) { label.textContent = 'Error: No SVG'; return; }
+        const size = readSvgNaturalSize(svgNode);
+        svgW = size.w; svgH = size.h;
+        svgNode.removeAttribute('width'); svgNode.removeAttribute('height');
+        svgNode.style.maxWidth = 'none'; svgNode.style.display = 'block';
+        setAdaptiveHeight(); fitDiagram();
+      } catch (err) { console.error('Mermaid render failed:', err); label.textContent = 'Error: ' + (err.message || 'Render failed'); }
+    }
+
+    const actions = {
+      'zoom-in': () => zoomAround(1 + config.zoomStep, viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-out': () => zoomAround(1 / (1 + config.zoomStep), viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-fit': fitDiagram, 'zoom-one': setOneToOne, 'zoom-expand': openInNewTab
+    };
+    Object.entries(actions).forEach(([a, h]) => wrap.querySelector(`[data-action="${a}"]`)?.addEventListener('click', h));
+    viewport.addEventListener('dblclick', fitDiagram);
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const rect = viewport.getBoundingClientRect();
+        zoomAround(e.deltaY < 0 ? 1 + config.zoomStep : 1 / (1 + config.zoomStep), e.clientX - rect.left, e.clientY - rect.top);
+        return;
+      }
+      if (canPan()) { e.preventDefault(); panX -= e.deltaX; panY -= e.deltaY; applyTransform(); }
+    }, { passive: false });
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.zoom-controls') || !canPan()) return;
+      wrap.classList.add('is-panning'); sx = e.clientX; sy = e.clientY; spx = panX; spy = panY; e.preventDefault();
+      activeDrag = {
+        onMove: (ev) => { panX = spx + (ev.clientX - sx); panY = spy + (ev.clientY - sy); applyTransform(); },
+        onEnd: () => wrap.classList.remove('is-panning')
+      };
+    });
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY; }
+      else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDist = Math.sqrt(dx * dx + dy * dy);
+        const r = viewport.getBoundingClientRect();
+        touchCx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+        touchCy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      }
+    }, { passive: true });
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && canPan()) {
+        if (touchDist > 0) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY; touchDist = 0; }
+        e.preventDefault();
+        panX = spx + (e.touches[0].clientX - sx); panY = spy + (e.touches[0].clientY - sy); applyTransform();
+      } else if (e.touches.length === 2 && touchDist > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
+        const d = Math.sqrt(dx * dx + dy * dy); zoomAround(d / touchDist, touchCx, touchCy); touchDist = d;
+      }
+    }, { passive: false });
+    new ResizeObserver(() => { if (svgW) { setAdaptiveHeight(); fitDiagram(); } }).observe(wrap);
+    render();
+  }
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+
+<!-- ====== SCROLL SPY ====== -->
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  const links = toc.querySelectorAll('a');
+  const sections = [];
+  links.forEach(link => {
+    const id = link.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, link });
+  });
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = sections.find(s => s.el === entry.target);
+        if (match) {
+          match.link.classList.add('active');
+          if (window.innerWidth <= 1000) match.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  sections.forEach(s => observer.observe(s.el));
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const id = link.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); history.replaceState(null, '', '#' + id); }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
