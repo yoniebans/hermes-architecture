@@ -656,7 +656,11 @@
         <div class="kpi-card__label">Exec Backends</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--indigo)">4</div>
+        <div class="kpi-card__value" style="color:var(--indigo)">7</div>
+        <div class="kpi-card__label">Memory Providers</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--slate)">4</div>
         <div class="kpi-card__label">Deploy Modes</div>
       </div>
     </div>
@@ -711,7 +715,7 @@
           compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
-          honcho["Honcho Memory Service"]
+          memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +4</small>"]
           media["Media Services<br/><small>Fal.ai, ElevenLabs, Whisper</small>"]
 
           user -->|"CLI / Chat"| core
@@ -725,7 +729,7 @@
           core -->|"commands"| compute
           core -->|"browsing"| browser
           core -->|"tools"| mcpServers
-          core -->|"memory"| honcho
+          core -->|"memory"| memProviders
           core -->|"generation"| media
 
           classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
@@ -733,7 +737,7 @@
           classDef actor fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
 
           class user,editor,mcpClient,cron,rl actor
-          class llm,platforms,compute,browser,mcpServers,honcho,media ext
+          class llm,platforms,compute,browser,mcpServers,memProviders,media ext
           class core sys
       </script>
     </section>
@@ -788,6 +792,7 @@
           subgraph internals["Core Subsystems"]
             intel["Agent Intelligence<br/><small>agent/ subpackage</small>"]
             tools["Tool System<br/><small>tools/ + model_tools.py</small>"]
+            memprov["Memory Providers<br/><small>agent/memory_manager.py</small>"]
             state["State and Persistence<br/><small>SQLite + Files</small>"]
             cronmod["Cron Scheduler<br/><small>cron/</small>"]
           end
@@ -801,6 +806,7 @@
 
           core --> intel
           core --> tools
+          core --> memprov
           core --> state
           core -.-> cronmod
           core -.-> rlenv
@@ -812,7 +818,7 @@
 
           class cli,gw,acp,mcp entry
           class core core
-          class intel,tools,state,cronmod sub
+          class intel,tools,memprov,state,cronmod sub
           class rlenv opt
       </script>
     </section>
@@ -1216,7 +1222,7 @@
     <div id="s6" class="sec-head anim" style="--i:33; color:var(--amber)">
       <span class="dot" style="background:var(--amber)"></span> State &amp; Persistence
     </div>
-    <h2 class="anim" style="--i:34">Three memory tiers</h2>
+    <h2 class="anim" style="--i:34">Pluggable memory, built-in state</h2>
 
     <div class="grid-2 gap-24 anim" style="--i:35">
       <div class="ve-card c-amber">
@@ -1232,14 +1238,35 @@
         </ul>
       </div>
       <div class="ve-card c-emerald">
-        <div class="ve-card__label">File-based Memory</div>
+        <div class="ve-card__label">Built-in Memory (always on)</div>
         <ul class="node-list">
           <li><code>MEMORY.md</code> — agent knowledge notes</li>
           <li><code>USER.md</code> — user profile and prefs</li>
           <li>§-delimited entries, character-limited</li>
           <li>Snapshot frozen at session start</li>
           <li>Security scan on writes</li>
+          <li>Wrapped as <code>builtin_memory_provider.py</code></li>
         </ul>
+      </div>
+    </div>
+
+    <!-- Memory Provider layer -->
+    <div class="ve-card ve-card--hero c-indigo anim" style="--i:35; margin-bottom:20px">
+      <div class="ve-card__label">Pluggable Memory Providers (MemoryProvider ABC)</div>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:12px">
+        One external provider active alongside built-in memory. Managed by <code>agent/memory_manager.py</code>.
+        Providers live in <code>plugins/memory/&lt;name&gt;/</code> with lifecycle hooks:
+        <code>on_pre_compress()</code>, <code>on_delegation()</code>, session-scoped <code>session_id</code>.
+        Prefetch cached once before tool loop to avoid latency spikes. Non-blocking sync via threads.
+      </p>
+      <div style="display:flex; flex-wrap:wrap; gap:6px">
+        <span class="tag tag--indigo">Honcho</span>
+        <span class="tag tag--indigo">OpenViking</span>
+        <span class="tag tag--indigo">Mem0</span>
+        <span class="tag tag--indigo">Hindsight</span>
+        <span class="tag tag--indigo">Holographic</span>
+        <span class="tag tag--indigo">RetainDB</span>
+        <span class="tag tag--indigo">ByteRover</span>
       </div>
     </div>
 
@@ -1253,14 +1280,14 @@
           <li>Optional skills directory</li>
         </ul>
       </div>
-      <div class="ve-card c-indigo">
-        <div class="ve-card__label">Honcho (Optional)</div>
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Configuration</div>
         <ul class="node-list">
-          <li>AI-native user modeling service</li>
-          <li>Peer identity system</li>
-          <li>Session strategies: per-dir, repo, global</li>
-          <li>Memory modes: hybrid, honcho, local</li>
-          <li>Async write + context prefetch</li>
+          <li><code>config.yaml</code> — main settings + memory provider selection</li>
+          <li><code>.env</code> — API keys (0600 perms)</li>
+          <li><code>auth.json</code> — credential pool state</li>
+          <li><code>hermes memory setup</code> — interactive provider wizard</li>
+          <li><code>hermes memory status</code> / <code>hermes memory off</code></li>
         </ul>
       </div>
     </div>

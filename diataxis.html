@@ -710,6 +710,7 @@
           <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
             <code>AIAgent</code> + its intelligence modules. This is where decisions are made:
             which model to call, how to build the prompt, when to compress, when to stop.
+            A <code>MemoryManager</code> orchestrates pluggable memory providers alongside the built-in store.
           </p>
         </div>
         <div>
@@ -809,7 +810,33 @@
       </div>
     </div>
 
-    <div class="grid-2 gap-24 anim" style="--i:19">
+    <div class="ve-card c-howto anim" style="--i:19; margin-bottom:16px">
+      <div class="ve-card__label">Write a Memory Provider (MemoryProvider ABC)</div>
+      <div class="grid-2 gap-24" style="margin:0">
+        <div>
+          <div class="prose">
+            <p><strong>When:</strong> You want to plug in a new long-term memory backend
+            (e.g., a vector database, a knowledge graph, a custom cloud service).</p>
+            <p><strong>Interface:</strong> Subclass <code>MemoryProvider</code> ABC from
+            <code>agent/memory_provider.py</code>. Implement lifecycle hooks. Drop into
+            <code>plugins/memory/&lt;name&gt;/</code>.</p>
+          </div>
+        </div>
+        <div>
+          <ul class="node-list">
+            <li>Provide <code>plugin.yaml</code> + <code>__init__.py</code> with <code>register()</code></li>
+            <li>Lifecycle hooks: session start/end, pre/post tool calls</li>
+            <li><code>on_pre_compress()</code> → inject insights into summaries</li>
+            <li><code>on_delegation()</code> → notified of subagent tasks</li>
+            <li><code>session_id</code> on all hooks for concurrent scoping</li>
+            <li>Prefetch is cached once per tool loop (latency-safe)</li>
+            <li>7 shipped providers as reference implementations</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24 anim" style="--i:20">
       <div class="ve-card c-howto">
         <div class="ve-card__label">Write a Plugin (plugin.yaml + register)</div>
         <ul class="node-list">
@@ -879,8 +906,8 @@
             compress["agent/context_compressor.py"]
             routing["agent/smart_model_routing.py"]
             creds["agent/credential_pool.py"]
-            pricing["agent/usage_pricing.py"]
-            cache["agent/prompt_caching.py"]
+            memmgr["agent/memory_manager.py"]
+            memabc["agent/memory_provider.py<br/><small>ABC</small>"]
           end
 
           subgraph toolsys["Tool System"]
@@ -904,6 +931,8 @@
           runagent --> compress
           runagent --> routing
           runagent --> creds
+          runagent --> memmgr
+          memmgr --> memabc
           runagent --> mt
 
           mt --> reg
@@ -918,7 +947,7 @@
           classDef st fill:#933eea11,stroke:#933eea44,stroke-width:1.5px
 
           class cli,gwrun,acpsrv,mcpsrv entry
-          class runagent,promptb,compress,routing,creds,pricing,cache core
+          class runagent,promptb,compress,routing,creds,memmgr,memabc core
           class mt,reg,ts tool
           class sdb,mem,config st
       </script>
@@ -1144,6 +1173,28 @@
           </div>
         </div>
       </div>
+
+      <div class="principle">
+        <div class="principle__num">9</div>
+        <div class="principle__body">
+          <div class="principle__title">Pluggable memory replaces hardcoded Honcho</div>
+          <div class="principle__desc">
+            Honcho was originally a deeply integrated subsystem (<code>honcho_integration/</code> with
+            ~1,000 lines in the core). PR #4623 extracted it into a <strong>pluggable provider interface</strong>
+            &mdash; <code>MemoryProvider</code> ABC in <code>agent/memory_provider.py</code>, orchestrated
+            by <code>agent/memory_manager.py</code>. Honcho became just one of 7 provider plugins living
+            in <code>plugins/memory/</code>. This follows the same pattern as platform adapters and execution
+            backends: an abstract base class, multiple implementations, one active at a time. Key design
+            choices: built-in memory (<code>MEMORY.md</code>/<code>USER.md</code>) is <strong>always on</strong>
+            alongside the external provider. <code>prefetch_all()</code> is cached once before the tool loop
+            to prevent 10x latency spikes. Memory sync is non-blocking via threads. The ABC includes
+            <code>on_pre_compress()</code> (inject insights into compression summaries) and
+            <code>on_delegation()</code> (parent notified of subagent results) &mdash; hooks that were
+            missing from the original Honcho integration. Cron and gateway flush agents use
+            <code>skip_memory=True</code> to prevent system prompts from being ingested as user data.
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ============================== -->
@@ -1230,6 +1281,7 @@
             skill["Skill<br/><small>SKILL.md file</small>"]
             tool["Tool<br/><small>tools/*.py + register</small>"]
             plugin["Plugin<br/><small>plugin.yaml + register(ctx)</small>"]
+            memplugin["Memory Provider<br/><small>MemoryProvider ABC</small>"]
             adapter["Platform Adapter<br/><small>BasePlatformAdapter subclass</small>"]
             env["Exec Backend<br/><small>BaseEnvironment subclass</small>"]
           end
@@ -1238,6 +1290,7 @@
             e1["Markdown only<br/><small>No code</small>"]
             e2["1 Python file<br/><small>3 touch points</small>"]
             e3["1 folder + 2 files<br/><small>Uses PluginContext API</small>"]
+            e3b["1 folder + 2 files<br/><small>Lifecycle hooks + ABC</small>"]
             e4["1 Python class<br/><small>3 abstract methods</small>"]
             e5["1 Python class<br/><small>2 abstract methods</small>"]
           end
@@ -1245,14 +1298,15 @@
           skill --> e1
           tool --> e2
           plugin --> e3
+          memplugin --> e3b
           adapter --> e4
           env --> e5
 
           classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
           classDef eff fill:#933eea11,stroke:#933eea44,stroke-width:1px
 
-          class skill,tool,plugin,adapter,env ext
-          class e1,e2,e3,e4,e5 eff
+          class skill,tool,plugin,memplugin,adapter,env ext
+          class e1,e2,e3,e3b,e4,e5 eff
       </script>
     </section>
 
