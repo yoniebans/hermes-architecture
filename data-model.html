@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent — Data Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============ THEME — Blueprint aesthetic (amber accent) ============ */
+  :root {
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'Fira Code', 'SF Mono', Consolas, monospace;
+
+    --bg: #f1f5f9;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --surface-elevated: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --border-bright: rgba(15, 23, 42, 0.16);
+    --text: #0f172a;
+    --text-dim: #64748b;
+    --text-bright: #0f172a;
+
+    --accent: #d97706;
+    --accent-dim: rgba(217, 119, 6, 0.08);
+    --teal: #0d9488;
+    --teal-dim: rgba(13, 148, 136, 0.08);
+    --sky: #0284c7;
+    --sky-dim: rgba(2, 132, 199, 0.08);
+    --amber: #d97706;
+    --amber-dim: rgba(217, 119, 6, 0.08);
+    --rose: #e11d48;
+    --rose-dim: rgba(225, 29, 72, 0.06);
+    --emerald: #059669;
+    --emerald-dim: rgba(5, 150, 105, 0.08);
+    --indigo: #4f46e5;
+    --indigo-dim: rgba(79, 70, 229, 0.08);
+    --slate: #475569;
+    --slate-dim: rgba(71, 85, 105, 0.08);
+
+    --green: #059669;
+    --green-dim: rgba(5, 150, 105, 0.1);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.1);
+    --orange: #d97706;
+    --orange-dim: rgba(217, 119, 6, 0.1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c1222;
+      --surface: #151d2e;
+      --surface2: #1a2538;
+      --surface-elevated: #1e2a40;
+      --border: rgba(148, 163, 184, 0.08);
+      --border-bright: rgba(148, 163, 184, 0.16);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-bright: #f1f5f9;
+
+      --accent: #fbbf24;
+      --accent-dim: rgba(251, 191, 36, 0.1);
+      --teal: #2dd4bf;
+      --teal-dim: rgba(45, 212, 191, 0.12);
+      --sky: #38bdf8;
+      --sky-dim: rgba(56, 189, 248, 0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.1);
+      --rose: #fb7185;
+      --rose-dim: rgba(251, 113, 133, 0.1);
+      --emerald: #34d399;
+      --emerald-dim: rgba(52, 211, 153, 0.1);
+      --indigo: #818cf8;
+      --indigo-dim: rgba(129, 140, 248, 0.1);
+      --slate: #94a3b8;
+      --slate-dim: rgba(148, 163, 184, 0.1);
+
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.12);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.12);
+      --orange: #fbbf24;
+      --orange-dim: rgba(251, 191, 36, 0.12);
+    }
+  }
+
+  /* ============ RESET ============ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============ LAYOUT ============ */
+  .page-grid {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    max-width: 1440px;
+    margin: 0 auto;
+    gap: 0 2rem;
+    min-height: 100vh;
+  }
+  @media (max-width: 1000px) {
+    .page-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ============ TOC SIDEBAR ============ */
+  #toc {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+    padding: 1rem 0;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+  }
+  #toc a {
+    display: block;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  #toc a:hover { color: var(--accent); }
+  #toc a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  @media (max-width: 1000px) {
+    #toc {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+      max-height: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    #toc a {
+      white-space: nowrap;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.6rem 0.9rem;
+    }
+    #toc a.active { border-bottom-color: var(--accent); border-left: none; }
+  }
+
+  /* ============ MAIN CONTENT ============ */
+  main { padding: 2rem 1.5rem 4rem; min-width: 0; }
+  section { margin-bottom: 4rem; }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+  h2 {
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 1rem;
+    color: var(--text-bright);
+  }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text-bright);
+  }
+
+  .subtitle {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    color: var(--text-dim);
+    max-width: 48ch;
+    margin-bottom: 2rem;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2em 0.65em;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ============ CARDS ============ */
+  .ve-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .ve-card:hover { border-color: var(--border-bright); }
+  .ve-card h3 { margin-top: 0; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .card-grid .ve-card { margin-bottom: 0; }
+
+  /* KPI row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .kpi .number {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+  .kpi .label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* ============ TABLE SCHEMA CARDS ============ */
+  .schema-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+  }
+  .schema-table th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--border-bright);
+  }
+  .schema-table td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .schema-table tr:last-child td { border-bottom: none; }
+  .col-name {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .col-type {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .col-pk {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    background: var(--amber-dim);
+    color: var(--amber);
+  }
+  .col-fk {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    background: var(--sky-dim);
+    color: var(--sky);
+  }
+  .col-idx {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    background: var(--teal-dim);
+    color: var(--teal);
+  }
+  .col-version {
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    background: var(--slate-dim);
+    color: var(--slate);
+  }
+
+  /* ============ CODE BLOCKS ============ */
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--surface2);
+    padding: 0.15em 0.35em;
+    border-radius: 4px;
+  }
+  pre code { background: none; padding: 0; }
+
+  /* ============ MERMAID DIAGRAM SHELL ============ */
+  .diagram-shell { margin: 1.25rem 0; }
+  .diagram-title {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .mermaid-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    height: 520px;
+    min-height: 320px;
+  }
+  .mermaid-viewport {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: grab;
+  }
+  .mermaid-viewport:active,
+  .is-panning .mermaid-viewport { cursor: grabbing; }
+  .mermaid-canvas {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    will-change: transform;
+    transform-origin: 0 0;
+  }
+  .mermaid-canvas svg {
+    display: block;
+    max-width: none !important;
+    height: auto;
+  }
+  .zoom-controls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.3rem;
+    z-index: 10;
+  }
+  .zoom-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text-dim);
+    font: 600 0.85rem var(--font-mono);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .zoom-label {
+    position: absolute;
+    bottom: 0.4rem;
+    left: 0.6rem;
+    font: 500 0.7rem var(--font-mono);
+    color: var(--text-dim);
+    opacity: 0.7;
+  }
+  .diagram-source { display: none; }
+
+  /* ============ TREE DIAGRAM (CSS) ============ */
+  .tree { margin: 1rem 0; }
+  .tree ul {
+    list-style: none;
+    padding-left: 1.5rem;
+    position: relative;
+  }
+  .tree > ul { padding-left: 0; }
+  .tree li {
+    position: relative;
+    padding: 0.2rem 0 0.2rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+  .tree li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: var(--border-bright);
+  }
+  .tree li::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.85em;
+    width: 0.9rem;
+    height: 1px;
+    background: var(--border-bright);
+  }
+  .tree li:last-child::before { height: 0.85em; }
+  .tree .dir { color: var(--accent); font-weight: 600; }
+  .tree .file { color: var(--text-dim); }
+  .tree .required { color: var(--emerald); font-weight: 600; }
+  .tree .optional { color: var(--slate); }
+
+  /* ============ CONFIG LAYER DIAGRAM ============ */
+  .config-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 1.5rem 0;
+  }
+  .config-layer {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+    position: relative;
+  }
+  .config-layer:first-child { border-radius: 10px 10px 0 0; }
+  .config-layer:last-child { border-radius: 0 0 10px 10px; }
+  .config-layer + .config-layer { border-top: none; }
+  .config-layer .layer-label {
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+  }
+  .config-layer .layer-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  .layer-runtime { background: var(--amber-dim); }
+  .layer-runtime .layer-label { color: var(--amber); }
+  .layer-env { background: var(--teal-dim); }
+  .layer-env .layer-label { color: var(--teal); }
+  .layer-user { background: var(--sky-dim); }
+  .layer-user .layer-label { color: var(--sky); }
+  .layer-default { background: var(--slate-dim); }
+  .layer-default .layer-label { color: var(--slate); }
+  .layer-arrow {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    padding: 0.15rem 0;
+  }
+
+  /* ============ COMPANION FOOTER ============ */
+  .companion-footer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 3rem;
+  }
+  .companion-footer h3 { margin-top: 0; }
+  .companion-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .companion-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .companion-link:hover { border-color: var(--accent); color: var(--accent); }
+  .companion-link .icon { font-size: 1.1rem; }
+
+  /* ============ ANIMATION ============ */
+  .anim {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: fadeUp 0.55s ease-out forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: none; }
+  }
+  .anim { animation-delay: calc(var(--i, 0) * 0.06s); }
+
+  /* ============ MISC ============ */
+  .note {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    padding: 0.75rem 1rem;
+    background: var(--amber-dim);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    margin: 1rem 0;
+  }
+  .flex-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+</style>
+</head>
+<body>
+
+<div class="page-grid">
+
+<!-- ====== TOC ====== -->
+<nav id="toc">
+  <a href="#overview">Overview</a>
+  <a href="#entity-map">Entity Map</a>
+  <a href="#sqlite-schema">SQLite Schema</a>
+  <a href="#message-format">Message Format</a>
+  <a href="#tool-registry">Tool Registry</a>
+  <a href="#skill-structure">Skill Structure</a>
+  <a href="#config-hierarchy">Config Hierarchy</a>
+  <a href="#memory-providers">Memory Providers</a>
+</nav>
+
+<!-- ====== MAIN ====== -->
+<main>
+
+<!-- ──────── HERO ──────── -->
+<section id="overview">
+  <div class="badge anim" style="--i:0">Data Model</div>
+  <h1 class="anim" style="--i:1">Hermes Agent</h1>
+  <p class="subtitle anim" style="--i:2">Entities, schemas, and the structures that hold everything together</p>
+
+  <div class="kpi-row anim" style="--i:3">
+    <div class="kpi"><span class="number">4</span><span class="label">SQLite tables</span></div>
+    <div class="kpi"><span class="number">40+</span><span class="label">Config keys</span></div>
+    <div class="kpi"><span class="number">40+</span><span class="label">Registered tools</span></div>
+    <div class="kpi"><span class="number">22</span><span class="label">Toolset groups</span></div>
+    <div class="kpi"><span class="number">6</span><span class="label">Schema versions</span></div>
+    <div class="kpi"><span class="number">8</span><span class="label">Auxiliary tasks</span></div>
+  </div>
+
+  <div class="ve-card anim" style="--i:4">
+    <h3>Reading Guide</h3>
+    <p style="font-size:0.9rem;color:var(--text-dim)">
+      This page documents the <strong>data structures</strong> at the heart of Hermes Agent &mdash;
+      the database schema that persists sessions and messages, the message format that flows between
+      the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file
+      format, the layered configuration system, and the pluggable memory provider interface.
+      Each section has ER or class diagrams you can zoom and pan.
+    </p>
+    <p style="font-size:0.82rem;color:var(--text-dim);margin-top:0.5rem">
+      For how these structures <em>interact over time</em>, see
+      <a href="hermes-sequences.html" style="color:var(--accent)">Interaction Sequences</a>.
+      For the high-level system overview, see
+      <a href="hermes-architecture.html" style="color:var(--accent)">C4 Architecture</a>.
+    </p>
+  </div>
+</section>
+
+<!-- ──────── ENTITY MAP ──────── -->
+<section id="entity-map">
+  <div class="badge anim" style="--i:5">Domain Entities</div>
+  <h2 class="anim" style="--i:6">Core Entity Map</h2>
+  <p class="anim" style="--i:7" style="color:var(--text-dim);margin-bottom:1rem;font-size:0.92rem">
+    The seven key entities and how they relate. Sessions contain messages, tools are grouped into
+    toolsets, skills live on disk, config layers override each other, and memory providers plug in.
+  </p>
+
+  <div class="diagram-shell anim" style="--i:8">
+    <div class="diagram-title">Entity Relationship Overview</div>
+    <div class="mermaid-wrap">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+erDiagram
+    SESSION ||--o{ MESSAGE : contains
+    SESSION ||--o| SESSION : "parent (compression)"
+    SESSION }o--|| PLATFORM : "source"
+    MESSAGE }o--o{ TOOL_CALL : "carries"
+    TOOL_CALL }o--|| TOOL_ENTRY : "dispatches to"
+    TOOL_ENTRY }o--|| TOOLSET : "belongs to"
+    TOOLSET }o--o{ TOOLSET : "includes (composite)"
+    CONFIG ||--|| AUXILIARY_TASK : "configures"
+    MEMORY_PROVIDER ||--o{ TOOL_ENTRY : "registers"
+    SKILL |o--o{ SKILL : "related_skills"
+
+    SESSION {
+        text id PK
+        text source
+        text model
+        text title
+        text parent_session_id FK
+        real started_at
+        real ended_at
+        int message_count
+        int tool_call_count
+        int input_tokens
+        int output_tokens
+        real estimated_cost_usd
+    }
+
+    MESSAGE {
+        int id PK
+        text session_id FK
+        text role
+        text content
+        text tool_call_id
+        text tool_calls
+        text tool_name
+        real timestamp
+        int token_count
+        text finish_reason
+        text reasoning
+    }
+
+    TOOL_ENTRY {
+        text name PK
+        text toolset
+        dict schema
+        fn handler
+        fn check_fn
+        list requires_env
+        bool is_async
+        text emoji
+    }
+
+    TOOLSET {
+        text name PK
+        text description
+        list tools
+        list includes
+    }
+
+    SKILL {
+        text name PK
+        text description
+        text version
+        text category
+        list tags
+        list dependencies
+    }
+
+    CONFIG {
+        text key PK
+        any value
+        text source_layer
+    }
+
+    AUXILIARY_TASK {
+        text task PK
+        text provider
+        text model
+        text base_url
+        int timeout
+    }
+
+    MEMORY_PROVIDER {
+        text name PK
+        bool is_external
+        list tool_schemas
+        text system_prompt
+    }
+
+    PLATFORM {
+        text name PK
+        text toolset
+    }
+      </script>
+    </div>
+  </div>
+</section>
+
+<!-- ──────── SQLITE SCHEMA ──────── -->
+<section id="sqlite-schema">
+  <div class="badge anim" style="--i:10">Persistence</div>
+  <h2 class="anim" style="--i:11">SQLite Schema</h2>
+  <p class="anim" style="--i:12" style="color:var(--text-dim);font-size:0.92rem;margin-bottom:1rem">
+    All state lives in <code>~/.hermes/state.db</code> &mdash; a SQLite database with WAL mode for
+    concurrent reads. Schema version 6. FTS5 for full-text search across messages.
+  </p>
+
+  <div class="note anim" style="--i:13">
+    <strong>Write contention:</strong> Uses <code>BEGIN IMMEDIATE</code> transactions with jitter retry
+    (15 retries, 20&ndash;150ms random sleep). Passive WAL checkpoint every 50 writes.
+    <code>PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;</code>
+  </div>
+
+  <!-- sessions table -->
+  <div class="ve-card anim" style="--i:14">
+    <h3 style="display:flex;align-items:center;gap:0.5rem">
+      <span style="color:var(--amber)">&#9632;</span> sessions
+      <span class="col-version">v1 + v3 + v4 + v5</span>
+    </h3>
+    <table class="schema-table">
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><span class="col-name">id</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-pk">PK</span> UUID</td></tr>
+        <tr><td><span class="col-name">source</span></td><td><span class="col-type">TEXT NOT NULL</span></td><td><span class="col-idx">IDX</span> "cli", "telegram", "discord", etc.</td></tr>
+        <tr><td><span class="col-name">user_id</span></td><td><span class="col-type">TEXT</span></td><td>Platform user identifier</td></tr>
+        <tr><td><span class="col-name">model</span></td><td><span class="col-type">TEXT</span></td><td>LLM model slug</td></tr>
+        <tr><td><span class="col-name">model_config</span></td><td><span class="col-type">TEXT</span></td><td>JSON-encoded dict</td></tr>
+        <tr><td><span class="col-name">system_prompt</span></td><td><span class="col-type">TEXT</span></td><td>Frozen at session start for cache</td></tr>
+        <tr><td><span class="col-name">parent_session_id</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-fk">FK</span> <span class="col-idx">IDX</span> Compression chain link</td></tr>
+        <tr><td><span class="col-name">started_at</span></td><td><span class="col-type">REAL NOT NULL</span></td><td><span class="col-idx">IDX</span> Epoch timestamp, DESC</td></tr>
+        <tr><td><span class="col-name">ended_at</span></td><td><span class="col-type">REAL</span></td><td>NULL while active</td></tr>
+        <tr><td><span class="col-name">end_reason</span></td><td><span class="col-type">TEXT</span></td><td>"user", "max_iterations", etc.</td></tr>
+        <tr><td><span class="col-name">message_count</span></td><td><span class="col-type">INTEGER</span></td><td>Default 0</td></tr>
+        <tr><td><span class="col-name">tool_call_count</span></td><td><span class="col-type">INTEGER</span></td><td>Default 0</td></tr>
+        <tr><td><span class="col-name">input_tokens</span></td><td><span class="col-type">INTEGER</span></td><td>Default 0</td></tr>
+        <tr><td><span class="col-name">output_tokens</span></td><td><span class="col-type">INTEGER</span></td><td>Default 0</td></tr>
+        <tr><td><span class="col-name">cache_read_tokens</span></td><td><span class="col-type">INTEGER</span></td><td><span class="col-version">v5</span> Anthropic cache hits</td></tr>
+        <tr><td><span class="col-name">cache_write_tokens</span></td><td><span class="col-type">INTEGER</span></td><td><span class="col-version">v5</span> Anthropic cache writes</td></tr>
+        <tr><td><span class="col-name">reasoning_tokens</span></td><td><span class="col-type">INTEGER</span></td><td><span class="col-version">v5</span> Extended thinking tokens</td></tr>
+        <tr><td><span class="col-name">billing_provider</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">billing_base_url</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">billing_mode</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">estimated_cost_usd</span></td><td><span class="col-type">REAL</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">actual_cost_usd</span></td><td><span class="col-type">REAL</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">cost_status</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">cost_source</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">pricing_version</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
+        <tr><td><span class="col-name">title</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v3</span> <span class="col-idx">UNIQUE</span> partial (WHERE NOT NULL)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- messages table -->
+  <div class="ve-card anim" style="--i:15">
+    <h3 style="display:flex;align-items:center;gap:0.5rem">
+      <span style="color:var(--sky)">&#9632;</span> messages
+      <span class="col-version">v1 + v2 + v6</span>
+    </h3>
+    <table class="schema-table">
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><span class="col-name">id</span></td><td><span class="col-type">INTEGER</span></td><td><span class="col-pk">PK</span> AUTOINCREMENT</td></tr>
+        <tr><td><span class="col-name">session_id</span></td><td><span class="col-type">TEXT NOT NULL</span></td><td><span class="col-fk">FK</span> <span class="col-idx">IDX</span> Composite with timestamp</td></tr>
+        <tr><td><span class="col-name">role</span></td><td><span class="col-type">TEXT NOT NULL</span></td><td>system | user | assistant | tool</td></tr>
+        <tr><td><span class="col-name">content</span></td><td><span class="col-type">TEXT</span></td><td>Message text (also indexed in FTS5)</td></tr>
+        <tr><td><span class="col-name">tool_call_id</span></td><td><span class="col-type">TEXT</span></td><td>Links tool result to its call</td></tr>
+        <tr><td><span class="col-name">tool_calls</span></td><td><span class="col-type">TEXT</span></td><td>JSON-encoded array of tool calls</td></tr>
+        <tr><td><span class="col-name">tool_name</span></td><td><span class="col-type">TEXT</span></td><td>Which tool produced this result</td></tr>
+        <tr><td><span class="col-name">timestamp</span></td><td><span class="col-type">REAL NOT NULL</span></td><td>Epoch timestamp</td></tr>
+        <tr><td><span class="col-name">token_count</span></td><td><span class="col-type">INTEGER</span></td><td>Estimated tokens</td></tr>
+        <tr><td><span class="col-name">finish_reason</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v2</span> stop | length | tool_calls</td></tr>
+        <tr><td><span class="col-name">reasoning</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> Extended thinking content</td></tr>
+        <tr><td><span class="col-name">reasoning_details</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> JSON-encoded details</td></tr>
+        <tr><td><span class="col-name">codex_reasoning_items</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> JSON-encoded Codex items</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FTS5 + triggers -->
+  <div class="ve-card anim" style="--i:16">
+    <h3 style="display:flex;align-items:center;gap:0.5rem">
+      <span style="color:var(--emerald)">&#9632;</span> messages_fts
+      <span class="col-version">FTS5 Virtual Table</span>
+    </h3>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+      Full-text search index over message content. Backed by the <code>messages</code> table
+      via <code>content=messages, content_rowid=id</code>.
+    </p>
+    <pre><code>CREATE VIRTUAL TABLE messages_fts USING fts5(
+    content,
+    content=messages,
+    content_rowid=id
+);
+
+-- Auto-sync triggers
+AFTER INSERT ON messages →
+    INSERT INTO messages_fts(rowid, content) VALUES (new.id, new.content);
+
+AFTER DELETE ON messages →
+    INSERT INTO messages_fts(messages_fts, rowid, content)
+    VALUES('delete', old.id, old.content);
+
+AFTER UPDATE ON messages →
+    DELETE old entry, INSERT new entry;</code></pre>
+  </div>
+
+  <!-- Schema ER diagram -->
+  <div class="diagram-shell anim" style="--i:17">
+    <div class="diagram-title">Database ER Diagram</div>
+    <div class="mermaid-wrap">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+erDiagram
+    sessions ||--o{ messages : "contains"
+    sessions ||--o| sessions : "parent_session_id"
+    messages ||--|| messages_fts : "FTS5 sync"
+
+    sessions {
+        TEXT id PK
+        TEXT source "cli telegram discord etc"
+        TEXT user_id
+        TEXT model
+        TEXT model_config "JSON"
+        TEXT system_prompt
+        TEXT parent_session_id FK
+        REAL started_at "IDX DESC"
+        REAL ended_at
+        TEXT end_reason
+        INTEGER message_count
+        INTEGER tool_call_count
+        INTEGER input_tokens
+        INTEGER output_tokens
+        INTEGER cache_read_tokens "v5"
+        INTEGER cache_write_tokens "v5"
+        INTEGER reasoning_tokens "v5"
+        TEXT billing_provider "v5"
+        REAL estimated_cost_usd "v5"
+        REAL actual_cost_usd "v5"
+        TEXT title "v3 UNIQUE partial"
+    }
+
+    messages {
+        INTEGER id PK "AUTOINCREMENT"
+        TEXT session_id FK "IDX composite"
+        TEXT role "system user assistant tool"
+        TEXT content
+        TEXT tool_call_id
+        TEXT tool_calls "JSON array"
+        TEXT tool_name
+        REAL timestamp
+        INTEGER token_count
+        TEXT finish_reason "v2"
+        TEXT reasoning "v6"
+        TEXT reasoning_details "v6 JSON"
+        TEXT codex_reasoning_items "v6 JSON"
+    }
+
+    messages_fts {
+        TEXT content "FTS5 indexed"
+    }
+
+    schema_version {
+        INTEGER version "currently 6"
+    }
+      </script>
+    </div>
+  </div>
+
+  <!-- Migration history -->
+  <div class="ve-card anim" style="--i:18">
+    <h3>Migration History</h3>
+    <table class="schema-table">
+      <thead><tr><th>Version</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><span class="col-version">v1</span></td><td>Initial schema: sessions, messages, messages_fts, schema_version</td></tr>
+        <tr><td><span class="col-version">v2</span></td><td>Added <code>finish_reason</code> to messages</td></tr>
+        <tr><td><span class="col-version">v3</span></td><td>Added <code>title</code> to sessions</td></tr>
+        <tr><td><span class="col-version">v4</span></td><td>Added unique partial index on <code>sessions.title</code> (WHERE NOT NULL)</td></tr>
+        <tr><td><span class="col-version">v5</span></td><td>Added 11 billing/cost/cache columns to sessions</td></tr>
+        <tr><td><span class="col-version">v6</span></td><td>Added reasoning, reasoning_details, codex_reasoning_items to messages</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ──────── MESSAGE FORMAT ──────── -->
+<section id="message-format">
+  <div class="badge anim" style="--i:19">Wire Format</div>
+  <h2 class="anim" style="--i:20">Message Format</h2>
+  <p class="anim" style="--i:21" style="color:var(--text-dim);font-size:0.92rem;margin-bottom:1rem">
+    Messages follow the OpenAI chat completions format. This is the lingua franca &mdash; regardless
+    of whether the backend is Anthropic, OpenAI, or a custom endpoint, messages are normalized to this shape.
+  </p>
+
+  <div class="card-grid anim" style="--i:22">
+    <div class="ve-card">
+      <h3 style="color:var(--sky)">User Message</h3>
+      <pre><code>{
+  "role": "user",
+  "content": "Search for recent papers on GRPO"
+}</code></pre>
+    </div>
+
+    <div class="ve-card">
+      <h3 style="color:var(--emerald)">Assistant + Tool Calls</h3>
+      <pre><code>{
+  "role": "assistant",
+  "content": null,
+  "tool_calls": [
+    {
+      "id": "call_abc123",
+      "type": "function",
+      "function": {
+        "name": "web_search",
+        "arguments": "{\"query\": \"GRPO ...\"}"
+      }
+    }
+  ]
+}</code></pre>
+    </div>
+
+    <div class="ve-card">
+      <h3 style="color:var(--teal)">Tool Result</h3>
+      <pre><code>{
+  "role": "tool",
+  "tool_call_id": "call_abc123",
+  "tool_name": "web_search",
+  "content": "{\"data\": {\"web\": [...]}}"
+}</code></pre>
+    </div>
+
+    <div class="ve-card">
+      <h3 style="color:var(--amber)">System Message</h3>
+      <pre><code>{
+  "role": "system",
+  "content": "You are a CLI AI Agent..."
+}
+// Frozen at session start.
+// Never modified mid-conversation
+// (preserves Anthropic prompt cache).</code></pre>
+    </div>
+  </div>
+
+  <div class="diagram-shell anim" style="--i:23">
+    <div class="diagram-title">Message Flow Through the Agent Loop</div>
+    <div class="mermaid-wrap" style="height:380px">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+graph LR
+    U["User Message<br/><small>role: user</small>"] --> A["Agent Loop"]
+    A --> LLM["LLM API Call"]
+    LLM -->|"tool_calls present"| TC["Tool Call Messages<br/><small>role: assistant</small>"]
+    TC --> EX["Execute Tools"]
+    EX --> TR["Tool Results<br/><small>role: tool</small>"]
+    TR --> A
+    LLM -->|"content only"| RESP["Final Response<br/><small>role: assistant</small>"]
+
+    classDef user fill:#dbeafe,stroke:#0284c7,stroke-width:2px
+    classDef agent fill:#fef3c7,stroke:#d97706,stroke-width:2px
+    classDef tool fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
+    classDef llm fill:#ede9fe,stroke:#7c3aed,stroke-width:2px
+
+    class U user
+    class A,TC agent
+    class EX,TR tool
+    class LLM llm
+    class RESP agent
+      </script>
+    </div>
+  </div>
+
+  <div class="note anim" style="--i:24">
+    <strong>Reasoning content:</strong> When using extended thinking (Anthropic, Codex), the
+    <code>reasoning</code> field stores chain-of-thought. It is persisted to SQLite but
+    <strong>not</strong> sent back to the LLM in subsequent turns &mdash; it's for display and debugging only.
+  </div>
+</section>
+
+<!-- ──────── TOOL REGISTRY ──────── -->
+<section id="tool-registry">
+  <div class="badge anim" style="--i:25">Tool System</div>
+  <h2 class="anim" style="--i:26">Tool Registry &amp; Toolsets</h2>
+  <p class="anim" style="--i:27" style="color:var(--text-dim);font-size:0.92rem;margin-bottom:1rem">
+    Tools self-register at import time into a singleton registry. Toolsets group related tools
+    and compose into platform-level bundles.
+    See <a href="hermes-architecture.html#tools" style="color:var(--accent)">C4 Architecture &sect; Tools</a>
+    for the high-level view.
+  </p>
+
+  <div class="diagram-shell anim" style="--i:28">
+    <div class="diagram-title">Tool Registry Class Diagram</div>
+    <div class="mermaid-wrap" style="height:480px">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+classDiagram
+    class ToolRegistry {
+        -Dict~str, ToolEntry~ _tools
+        -Dict~str, Callable~ _toolset_checks
+        +register(name, toolset, schema, handler, ...)
+        +deregister(name)
+        +get_definitions(tool_names) List~dict~
+        +dispatch(name, args, **kwargs) str
+        +get_all_tool_names() List~str~
+        +get_schema(name) dict
+        +get_toolset_for_tool(name) str
+        +is_toolset_available(toolset) bool
+        +check_tool_availability() tuple
+    }
+
+    class ToolEntry {
+        +str name
+        +str toolset
+        +dict schema
+        +Callable handler
+        +Callable check_fn
+        +list requires_env
+        +bool is_async
+        +str description
+        +str emoji
+    }
+
+    class Toolset {
+        +str name
+        +str description
+        +List~str~ tools
+        +List~str~ includes
+    }
+
+    ToolRegistry "1" *-- "*" ToolEntry : _tools
+    ToolEntry "*" --o "1" Toolset : belongs to
+    Toolset "*" --o "*" Toolset : includes
+
+    note for ToolRegistry "Singleton instance: registry = ToolRegistry()\nImported by all tool files at module load time.\nCircular-import safe (no tool deps)."
+      </script>
+    </div>
+  </div>
+
+  <div class="ve-card anim" style="--i:29">
+    <h3>OpenAI Function Schema Format</h3>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+      Every tool registers a schema dict following the OpenAI function calling format.
+      When served to the LLM via <code>get_definitions()</code>, each is wrapped as
+      <code>{"type": "function", "function": {schema}}</code>.
+    </p>
+    <pre><code>{
+  "name": "read_file",
+  "description": "Read a text file with line numbers...",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Path to the file to read"
+      },
+      "offset": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1
+      },
+      "limit": {
+        "type": "integer",
+        "default": 500,
+        "maximum": 2000
+      }
+    },
+    "required": ["path"]
+  }
+}</code></pre>
+  </div>
+
+  <div class="ve-card anim" style="--i:30">
+    <h3>Toolset Composition</h3>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+      Toolsets are either <strong>leaf</strong> (directly list tools) or <strong>composite</strong>
+      (include other toolsets). Platform toolsets compose everything needed for a deployment mode.
+    </p>
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div style="background:var(--sky-dim);padding:0.75rem;border-radius:8px">
+        <div style="font-weight:600;font-size:0.82rem;color:var(--sky);margin-bottom:0.3rem">Leaf Toolsets</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.6">
+          web &middot; terminal &middot; file &middot; browser &middot;
+          vision &middot; image_gen &middot; skills &middot; tts &middot;
+          todo &middot; memory &middot; session_search &middot; clarify &middot;
+          code_execution &middot; delegation &middot; cronjob &middot; messaging &middot;
+          homeassistant &middot; search &middot; moa
+        </div>
+      </div>
+      <div style="background:var(--teal-dim);padding:0.75rem;border-radius:8px">
+        <div style="font-weight:600;font-size:0.82rem;color:var(--teal);margin-bottom:0.3rem">Composite Toolsets</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.6">
+          <strong>debugging</strong> = terminal + process + web + file<br>
+          <strong>safe</strong> = moa + web + vision + image_gen
+        </div>
+      </div>
+      <div style="background:var(--amber-dim);padding:0.75rem;border-radius:8px">
+        <div style="font-weight:600;font-size:0.82rem;color:var(--amber);margin-bottom:0.3rem">Platform Toolsets</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.6">
+          hermes-cli &middot; hermes-telegram &middot; hermes-discord &middot;
+          hermes-slack &middot; hermes-whatsapp &middot; hermes-signal &middot;
+          hermes-acp &middot; hermes-gateway
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note anim" style="--i:31">
+    <strong>Two-tier dispatch:</strong> Agent-level tools (todo, memory, session_search, clarify, delegate_task)
+    are handled directly in <code>_invoke_tool()</code> inside <code>run_agent.py</code> &mdash; they never
+    hit the registry. Everything else goes through <code>handle_function_call()</code> &rarr;
+    <code>registry.dispatch()</code>. See
+    <a href="hermes-sequences.html#tool-execution" style="color:var(--accent)">Sequences &sect; Tool Execution</a>.
+  </div>
+</section>
+
+<!-- ──────── SKILL STRUCTURE ──────── -->
+<section id="skill-structure">
+  <div class="badge anim" style="--i:32">Skills</div>
+  <h2 class="anim" style="--i:33">Skill File Structure</h2>
+  <p class="anim" style="--i:34" style="color:var(--text-dim);font-size:0.92rem;margin-bottom:1rem">
+    Skills are Hermes's procedural memory &mdash; reusable markdown instructions with optional supporting
+    files. They are injected as <strong>user messages</strong> (not system prompt) to preserve
+    <a href="hermes-diataxis.html#prompt-caching" style="color:var(--accent)">prompt cache efficiency</a>.
+  </p>
+
+  <div class="ve-card anim" style="--i:35">
+    <h3>Directory Layout</h3>
+    <div class="tree">
+      <ul>
+        <li><span class="dir">skills/</span>
+          <ul>
+            <li><span class="dir">&lt;category&gt;/</span>
+              <ul>
+                <li><span class="dir">&lt;skill-name&gt;/</span>
+                  <ul>
+                    <li><span class="required">SKILL.md</span> &mdash; Required. YAML frontmatter + markdown body</li>
+                    <li><span class="optional">scripts/</span> &mdash; Helper scripts (Python, Bash, etc.)</li>
+                    <li><span class="optional">references/</span> &mdash; Reference documents</li>
+                    <li><span class="optional">templates/</span> &mdash; File templates</li>
+                    <li><span class="optional">assets/</span> &mdash; Static assets</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-dim);margin-top:0.75rem">
+      Categories: <code>creative</code>, <code>devops</code>, <code>github</code>,
+      <code>mlops</code>, <code>productivity</code>, <code>research</code>,
+      <code>software-development</code>, <code>social-media</code>, etc.
+    </p>
+  </div>
+
+  <div class="ve-card anim" style="--i:36">
+    <h3>YAML Frontmatter Schema</h3>
+    <pre><code>---
+name: visual-explainer                    # Required: kebab-case slug
+description: Generate rich HTML docs...   # Required: when to use
+version: 1.0.0                           # Required: semver
+author: Hermes Agent                     # Required
+license: MIT                             # Required
+dependencies: []                         # Optional: pip/system deps
+prerequisites:                           # Optional
+  env_vars: [LINEAR_API_KEY]             #   Required env vars
+  commands: [curl]                       #   Required CLI tools
+metadata:
+  hermes:
+    tags: [architecture, diagrams]       # Searchable tags
+    related_skills: [excalidraw]         # Cross-references
+---
+
+# Skill Title
+
+## When to Use
+...
+
+## Workflow
+...
+
+## Pitfalls
+...</code></pre>
+  </div>
+
+  <div class="diagram-shell anim" style="--i:37">
+    <div class="diagram-title">Skill Loading and Injection</div>
+    <div class="mermaid-wrap" style="height:340px">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+graph TD
+    SCAN["scan_skill_commands()<br/><small>Scans skills/ directories</small>"] --> REG["Skill Registry<br/><small>name, path, description</small>"]
+    REG -->|"User types /skill-name"| LOAD["Read SKILL.md"]
+    REG -->|"Agent calls skill_view()"| LOAD
+    LOAD --> FRONT["Parse YAML Frontmatter<br/><small>name, version, tags, deps</small>"]
+    LOAD --> BODY["Markdown Body<br/><small>Instructions, code, workflows</small>"]
+    FRONT --> CHECK["Check Prerequisites<br/><small>env_vars, commands</small>"]
+    CHECK -->|"OK"| INJECT["Inject as User Message<br/><small>Preserves prompt cache</small>"]
+    CHECK -->|"Missing"| WARN["Setup Warning<br/><small>List missing requirements</small>"]
+
+    classDef scan fill:#dbeafe,stroke:#0284c7,stroke-width:2px
+    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px
+    classDef inject fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
+    classDef warn fill:#fef2f2,stroke:#ef4444,stroke-width:2px
+
+    class SCAN scan
+    class REG,LOAD,FRONT,BODY,CHECK process
+    class INJECT inject
+    class WARN warn
+      </script>
+    </div>
+  </div>
+</section>
+
+<!-- ──────── CONFIG HIERARCHY ──────── -->
+<section id="config-hierarchy">
+  <div class="badge anim" style="--i:38">Configuration</div>
+  <h2 class="anim" style="--i:39">Config Hierarchy</h2>
+  <p class="anim" style="--i:40" style="color:var(--text-dim);font-size:0.92rem;margin-bottom:1rem">
+    Configuration resolves through four layers. Lower layers provide defaults; higher layers override.
+    <code>${VAR}</code> references in YAML values are expanded from environment variables.
+  </p>
+
+  <div class="config-layers anim" style="--i:41">
+    <div class="config-layer layer-runtime">
+      <div class="layer-label">&#x2460; Runtime Overrides</div>
+      <div class="layer-desc">CLI flags, /model command, API parameters. Highest priority. Transient.</div>
+    </div>
+    <div class="config-layer layer-env">
+      <div class="layer-label">&#x2461; Environment Variables</div>
+      <div class="layer-desc"><code>${VAR}</code> expansion in config values. Also <code>AUXILIARY_*_MODEL</code>,
+      <code>AUXILIARY_*_PROVIDER</code> for per-task overrides.</div>
+    </div>
+    <div class="config-layer layer-user">
+      <div class="layer-label">&#x2462; User Config File</div>
+      <div class="layer-desc"><code>~/.hermes/config.yaml</code> &mdash; deep-merged over defaults.
+      Persisted by <code>save_config_value()</code>.</div>
+    </div>
+    <div class="config-layer layer-default">
+      <div class="layer-label">&#x2463; DEFAULT_CONFIG</div>
+      <div class="layer-desc">Hardcoded in <code>hermes_cli/config.py</code>. 40+ top-level keys.
+      Lowest priority. Always present.</div>
+    </div>
+  </div>
+
+  <div class="ve-card anim" style="--i:42">
+    <h3>Top-Level Config Keys</h3>
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+      <div>
+        <div style="font-weight:600;font-size:0.82rem;color:var(--amber);margin-bottom:0.3rem">Core</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+          model<br>providers<br>fallback_providers<br>toolsets<br>agent<br>delegation
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:0.82rem;color:var(--sky);margin-bottom:0.3rem">Execution</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+          terminal<br>browser<br>compression<br>auxiliary<br>smart_model_routing
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:0.82rem;color:var(--teal);margin-bottom:0.3rem">Interface</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+          display<br>tts<br>stt<br>voice<br>human_delay
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:0.82rem;color:var(--emerald);margin-bottom:0.3rem">State</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+          memory<br>skills<br>checkpoints<br>privacy<br>security
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:0.82rem;color:var(--rose);margin-bottom:0.3rem">Platform</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+          discord<br>whatsapp<br>approvals<br>cron<br>gateway
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ve-card anim" style="--i:43">
+    <h3>Auxiliary Task Configuration</h3>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+      Eight auxiliary tasks can each be routed to different LLM providers.
+      Each task has the same schema: <code>provider</code>, <code>model</code>,
+      <code>base_url</code>, <code>api_key</code>, <code>timeout</code>.
+    </p>
+    <table class="schema-table">
+      <thead><tr><th>Task</th><th>Default Timeout</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><span class="col-name">vision</span></td><td>30s</td><td>Image analysis (vision_analyze, browser_vision)</td></tr>
+        <tr><td><span class="col-name">web_extract</span></td><td>360s (6min)</td><td>Web page summarization</td></tr>
+        <tr><td><span class="col-name">compression</span></td><td>120s</td><td>Context compression summaries</td></tr>
+        <tr><td><span class="col-name">session_search</span></td><td>30s</td><td>Past session summarization</td></tr>
+        <tr><td><span class="col-name">skills_hub</span></td><td>30s</td><td>Skill search and matching</td></tr>
+        <tr><td><span class="col-name">approval</span></td><td>30s</td><td>Smart approval risk assessment</td></tr>
+        <tr><td><span class="col-name">mcp</span></td><td>30s</td><td>MCP server interactions</td></tr>
+        <tr><td><span class="col-name">flush_memories</span></td><td>30s</td><td>Pre-compression memory flush</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="diagram-shell anim" style="--i:44">
+    <div class="diagram-title">Config Resolution Flow</div>
+    <div class="mermaid-wrap" style="height:380px">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+graph TD
+    DC["DEFAULT_CONFIG<br/><small>Hardcoded defaults</small>"] --> DM["_deep_merge()"]
+    YF["config.yaml<br/><small>User overrides</small>"] --> DM
+    DM --> NMT["_normalize_max_turns_config()"]
+    NMT --> NRK["_normalize_root_model_keys()"]
+    NRK --> EEV["_expand_env_vars()<br/><small>Replace dollar-brace-VAR patterns</small>"]
+    EEV --> FINAL["Merged Config Dict"]
+
+    FINAL -->|"auxiliary.compression"| AUX["Auxiliary Client"]
+    FINAL -->|"compression.threshold"| COMP["Context Compressor"]
+    FINAL -->|"terminal.backend"| TERM["Terminal Backend"]
+    FINAL -->|"agent.max_turns"| AGENT["AIAgent"]
+
+    classDef source fill:#dbeafe,stroke:#0284c7,stroke-width:2px
+    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px
+    classDef output fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
+
+    class DC,YF source
+    class DM,NMT,NRK,EEV process
+    class FINAL,AUX,COMP,TERM,AGENT output
+      </script>
+    </div>
+  </div>
+</section>
+
+<!-- ──────── MEMORY PROVIDERS ──────── -->
+<section id="memory-providers">
+  <div class="badge anim" style="--i:45">Memory</div>
+  <h2 class="anim" style="--i:46">Memory Provider Interface</h2>
+  <p class="anim" style="--i:47" style="color:var(--text-dim);font-size:0.92rem;margin-bottom:1rem">
+    Memory is pluggable. The built-in provider (file-based, always active) handles <code>memory</code>
+    and <code>user</code> targets. At most one external provider (Honcho, etc.) can be added.
+    The <code>MemoryManager</code> fans out calls to all active providers.
+  </p>
+
+  <div class="diagram-shell anim" style="--i:48">
+    <div class="diagram-title">Memory Provider Class Hierarchy</div>
+    <div class="mermaid-wrap" style="height:560px">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+classDiagram
+    class MemoryProvider {
+        <<abstract>>
+        +name* str
+        +is_available()* bool
+        +initialize(session_id, **kwargs)*
+        +get_tool_schemas()* List~dict~
+        +system_prompt_block() str
+        +prefetch(query, session_id) str
+        +queue_prefetch(query, session_id)
+        +sync_turn(user_content, assistant_content)
+        +handle_tool_call(tool_name, args) str
+        +shutdown()
+        +on_turn_start(turn_number, message)
+        +on_session_end(messages)
+        +on_pre_compress(messages) str
+        +on_delegation(task, result)
+        +on_memory_write(action, target, content)
+        +get_config_schema() List~dict~
+        +save_config(values, hermes_home)
+    }
+
+    class BuiltinMemoryProvider {
+        +name = "builtin"
+        -_memory_store: dict
+        -_user_store: dict
+        -_char_limits: dict
+        +is_available() True
+        +get_tool_schemas() memory + session_search
+        +system_prompt_block() memory context
+    }
+
+    class ExternalProvider {
+        <<interface>>
+        +name = "honcho" or "plugin"
+        +is_available() bool
+        +initialize(session_id)
+        +get_tool_schemas() custom tools
+    }
+
+    class MemoryManager {
+        -List~MemoryProvider~ _providers
+        -Dict~str, MemoryProvider~ _tool_to_provider
+        -bool _has_external
+        +add_provider(provider)
+        +providers List~MemoryProvider~
+        +build_system_prompt() str
+        +prefetch_all(query) str
+        +sync_all(user, assistant)
+        +get_all_tool_schemas() List~dict~
+        +handle_tool_call(name, args) str
+        +on_turn_start(turn, message)
+        +on_pre_compress(messages) str
+        +on_session_end(messages)
+        +shutdown_all()
+        +initialize_all(session_id)
+    }
+
+    MemoryProvider <|-- BuiltinMemoryProvider
+    MemoryProvider <|.. ExternalProvider
+    MemoryManager "1" *-- "1..*" MemoryProvider : _providers
+    MemoryManager ..> MemoryProvider : fan-out calls
+
+    note for MemoryManager "Builtin always active.\nAt most ONE external provider.\nFan-out: calls all providers.\nShutdown in reverse order."
+      </script>
+    </div>
+  </div>
+
+  <div class="card-grid anim" style="--i:49">
+    <div class="ve-card">
+      <h3 style="color:var(--amber)">Lifecycle Hooks</h3>
+      <table class="schema-table">
+        <thead><tr><th>Hook</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td><span class="col-name">on_turn_start</span></td><td>Before each LLM call</td></tr>
+          <tr><td><span class="col-name">on_pre_compress</span></td><td>Before context compression drops messages</td></tr>
+          <tr><td><span class="col-name">on_memory_write</span></td><td>When builtin memory is modified</td></tr>
+          <tr><td><span class="col-name">on_delegation</span></td><td>After a subagent completes</td></tr>
+          <tr><td><span class="col-name">on_session_end</span></td><td>Session teardown</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ve-card">
+      <h3 style="color:var(--teal)">initialize() kwargs</h3>
+      <table class="schema-table">
+        <thead><tr><th>Param</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td><span class="col-name">session_id</span></td><td>str</td></tr>
+          <tr><td><span class="col-name">hermes_home</span></td><td>str (auto-injected)</td></tr>
+          <tr><td><span class="col-name">platform</span></td><td>str</td></tr>
+          <tr><td><span class="col-name">user_id</span></td><td>str</td></tr>
+          <tr><td><span class="col-name">agent_context</span></td><td>str</td></tr>
+          <tr><td><span class="col-name">agent_identity</span></td><td>str</td></tr>
+          <tr><td><span class="col-name">agent_workspace</span></td><td>str</td></tr>
+          <tr><td><span class="col-name">parent_session_id</span></td><td>str</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ──────── COMPANION FOOTER ──────── -->
+<div class="companion-footer anim" style="--i:50">
+  <h3>Companion Pages</h3>
+  <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.5rem">
+    This page is part of the Hermes Agent documentation suite.
+    Each document is a different lens on the same system.
+  </p>
+  <div class="companion-links">
+    <a href="hermes-architecture.html" class="companion-link">
+      <span class="icon">&#x1F3D7;</span> C4 System Architecture
+    </a>
+    <a href="hermes-diataxis.html" class="companion-link">
+      <span class="icon">&#x1F4DA;</span> Understanding Hermes
+    </a>
+    <a href="hermes-sequences.html" class="companion-link">
+      <span class="icon">&#x23F1;</span> Interaction Sequences
+    </a>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ====== MERMAID ====== -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  const config = {
+    fitPadding: 28,
+    minHeight: 320,
+    maxHeightPx: 960,
+    maxHeightVh: 0.84,
+    maxInitialZoom: 1.8,
+    minZoom: 0.08,
+    maxZoom: 6.5,
+    zoomStep: 0.14,
+    readabilityFloor: 0.58
+  };
+
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+  let activeDrag = null;
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    look: 'classic',
+    themeVariables: {
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+      fontSize: '14px',
+      primaryColor: isDark ? '#3b2e0a' : '#fef3c7',
+      primaryBorderColor: isDark ? '#fbbf24' : '#d97706',
+      primaryTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      secondaryColor: isDark ? '#1e3a5f' : '#dbeafe',
+      secondaryBorderColor: isDark ? '#38bdf8' : '#0284c7',
+      secondaryTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      tertiaryColor: isDark ? '#1a3332' : '#ccfbf1',
+      tertiaryBorderColor: isDark ? '#2dd4bf' : '#0d9488',
+      tertiaryTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      lineColor: isDark ? '#64748b' : '#94a3b8',
+      noteBkgColor: isDark ? '#1e293b' : '#fefce8',
+      noteTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      noteBorderColor: isDark ? '#fbbf24' : '#d97706',
+    }
+  });
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+
+    if (!wrap || !viewport || !canvas || !source || !label) return;
+
+    let zoom = 1, fitMode = 'contain', panX = 0, panY = 0;
+    let svgW = 0, svgH = 0, sx = 0, sy = 0, spx = 0, spy = 0;
+    let touchDist = 0, touchCx = 0, touchCy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const rW = svgW * zoom, rH = svgH * zoom;
+      const pad = config.fitPadding;
+      panX = (rW + pad*2 <= vpW) ? (vpW - rW)/2 : clamp(panX, vpW - rW - pad, pad);
+      panY = (rH + pad*2 <= vpH) ? (vpH - rH)/2 : clamp(panY, vpH - rH - pad, pad);
+    }
+
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+      constrainPan();
+      svg.style.width = (svgW * zoom) + 'px';
+      svg.style.height = (svgH * zoom) + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '% \u2014 ' + fitMode;
+    }
+
+    function canPan() {
+      return svgW * zoom + config.fitPadding * 2 > viewport.clientWidth
+          || svgH * zoom + config.fitPadding * 2 > viewport.clientHeight;
+    }
+
+    function computeSmartFit() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const aW = Math.max(80, vpW - config.fitPadding*2);
+      const aH = Math.max(80, vpH - config.fitPadding*2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+      let z = contain, mode = 'contain';
+      if (contain < config.readabilityFloor) {
+        const chartR = svgH / svgW, vpR = vpH / Math.max(vpW, 1);
+        if (chartR >= vpR) { z = aW / svgW; mode = 'width-priority'; }
+        else { z = aH / svgH; mode = 'height-priority'; }
+      }
+      return { zoom: Math.min(z, config.maxInitialZoom), mode };
+    }
+
+    function fitDiagram() {
+      if (!svgW) return;
+      const f = computeSmartFit();
+      zoom = f.zoom; fitMode = f.mode;
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom);
+      const ratio = next / zoom;
+      panX = cx - ratio * (cx - panX);
+      panY = cy - ratio * (cy - panY);
+      zoom = next; fitMode = 'custom';
+      applyTransform();
+    }
+
+    function readSvgNaturalSize(svg) {
+      let w = 0, h = 0;
+      if (svg.viewBox?.baseVal?.width > 0) { w = svg.viewBox.baseVal.width; h = svg.viewBox.baseVal.height; }
+      if (!w) { w = parseFloat(svg.getAttribute('width')) || 0; h = parseFloat(svg.getAttribute('height')) || 0; }
+      if (!w) { const b = svg.getBBox(); w = b.width; h = b.height; }
+      if (!w) { const r = svg.getBoundingClientRect(); w = r.width || 1000; h = r.height || 700; }
+      if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      return { w, h };
+    }
+
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const maxVp = Math.floor(innerHeight * config.maxHeightVh);
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, maxVp));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+
+    function openInNewTab() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true);
+      clone.style.width = ''; clone.style.height = '';
+      const bg = isDark ? '#0c1222' : '#f1f5f9';
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Diagram</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:${bg};padding:40px;box-sizing:border-box}svg{max-width:100%;max-height:90vh;height:auto}</style></head><body>${clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+
+    // Zoom controls
+    wrap.querySelectorAll('.zoom-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const a = btn.dataset.action;
+        const r = viewport.getBoundingClientRect();
+        const cx = r.width / 2, cy = r.height / 2;
+        if (a === 'zoom-in') zoomAround(1 + config.zoomStep, cx, cy);
+        else if (a === 'zoom-out') zoomAround(1 / (1 + config.zoomStep), cx, cy);
+        else if (a === 'fit') fitDiagram();
+        else if (a === 'reset') { zoom = 1; fitMode = '1:1'; panX = (r.width - svgW)/2; panY = (r.height - svgH)/2; applyTransform(); }
+        else if (a === 'expand') openInNewTab();
+      });
+    });
+
+    // Wheel zoom
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const r = viewport.getBoundingClientRect();
+      const cx = e.clientX - r.left, cy = e.clientY - r.top;
+      const factor = e.deltaY < 0 ? (1 + config.zoomStep) : 1 / (1 + config.zoomStep);
+      zoomAround(factor, cx, cy);
+    }, { passive: false });
+
+    // Mouse pan
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.zoom-controls') || !canPan()) return;
+      wrap.classList.add('is-panning');
+      sx = e.clientX; sy = e.clientY; spx = panX; spy = panY;
+      e.preventDefault();
+      activeDrag = {
+        onMove: (ev) => { panX = spx + (ev.clientX - sx); panY = spy + (ev.clientY - sy); applyTransform(); },
+        onEnd: () => { wrap.classList.remove('is-panning'); }
+      };
+    });
+
+    // Touch pan + pinch
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY; }
+      else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDist = Math.sqrt(dx*dx + dy*dy);
+        const r = viewport.getBoundingClientRect();
+        touchCx = (e.touches[0].clientX + e.touches[1].clientX)/2 - r.left;
+        touchCy = (e.touches[0].clientY + e.touches[1].clientY)/2 - r.top;
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && canPan()) {
+        if (touchDist > 0) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY; touchDist = 0; }
+        e.preventDefault();
+        panX = spx + (e.touches[0].clientX - sx); panY = spy + (e.touches[0].clientY - sy);
+        applyTransform();
+      } else if (e.touches.length === 2 && touchDist > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        zoomAround(d / touchDist, touchCx, touchCy);
+        touchDist = d;
+      }
+    }, { passive: false });
+
+    new ResizeObserver(() => { if (svgW) { setAdaptiveHeight(); fitDiagram(); } }).observe(wrap);
+
+    // Render
+    (async () => {
+      try {
+        const code = source.textContent.trim();
+        if (!code) { label.textContent = 'Error: Empty source'; return; }
+        const id = 'diagram-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { svg } = await mermaid.render(id, code);
+        canvas.innerHTML = svg;
+        const svgNode = canvas.querySelector('svg');
+        if (!svgNode) { label.textContent = 'Error: No SVG'; return; }
+        const size = readSvgNaturalSize(svgNode);
+        svgW = size.w; svgH = size.h;
+        svgNode.style.width = svgW + 'px'; svgNode.style.height = svgH + 'px';
+        svgNode.style.maxWidth = 'none';
+        setAdaptiveHeight();
+        fitDiagram();
+      } catch (err) {
+        label.textContent = 'Render error: ' + err.message;
+        console.error(err);
+      }
+    })();
+  }
+
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+
+<!-- ====== SCROLL SPY ====== -->
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  const links = toc.querySelectorAll('a');
+  const sections = [];
+
+  links.forEach(link => {
+    const id = link.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, link });
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = sections.find(s => s.el === entry.target);
+        if (match) {
+          match.link.classList.add('active');
+          if (window.innerWidth <= 1000) {
+            match.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        }
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => observer.observe(s.el));
+
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const id = link.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); history.replaceState(null, '', '#' + id); }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

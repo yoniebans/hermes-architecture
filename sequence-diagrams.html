@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent — Interaction Sequences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============ THEME — Blueprint aesthetic (teal accent) ============ */
+  :root {
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'Fira Code', 'SF Mono', Consolas, monospace;
+
+    --bg: #f1f5f9;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --surface-elevated: #ffffff;
+    --border: rgba(15, 23, 42, 0.08);
+    --border-bright: rgba(15, 23, 42, 0.16);
+    --text: #0f172a;
+    --text-dim: #64748b;
+    --text-bright: #0f172a;
+
+    --accent: #0d9488;
+    --accent-dim: rgba(13, 148, 136, 0.08);
+    --teal: #0d9488;
+    --teal-dim: rgba(13, 148, 136, 0.08);
+    --sky: #0284c7;
+    --sky-dim: rgba(2, 132, 199, 0.08);
+    --amber: #d97706;
+    --amber-dim: rgba(217, 119, 6, 0.08);
+    --rose: #e11d48;
+    --rose-dim: rgba(225, 29, 72, 0.06);
+    --emerald: #059669;
+    --emerald-dim: rgba(5, 150, 105, 0.08);
+    --indigo: #4f46e5;
+    --indigo-dim: rgba(79, 70, 229, 0.08);
+    --slate: #475569;
+    --slate-dim: rgba(71, 85, 105, 0.08);
+
+    --green: #059669;
+    --green-dim: rgba(5, 150, 105, 0.1);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.1);
+    --orange: #d97706;
+    --orange-dim: rgba(217, 119, 6, 0.1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c1222;
+      --surface: #151d2e;
+      --surface2: #1a2538;
+      --surface-elevated: #1e2a40;
+      --border: rgba(148, 163, 184, 0.08);
+      --border-bright: rgba(148, 163, 184, 0.16);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-bright: #f1f5f9;
+
+      --accent: #2dd4bf;
+      --accent-dim: rgba(45, 212, 191, 0.12);
+      --teal: #2dd4bf;
+      --teal-dim: rgba(45, 212, 191, 0.12);
+      --sky: #38bdf8;
+      --sky-dim: rgba(56, 189, 248, 0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251, 191, 36, 0.1);
+      --rose: #fb7185;
+      --rose-dim: rgba(251, 113, 133, 0.1);
+      --emerald: #34d399;
+      --emerald-dim: rgba(52, 211, 153, 0.1);
+      --indigo: #818cf8;
+      --indigo-dim: rgba(129, 140, 248, 0.1);
+      --slate: #94a3b8;
+      --slate-dim: rgba(148, 163, 184, 0.1);
+
+      --green: #34d399;
+      --green-dim: rgba(52, 211, 153, 0.12);
+      --red: #f87171;
+      --red-dim: rgba(248, 113, 113, 0.12);
+      --orange: #fbbf24;
+      --orange-dim: rgba(251, 191, 36, 0.12);
+    }
+  }
+
+  /* ============ RESET + BASE ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    background-image:
+      repeating-linear-gradient(
+        0deg, transparent, transparent 23px,
+        var(--border) 23px, var(--border) 24px
+      ),
+      repeating-linear-gradient(
+        90deg, transparent, transparent 23px,
+        var(--border) 23px, var(--border) 24px
+      );
+    background-size: 24px 24px;
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px;
+    min-height: 100vh;
+    overflow-wrap: break-word;
+  }
+
+  /* ============ ANIMATION ============ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .anim {
+    animation: fadeUp 0.4s ease-out both;
+    animation-delay: calc(var(--i, 0) * 0.05s);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ============ LAYOUT ============ */
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 0 40px;
+  }
+  .main { min-width: 0; grid-column: 2; }
+
+  /* ============ TOC ============ */
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 14px 0;
+    grid-row: 1 / -1;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+  .toc::-webkit-scrollbar { width: 3px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 2px; }
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding: 0 0 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc a {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 5px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    line-height: 1.4;
+    margin-bottom: 1px;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface2); }
+  .toc a.active { color: var(--text); border-left-color: var(--accent); }
+
+  /* ============ TYPOGRAPHY ============ */
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    text-wrap: balance;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    margin-bottom: 12px;
+  }
+  .lead {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 40px;
+    max-width: 72ch;
+  }
+  .sec-head {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 20px 0 16px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    scroll-margin-top: 24px;
+  }
+  .sec-head .dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  }
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin: 8px 0 16px;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    max-width: 72ch;
+  }
+
+  /* ============ KPI ROW ============ */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .kpi-card__value {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* ============ SECTION CARD ============ */
+  .ve-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .ve-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .ve-card--hero {
+    background: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border-color: color-mix(in srgb, var(--border) 50%, var(--accent) 50%);
+  }
+  .ve-card--recessed {
+    background: var(--surface2);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .ve-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ve-card__label::before {
+    content: '';
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Color accents */
+  .c-accent { border-left: 3px solid var(--accent); }
+  .c-accent .ve-card__label { color: var(--accent); }
+  .c-teal { border-left: 3px solid var(--teal); }
+  .c-teal .ve-card__label { color: var(--teal); }
+  .c-sky { border-left: 3px solid var(--sky); }
+  .c-sky .ve-card__label { color: var(--sky); }
+  .c-amber { border-left: 3px solid var(--amber); }
+  .c-amber .ve-card__label { color: var(--amber); }
+  .c-rose { border-left: 3px solid var(--rose); }
+  .c-rose .ve-card__label { color: var(--rose); }
+  .c-emerald { border-left: 3px solid var(--emerald); }
+  .c-emerald .ve-card__label { color: var(--emerald); }
+  .c-indigo { border-left: 3px solid var(--indigo); }
+  .c-indigo .ve-card__label { color: var(--indigo); }
+  .c-slate { border-left: 3px solid var(--slate); }
+  .c-slate .ve-card__label { color: var(--slate); }
+
+  /* ============ GRIDS ============ */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .gap-24 { gap: 24px; }
+
+  /* ============ NODE LIST ============ */
+  .step-list {
+    list-style: none;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .step-list li {
+    padding-left: 14px;
+    position: relative;
+  }
+  .step-list li::before {
+    content: '\203A';
+    color: var(--text-dim);
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+  }
+  .step-list code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ TAG ============ */
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 1px 2px;
+  }
+  .tag--accent { background: var(--accent-dim); color: var(--accent); }
+  .tag--teal { background: var(--teal-dim); color: var(--teal); }
+  .tag--sky { background: var(--sky-dim); color: var(--sky); }
+  .tag--amber { background: var(--amber-dim); color: var(--amber); }
+  .tag--rose { background: var(--rose-dim); color: var(--rose); }
+  .tag--emerald { background: var(--emerald-dim); color: var(--emerald); }
+  .tag--indigo { background: var(--indigo-dim); color: var(--indigo); }
+  .tag--slate { background: var(--slate-dim); color: var(--slate); }
+
+  /* ============ CALLOUT ============ */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+    background: var(--accent-dim);
+    margin: 20px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .callout strong { color: var(--text-bright); }
+  .callout code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ INNER GRID (nested cards) ============ */
+  .inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .inner-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .inner-card .title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .inner-card .desc { color: var(--text-dim); font-size: 12px; line-height: 1.5; }
+  .inner-card code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ============ MERMAID ============ */
+  .mermaid-wrap {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    cursor: grab;
+  }
+  .mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
+  .mermaid .messageText { font-family: var(--font-mono) !important; font-size: 12px !important; }
+  .mermaid .labelText { font-family: var(--font-mono) !important; }
+  .mermaid .loopText { font-family: var(--font-mono) !important; font-size: 11px !important; }
+  .mermaid .actor { stroke-width: 1.5px; }
+  .mermaid text.actor { font-family: var(--font-body) !important; }
+  .mermaid .activation0, .mermaid .activation1, .mermaid .activation2 { stroke-width: 1px; }
+  .zoom-controls {
+    position: absolute;
+    top: 8px; right: 8px;
+    display: flex; gap: 2px;
+    z-index: 10;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .zoom-controls button {
+    width: 28px; height: 28px;
+    border: none; background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 14px; cursor: pointer;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .zoom-controls button:hover { background: var(--border); color: var(--text); }
+  .zoom-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    padding: 0 6px;
+    white-space: nowrap;
+    display: flex; align-items: center;
+  }
+  .mermaid-viewport {
+    position: relative;
+    overflow: hidden;
+    width: 100%; height: 100%;
+    min-height: 300px;
+  }
+  .mermaid-canvas {
+    position: absolute;
+    top: 0; left: 0;
+  }
+  .diagram-shell { margin-bottom: 24px; }
+  .diagram-shell__hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+
+  /* ============ COLLAPSIBLE ============ */
+  details.collapsible {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  details.collapsible summary {
+    padding: 14px 20px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    transition: background 0.15s ease;
+  }
+  details.collapsible summary:hover { background: var(--surface-elevated); }
+  details.collapsible summary::-webkit-details-marker { display: none; }
+  details.collapsible summary::before {
+    content: '\25B8';
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: transform 0.15s ease;
+  }
+  details.collapsible[open] summary::before { transform: rotate(90deg); }
+  details.collapsible .collapsible__body {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* ============ FOOTER LINKS ============ */
+  .companion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .companion-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .companion-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--accent);
+  }
+  .companion-link__title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .companion-link__desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; padding-top: 0; }
+    body { padding-top: 0; padding: 20px; }
+    .toc {
+      position: sticky; top: 0; z-index: 200;
+      max-height: none;
+      display: flex; gap: 4px; align-items: center;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+      margin: 0 -20px; padding-left: 20px; padding-right: 20px;
+      grid-row: auto;
+    }
+    .toc::-webkit-scrollbar { display: none; }
+    .toc-title { display: none; }
+    .toc a {
+      white-space: nowrap; flex-shrink: 0;
+      border-left: none; border-bottom: 2px solid transparent;
+      border-radius: 4px 4px 0 0;
+      padding: 6px 10px; font-size: 10px;
+    }
+    .toc a.active { border-left: none; border-bottom-color: var(--accent); background: var(--surface); }
+    .main { padding-top: 20px; grid-column: 1; }
+    .sec-head { scroll-margin-top: 52px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .inner-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc" id="toc">
+    <div class="toc-title">Sequences</div>
+    <a href="#s0">Overview</a>
+    <a href="#s1">CLI Message Flow</a>
+    <a href="#s2">Gateway Flow</a>
+    <a href="#s3">Agent Loop</a>
+    <a href="#s4">Compression</a>
+    <a href="#s5">Tool Execution</a>
+    <a href="#s6">Subagent Delegation</a>
+    <a href="#s7">Error Recovery</a>
+    <a href="#s8">Companion Pages</a>
+  </nav>
+
+  <div class="main">
+
+    <!-- ====== HEADER ====== -->
+    <h1 class="anim" style="--i:0">Hermes Agent</h1>
+    <p class="subtitle anim" style="--i:1">Interaction Sequences &mdash; v0.6.0 &mdash; Nous Research</p>
+    <p class="lead anim" style="--i:2">
+      How messages, tools, and decisions flow through time. These sequence diagrams
+      trace the lifecycle of every interaction &mdash; from a user typing in the CLI,
+      through LLM inference and tool dispatch, to error recovery and subagent delegation.
+    </p>
+
+    <!-- ====== KPIs ====== -->
+    <div class="kpi-row anim" style="--i:3">
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--teal)">7</div>
+        <div class="kpi-card__label">Key Sequences</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--sky)">2</div>
+        <div class="kpi-card__label">Entry Points</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--amber)">3</div>
+        <div class="kpi-card__label">Nested Loops</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--emerald)">4</div>
+        <div class="kpi-card__label">Compression Phases</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--indigo)">8</div>
+        <div class="kpi-card__label">Recovery Strategies</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--rose)">2</div>
+        <div class="kpi-card__label">Delegation Depth</div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- OVERVIEW                        -->
+    <!-- ============================== -->
+    <div id="s0" class="sec-head anim" style="--i:4; color:var(--teal)">
+      <span class="dot" style="background:var(--teal)"></span> Overview
+    </div>
+    <h2 class="anim" style="--i:5">Reading these diagrams</h2>
+    <p class="section-desc anim" style="--i:6">
+      Each diagram shows participants as vertical lifelines. Arrows represent messages or calls
+      between components. Colored boxes (activate/deactivate) show when a component is actively
+      processing. Fragments like <span class="tag tag--teal">alt</span> <span class="tag tag--amber">opt</span>
+      <span class="tag tag--indigo">loop</span> <span class="tag tag--rose">break</span>
+      show conditional and iterative behavior. Notes provide context on key decisions.
+    </p>
+
+    <div class="callout anim" style="--i:7">
+      <strong>Zoom &amp; Pan:</strong> Ctrl/Cmd + wheel to zoom. Scroll or drag to pan. Double-click to fit.
+      Use the controls in the top-right corner of each diagram.
+    </div>
+
+    <!-- ============================== -->
+    <!-- SECTION 1: CLI MESSAGE FLOW     -->
+    <!-- ============================== -->
+    <div id="s1" class="sec-head anim" style="--i:8; color:var(--teal)">
+      <span class="dot" style="background:var(--teal)"></span> Sequence 1
+    </div>
+    <h2 class="anim" style="--i:9">CLI Message Flow</h2>
+    <p class="section-desc anim" style="--i:10">
+      What happens when you type a message in the terminal. The CLI reads input from a pending queue,
+      determines if it is a slash command or chat message, then routes through credential checks,
+      model resolution, and agent execution. The happy path ends with an LLM response displayed
+      in a formatted box.
+    </p>
+
+    <div class="grid-2 anim" style="--i:11">
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Participants</div>
+        <ul class="step-list">
+          <li><code>User</code> &mdash; Human at the terminal</li>
+          <li><code>HermesCLI</code> &mdash; CLI process loop</li>
+          <li><code>AIAgent</code> &mdash; Core agent engine</li>
+          <li><code>LLMProvider</code> &mdash; Remote inference API</li>
+          <li><code>ToolRegistry</code> &mdash; Tool dispatch system</li>
+          <li><code>Tool</code> &mdash; Individual tool handler</li>
+        </ul>
+      </div>
+      <div class="ve-card c-sky">
+        <div class="ve-card__label">Key Steps</div>
+        <ul class="step-list">
+          <li>Read from <code>_pending_input</code> queue</li>
+          <li>Slash commands dispatch via <code>resolve_command()</code></li>
+          <li>Chat: ensure credentials, resolve model config</li>
+          <li>Init AIAgent if needed, spawn agent thread</li>
+          <li>Monitor interrupt queue during execution</li>
+          <li>Display response box, update history</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:12">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:550px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant U as User
+          participant CLI as HermesCLI
+          participant AG as AIAgent
+          participant LLM as LLMProvider
+          participant TR as ToolRegistry
+          participant T as Tool
+
+          U->>CLI: types message
+          activate CLI
+          CLI->>CLI: process_loop reads _pending_input
+
+          alt Slash Command
+            CLI->>CLI: resolve_command dispatches handler
+            CLI-->>U: command output
+          else Chat Message
+            CLI->>CLI: _ensure_runtime_credentials
+            CLI->>CLI: _resolve_turn_agent_config for model routing
+            CLI->>AG: _init_agent creates AIAgent
+            activate AG
+            CLI->>AG: spawn agent_thread with run_conversation
+            Note over CLI: Monitors _interrupt_queue while agent runs
+
+            AG->>LLM: send messages for inference
+            activate LLM
+            LLM-->>AG: response with tool_calls
+            deactivate LLM
+
+            loop Tool Calls Present
+              AG->>TR: dispatch tool call by name
+              activate TR
+              TR->>T: invoke handler with args
+              activate T
+              T-->>TR: tool result
+              deactivate T
+              TR-->>AG: return result
+              deactivate TR
+
+              AG->>LLM: send tool results for next inference
+              activate LLM
+              LLM-->>AG: response
+              deactivate LLM
+            end
+
+            AG-->>CLI: final_response text
+            deactivate AG
+            CLI->>CLI: display response box
+            CLI->>CLI: update conversation history
+            CLI-->>U: formatted output
+          end
+          deactivate CLI
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 2: GATEWAY FLOW         -->
+    <!-- ============================== -->
+    <div id="s2" class="sec-head anim" style="--i:13; color:var(--sky)">
+      <span class="dot" style="background:var(--sky)"></span> Sequence 2
+    </div>
+    <h2 class="anim" style="--i:14">Gateway Message Flow</h2>
+    <p class="section-desc anim" style="--i:15">
+      Platform messages from Telegram, Discord, Slack, and other adapters flow through the
+      GatewayRunner. The runner handles authorization, session management, transcript persistence,
+      and context compression &mdash; enabling stateful multi-turn conversations across platforms.
+    </p>
+
+    <div class="grid-2 anim" style="--i:16">
+      <div class="ve-card c-sky">
+        <div class="ve-card__label">Participants</div>
+        <ul class="step-list">
+          <li><code>Platform</code> &mdash; External messaging service</li>
+          <li><code>Adapter</code> &mdash; Platform-specific adapter</li>
+          <li><code>GatewayRunner</code> &mdash; Central message handler</li>
+          <li><code>SessionStore</code> &mdash; Persistent session state</li>
+          <li><code>AIAgent</code> &mdash; Core agent engine</li>
+          <li><code>LLMProvider</code> &mdash; Remote inference API</li>
+        </ul>
+      </div>
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Session Lifecycle</div>
+        <ul class="step-list">
+          <li>Create or resume session from <code>session_store</code></li>
+          <li>Load conversation history from transcript</li>
+          <li>Auto-compress if context exceeds 85% threshold</li>
+          <li>Register agent in <code>_running_agents</code> map</li>
+          <li>Execute and send response via adapter</li>
+          <li>Persist transcript, clean up agent entry</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:17">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:600px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant P as Platform
+          participant A as Adapter
+          participant GR as GatewayRunner
+          participant SS as SessionStore
+          participant AG as AIAgent
+          participant LLM as LLMProvider
+
+          P->>A: webhook or polling event
+          activate A
+          A->>GR: on_message with platform context
+          activate GR
+
+          GR->>GR: _is_user_authorized check
+
+          alt Agent Already Running
+            Note over GR: Check priority interrupts
+            alt Stop or Status or Approve Command
+              GR->>AG: push to interrupt queue
+              GR-->>A: acknowledge interrupt
+            else Regular Message
+              GR-->>A: agent busy notification
+            end
+          else No Active Agent
+            alt Slash Command
+              GR->>GR: dispatch_slash_command
+              GR-->>A: command result
+            else Chat Message
+              GR->>GR: _handle_message_with_agent
+
+              GR->>SS: get_or_create_session
+              activate SS
+              SS-->>GR: SessionEntry with history
+              deactivate SS
+
+              GR->>GR: load conversation from transcript
+
+              opt Context Over 85 Percent
+                GR->>AG: auto-compress context
+              end
+
+              GR->>AG: create AIAgent and register in _running_agents
+              activate AG
+              GR->>AG: run_conversation in executor
+              AG->>LLM: inference request
+              activate LLM
+              LLM-->>AG: LLM response
+              deactivate LLM
+              AG-->>GR: final response text
+              deactivate AG
+
+              GR->>A: send response via adapter
+              GR->>SS: store updated transcript
+              GR->>GR: cleanup _running_agents entry
+            end
+          end
+          deactivate GR
+          A-->>P: deliver response
+          deactivate A
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 3: THE AGENT LOOP       -->
+    <!-- ============================== -->
+    <div id="s3" class="sec-head anim" style="--i:18; color:var(--amber)">
+      <span class="dot" style="background:var(--amber)"></span> Sequence 3
+    </div>
+    <h2 class="anim" style="--i:19">The Agent Loop</h2>
+    <p class="section-desc anim" style="--i:20">
+      Inside <code>run_conversation()</code> lives the core agent loop. It manages system prompt
+      construction, preflight compression, the main iteration loop with LLM calls, tool
+      execution, and error recovery. The nested retry loop handles transient failures with
+      credential rotation, auth refresh, and fallback activation.
+    </p>
+
+    <div class="grid-3 anim" style="--i:21">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Setup Phase</div>
+        <ul class="step-list">
+          <li>Restore primary runtime if fallback was active</li>
+          <li>Build or restore system prompt</li>
+          <li>Preflight compression up to 3 passes</li>
+          <li>Fire <code>pre_llm_call</code> plugin hook</li>
+        </ul>
+      </div>
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Main Loop</div>
+        <ul class="step-list">
+          <li>Check interrupt, consume budget</li>
+          <li>Prepare messages with memory and caching</li>
+          <li>Retry loop with max 3 attempts</li>
+          <li>Tool calls: validate then execute</li>
+        </ul>
+      </div>
+      <div class="ve-card c-rose">
+        <div class="ve-card__label">Error Recovery</div>
+        <ul class="step-list">
+          <li>Credential rotation on auth errors</li>
+          <li>Context compression on size errors</li>
+          <li>Fallback chain activation on failure</li>
+          <li>Save trajectory, persist session</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:22">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:650px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant AG as AIAgent
+          participant CC as ContextCompressor
+          participant PC as PromptCache
+          participant LLM as LLMClient
+          participant TD as ToolDispatch
+          participant MM as MemoryManager
+
+          Note over AG: run_conversation starts
+          AG->>AG: restore primary runtime if fallback active
+          AG->>AG: build or restore system prompt
+
+          opt Token Estimate Over Threshold
+            AG->>CC: preflight compression
+            activate CC
+            loop Up to 3 Passes
+              CC->>CC: compress context
+            end
+            CC-->>AG: compressed messages
+            deactivate CC
+          end
+
+          AG->>AG: fire pre_llm_call plugin hook
+
+          loop Main Iteration Loop
+            AG->>AG: check interrupt and consume budget
+            AG->>MM: inject memory into messages
+            activate MM
+            MM-->>AG: enriched messages
+            deactivate MM
+            AG->>PC: apply prompt caching hints
+            activate PC
+            PC-->>AG: cached message set
+            deactivate PC
+
+            rect rgb(20, 60, 80)
+              Note over AG,LLM: Retry Loop - max 3 attempts
+              AG->>LLM: API call to LLM
+              activate LLM
+              LLM-->>AG: response or error
+              deactivate LLM
+
+              alt Success - valid response
+                AG->>AG: update token usage and cache stats
+              else Error - needs recovery
+                AG->>AG: credential rotation
+                AG->>AG: auth refresh
+                AG->>CC: emergency compression
+                AG->>AG: activate fallback if needed
+              end
+            end
+
+            alt Tool Calls in Response
+              AG->>AG: validate tool names and arguments
+              AG->>TD: _execute_tool_calls
+              activate TD
+              TD-->>AG: tool results
+              deactivate TD
+
+              opt Context Growing Large
+                AG->>CC: in-loop compression
+              end
+              Note over AG: continue loop
+            else No Tool Calls
+              AG->>AG: extract final_response
+              Note over AG: break loop
+            end
+          end
+
+          AG->>AG: save trajectory and persist session
+          AG->>AG: fire post hooks
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 4: CONTEXT COMPRESSION  -->
+    <!-- ============================== -->
+    <div id="s4" class="sec-head anim" style="--i:23; color:var(--emerald)">
+      <span class="dot" style="background:var(--emerald)"></span> Sequence 4
+    </div>
+    <h2 class="anim" style="--i:24">Context Compression</h2>
+    <p class="section-desc anim" style="--i:25">
+      When context grows beyond the threshold (default 50% of the context window), the
+      compression algorithm runs in four distinct phases. It prunes old tool results,
+      determines safe boundaries, generates an LLM-powered summary, and assembles the
+      compressed history with proper tool-call pair sanitization.
+    </p>
+
+    <div class="grid-2 anim" style="--i:26">
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Trigger Points</div>
+        <ul class="step-list">
+          <li><strong>Preflight:</strong> before the main agent loop starts</li>
+          <li><strong>In-loop:</strong> after tool calls if context grows</li>
+          <li><strong>Error recovery:</strong> on 413 or context-length errors</li>
+        </ul>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Failure Mode</div>
+        <ul class="step-list">
+          <li>If summary generation fails, drops middle without summary</li>
+          <li>Graceful degradation preserves head and tail</li>
+          <li>Orphaned tool-call pairs sanitized automatically</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:27">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:580px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant AG as AIAgent
+          participant CC as ContextCompressor
+          participant AUX as AuxiliaryLLM
+          participant LLM as LLMProvider
+
+          AG->>CC: compress context triggered
+          activate CC
+          Note over CC: Phase 1 - Prune Old Tool Results
+
+          CC->>CC: _prune_old_tool_results
+          Note over CC: Replace tool content over 200 chars with placeholder
+          Note over CC: No LLM call needed for this phase
+
+          Note over CC: Phase 2 - Determine Boundaries
+
+          CC->>CC: protect first 3 messages as head
+          CC->>CC: calculate tail cut by token budget around 20K
+          CC->>CC: align boundaries to tool-call groups
+
+          Note over CC: Phase 3 - Generate Summary
+
+          CC->>AUX: call auxiliary LLM for compression task
+          activate AUX
+          Note over AUX: Structured template with Goal and Progress
+          Note over AUX: Also includes Decisions and Files and Next Steps
+
+          alt First Compression
+            AUX->>LLM: generate fresh summary
+            activate LLM
+            LLM-->>AUX: summary text
+            deactivate LLM
+          else Re-Compression
+            AUX->>LLM: iterative update of existing summary
+            activate LLM
+            LLM-->>AUX: updated summary
+            deactivate LLM
+          end
+
+          AUX-->>CC: summary text
+          deactivate AUX
+
+          Note over CC: Phase 4 - Assemble
+
+          CC->>CC: combine head plus summary message plus tail
+          CC->>CC: sanitize orphaned tool-call pairs
+
+          alt Summary Generation Failed
+            CC->>CC: fallback - drop middle without summary
+            Note over CC: Graceful degradation preserves head and tail
+          end
+
+          CC-->>AG: compressed message history
+          deactivate CC
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 5: TOOL EXECUTION       -->
+    <!-- ============================== -->
+    <div id="s5" class="sec-head anim" style="--i:28; color:var(--indigo)">
+      <span class="dot" style="background:var(--indigo)"></span> Sequence 5
+    </div>
+    <h2 class="anim" style="--i:29">Tool Execution</h2>
+    <p class="section-desc anim" style="--i:30">
+      Tool dispatch follows a two-tier architecture. Agent-level tools (todo, memory, session_search,
+      clarify, delegate) are handled directly inside the agent. Everything else routes through the
+      ToolRegistry. Batch tool calls can execute in parallel via ThreadPoolExecutor when the
+      parallelization check passes.
+    </p>
+
+    <div class="grid-2 anim" style="--i:31">
+      <div class="ve-card c-indigo">
+        <div class="ve-card__label">Agent-Level Tools</div>
+        <ul class="step-list">
+          <li><code>todo</code> &mdash; Task tracking</li>
+          <li><code>memory</code> &mdash; Persistent memory ops</li>
+          <li><code>session_search</code> &mdash; History search</li>
+          <li><code>clarify</code> &mdash; Ask user for clarification</li>
+          <li><code>delegate</code> &mdash; Spawn subagent</li>
+        </ul>
+      </div>
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Registry Tools</div>
+        <ul class="step-list">
+          <li>Dispatched via <code>registry.dispatch()</code></li>
+          <li>Args coerced via <code>coerce_tool_args()</code></li>
+          <li>Plugin hooks: <code>pre_tool_call</code>, <code>post_tool_call</code></li>
+          <li>ToolEntry looked up by name, handler invoked</li>
+          <li>Includes file, terminal, browser, search, etc.</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:32">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:550px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant AG as AIAgent
+          participant TD as ToolDispatch
+          participant TR as ToolRegistry
+          participant T as Tool
+          participant TP as ThreadPool
+
+          AG->>AG: receive tool_calls from LLM response
+
+          AG->>TD: _should_parallelize_tool_batch check
+          activate TD
+
+          alt Parallel Execution Approved
+            TD->>TP: submit batch to ThreadPoolExecutor
+            activate TP
+
+            par Concurrent Tool Calls
+              TP->>TD: execute tool call 1
+              and
+              TP->>TD: execute tool call 2
+              and
+              TP->>TD: execute tool call N
+            end
+
+            TP-->>TD: collected results
+            deactivate TP
+          else Sequential Execution
+            loop Each Tool Call in Order
+              TD->>TD: process single tool call
+            end
+          end
+
+          Note over TD: Two-Tier Dispatch
+
+          alt Agent-Level Tool
+            Note over TD: todo or memory or session_search or clarify or delegate
+            TD->>AG: handle directly via _invoke_tool
+            AG-->>TD: result
+          else External Memory Tool
+            TD->>AG: memory_manager.handle_tool_call
+            AG-->>TD: memory result
+          else Registry Tool
+            TD->>TD: coerce_tool_args
+            TD->>AG: fire plugin pre_tool_call
+            TD->>TR: registry.dispatch by name
+            activate TR
+            TR->>T: look up ToolEntry and call handler
+            activate T
+            T-->>TR: tool output
+            deactivate T
+            TR-->>TD: result
+            deactivate TR
+            TD->>AG: fire plugin post_tool_call
+          end
+
+          TD-->>AG: all tool results
+          deactivate TD
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 6: SUBAGENT DELEGATION  -->
+    <!-- ============================== -->
+    <div id="s6" class="sec-head anim" style="--i:33; color:var(--rose)">
+      <span class="dot" style="background:var(--rose)"></span> Sequence 6
+    </div>
+    <h2 class="anim" style="--i:34">Subagent Delegation</h2>
+    <p class="section-desc anim" style="--i:35">
+      The delegate tool spawns isolated child agents for focused subtasks. Children inherit
+      a restricted toolset (no delegate, clarify, memory, or execute_code), run in quiet mode,
+      and are limited to 2 levels of nesting depth. Up to 3 tasks execute concurrently via
+      ThreadPoolExecutor.
+    </p>
+
+    <div class="grid-2 anim" style="--i:36">
+      <div class="ve-card c-rose">
+        <div class="ve-card__label">Constraints</div>
+        <ul class="step-list">
+          <li>Max delegation depth: <strong>2 levels</strong></li>
+          <li>Max concurrent tasks: <strong>3</strong></li>
+          <li>Blocked tools: delegate, clarify, memory, execute_code</li>
+          <li>Child runs with <code>quiet_mode=True</code></li>
+          <li>Child skips context files and memory loading</li>
+        </ul>
+      </div>
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Child Configuration</div>
+        <ul class="step-list">
+          <li>Toolset: intersection of parent tools minus blocked</li>
+          <li><code>skip_context_files=True</code></li>
+          <li><code>skip_memory=True</code></li>
+          <li><code>_delegate_depth = parent + 1</code></li>
+          <li>Registered in parent <code>_active_children</code> for interrupt propagation</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:37">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:520px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant PA as ParentAgent
+          participant DT as DelegateTool
+          participant CA as ChildAgent
+          participant LLM as LLMProvider
+          participant MM as MemoryManager
+
+          PA->>DT: invoke delegate with task list
+          activate DT
+
+          DT->>DT: check depth limit max 2 levels
+          DT->>DT: resolve delegation credentials
+
+          alt Single Task
+            DT->>DT: _build_child_agent
+            Note over DT: Intersect toolsets with parent
+            Note over DT: Strip blocked tools
+            DT->>CA: create AIAgent with quiet_mode
+            activate CA
+            DT->>PA: register child in _active_children
+            DT->>CA: _run_single_child with goal
+            CA->>LLM: run_conversation
+            activate LLM
+            LLM-->>CA: response
+            deactivate LLM
+            CA-->>DT: task result
+            deactivate CA
+
+          else Batch Tasks up to 3
+            par Concurrent Child Agents
+              DT->>CA: _build_child_agent for task 1
+              activate CA
+              CA->>LLM: run_conversation
+              activate LLM
+              LLM-->>CA: response
+              deactivate LLM
+              CA-->>DT: result 1
+              deactivate CA
+            and
+              DT->>CA: _build_child_agent for task 2
+              activate CA
+              CA->>LLM: run_conversation
+              activate LLM
+              LLM-->>CA: response
+              deactivate LLM
+              CA-->>DT: result 2
+              deactivate CA
+            and
+              DT->>CA: _build_child_agent for task 3
+              activate CA
+              CA->>LLM: run_conversation
+              activate LLM
+              LLM-->>CA: response
+              deactivate LLM
+              CA-->>DT: result 3
+              deactivate CA
+            end
+          end
+
+          DT->>DT: collect all results
+          DT->>MM: notify memory provider
+          DT-->>PA: aggregated delegation results
+          deactivate DT
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 7: ERROR RECOVERY       -->
+    <!-- ============================== -->
+    <div id="s7" class="sec-head anim" style="--i:38; color:var(--rose)">
+      <span class="dot" style="background:var(--rose)"></span> Sequence 7
+    </div>
+    <h2 class="anim" style="--i:39">Error Recovery and Fallback</h2>
+    <p class="section-desc anim" style="--i:40">
+      When API calls fail, the agent cascades through eight recovery strategies before giving up.
+      The fallback chain walks through configured alternative models and providers, swapping
+      the client in-place. The primary runtime is automatically restored at the start of the
+      next conversation turn.
+    </p>
+
+    <div class="grid-2 anim" style="--i:41">
+      <div class="ve-card c-rose">
+        <div class="ve-card__label">Recovery Cascade</div>
+        <ul class="step-list">
+          <li><strong>1.</strong> Surrogate sanitization (once)</li>
+          <li><strong>2.</strong> Credential pool rotation</li>
+          <li><strong>3.</strong> Provider-specific auth refresh</li>
+          <li><strong>4.</strong> Context-length error: step down and compress</li>
+          <li><strong>5.</strong> 413 payload too large: compress and retry</li>
+          <li><strong>6.</strong> Rate limit 429: eager fallback</li>
+          <li><strong>7.</strong> Non-retryable 4xx: try fallback then abort</li>
+          <li><strong>8.</strong> Max retries: primary recovery then fallback then give up</li>
+        </ul>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Fallback Mechanics</div>
+        <ul class="step-list">
+          <li><code>_try_activate_fallback()</code> walks the chain</li>
+          <li>Swaps model, provider, and client in-place</li>
+          <li>Updates compressor with new context limits</li>
+          <li><code>_restore_primary_runtime()</code> called at next turn</li>
+          <li>Chain configured via <code>fallback_model</code> and <code>fallback_providers</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:42">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:620px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant AG as AIAgent
+          participant PRI as PrimaryLLM
+          participant CP as CredentialPool
+          participant CC as ContextCompressor
+          participant FB as FallbackChain
+
+          Note over AG: Initialize fallback chain from config
+
+          AG->>PRI: API call attempt
+          activate PRI
+          PRI-->>AG: error response
+          deactivate PRI
+
+          rect rgb(60, 20, 20)
+            Note over AG,FB: Recovery Cascade
+
+            AG->>AG: Step 1 - surrogate sanitization once
+
+            AG->>CP: Step 2 - _recover_with_credential_pool
+            activate CP
+            CP-->>AG: rotated credential or none available
+            deactivate CP
+
+            alt Auth Error 401
+              AG->>AG: Step 3 - provider-specific auth refresh
+              Note over AG: Codex or Nous or Anthropic refresh
+
+            else Context Length Error
+              AG->>CC: Step 4 - step down model and compress
+              activate CC
+              CC-->>AG: compressed context
+              deactivate CC
+
+            else 413 Payload Too Large
+              AG->>CC: Step 5 - compress and retry
+              activate CC
+              CC-->>AG: compressed context
+              deactivate CC
+
+            else Rate Limit 429
+              AG->>FB: Step 6 - eager fallback if no pool recovery
+              activate FB
+              FB-->>AG: fallback model activated
+              deactivate FB
+
+            else Non-Retryable 4xx
+              AG->>FB: Step 7 - try fallback then abort
+              activate FB
+              alt Fallback Available
+                FB-->>AG: fallback activated
+              else No Fallback
+                FB-->>AG: abort signal
+              end
+              deactivate FB
+            end
+          end
+
+          alt Retry Budget Remaining
+            AG->>PRI: retry with recovered state
+            activate PRI
+            PRI-->>AG: success or next error
+            deactivate PRI
+          else Max Retries Exhausted
+            AG->>AG: attempt primary transport recovery
+            AG->>FB: _try_activate_fallback
+            activate FB
+            FB->>FB: walk chain and swap model and provider
+            FB->>CC: update compressor with new limits
+            FB-->>AG: fallback ready or give up
+            deactivate FB
+
+            alt Fallback Activated
+              Note over AG: Next turn calls _restore_primary_runtime
+            else All Options Exhausted
+              AG->>AG: return error to caller
+            end
+          end
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- FOOTER: COMPANION PAGES         -->
+    <!-- ============================== -->
+    <div id="s8" class="sec-head anim" style="--i:43; color:var(--slate)">
+      <span class="dot" style="background:var(--slate)"></span> Companion Pages
+    </div>
+    <h2 class="anim" style="--i:44">Related Documentation</h2>
+    <p class="section-desc anim" style="--i:45">
+      These sequence diagrams complement the structural and conceptual documentation.
+      Explore the companion pages for architecture views, conceptual guides, and data models.
+    </p>
+
+    <div class="companion-grid anim" style="--i:46">
+      <a class="companion-link" href="hermes-architecture.html">
+        <div class="companion-link__title">C4 System Architecture</div>
+        <div class="companion-link__desc">Structural views of Hermes at system, container, and component levels. Covers all 4 deployment modes and 30+ tool integrations.</div>
+      </a>
+      <a class="companion-link" href="hermes-diataxis.html">
+        <div class="companion-link__title">Understanding Hermes</div>
+        <div class="companion-link__desc">Conceptual documentation following the Diataxis framework. Tutorials, how-to guides, explanations, and reference material.</div>
+      </a>
+      <a class="companion-link" href="hermes-data-model.html">
+        <div class="companion-link__title">Data Model and Schemas</div>
+        <div class="companion-link__desc">Entity-relationship diagrams, configuration schemas, session state models, and persistence layer documentation.</div>
+      </a>
+    </div>
+
+    <div style="height:60px"></div>
+
+  </div><!-- /main -->
+</div><!-- /wrap -->
+
+<!-- ====== MERMAID + ZOOM ENGINE ====== -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  const config = {
+    fitPadding: 28,
+    minHeight: 360,
+    maxHeightPx: 960,
+    maxHeightVh: 0.84,
+    maxInitialZoom: 1.8,
+    minZoom: 0.08,
+    maxZoom: 6.5,
+    zoomStep: 0.14,
+    readabilityFloor: 0.58
+  };
+
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+  let activeDrag = null;
+
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => {
+    activeDrag?.onEnd();
+    activeDrag = null;
+  });
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+      fontSize: '14px',
+      primaryColor: isDark ? '#1a3332' : '#ccfbf1',
+      primaryBorderColor: isDark ? '#2dd4bf' : '#0d9488',
+      primaryTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      secondaryColor: isDark ? '#1e3a5f' : '#dbeafe',
+      secondaryBorderColor: isDark ? '#38bdf8' : '#0284c7',
+      secondaryTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      tertiaryColor: isDark ? '#2e2618' : '#fef3c7',
+      tertiaryBorderColor: isDark ? '#fbbf24' : '#d97706',
+      tertiaryTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      lineColor: isDark ? '#64748b' : '#94a3b8',
+      noteBkgColor: isDark ? '#1e293b' : '#fefce8',
+      noteTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      noteBorderColor: isDark ? '#fbbf24' : '#d97706',
+      actorBkg: isDark ? '#1a3332' : '#ccfbf1',
+      actorBorder: isDark ? '#2dd4bf' : '#0d9488',
+      actorTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      actorLineColor: isDark ? '#475569' : '#94a3b8',
+      activationBkgColor: isDark ? '#1e2a40' : '#e0f2fe',
+      activationBorderColor: isDark ? '#38bdf8' : '#0284c7',
+      signalColor: isDark ? '#94a3b8' : '#475569',
+      signalTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      labelBoxBkgColor: isDark ? '#151d2e' : '#f1f5f9',
+      labelBoxBorderColor: isDark ? '#475569' : '#94a3b8',
+      labelTextColor: isDark ? '#e2e8f0' : '#0f172a',
+      loopTextColor: isDark ? '#94a3b8' : '#64748b',
+      sequenceNumberColor: isDark ? '#0c1222' : '#ffffff',
+    }
+  });
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+
+    if (!wrap || !viewport || !canvas || !source || !label) {
+      console.error('initDiagram: missing required elements in', shell);
+      return;
+    }
+
+    let zoom = 1;
+    let fitMode = 'contain';
+    let panX = 0;
+    let panY = 0;
+    let svgW = 0;
+    let svgH = 0;
+    let sx = 0;
+    let sy = 0;
+    let spx = 0;
+    let spy = 0;
+    let touchDist = 0;
+    let touchCx = 0;
+    let touchCy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth;
+      const vpH = viewport.clientHeight;
+      const rW = svgW * zoom;
+      const rH = svgH * zoom;
+      const pad = config.fitPadding;
+
+      panX = (rW + pad * 2 <= vpW)
+        ? (vpW - rW) / 2
+        : clamp(panX, vpW - rW - pad, pad);
+      panY = (rH + pad * 2 <= vpH)
+        ? (vpH - rH) / 2
+        : clamp(panY, vpH - rH - pad, pad);
+    }
+
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+
+      constrainPan();
+      svg.style.width = (svgW * zoom) + 'px';
+      svg.style.height = (svgH * zoom) + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '% \u2014 ' + fitMode;
+    }
+
+    function canPan() {
+      const rW = svgW * zoom;
+      const rH = svgH * zoom;
+      return rW + config.fitPadding * 2 > viewport.clientWidth
+          || rH + config.fitPadding * 2 > viewport.clientHeight;
+    }
+
+    function computeSmartFit() {
+      const vpW = viewport.clientWidth;
+      const vpH = viewport.clientHeight;
+      const aW = Math.max(80, vpW - config.fitPadding * 2);
+      const aH = Math.max(80, vpH - config.fitPadding * 2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+
+      let z = contain;
+      let mode = 'contain';
+      if (contain < config.readabilityFloor) {
+        const chartR = svgH / svgW;
+        const vpR = vpH / Math.max(vpW, 1);
+        if (chartR >= vpR) {
+          z = aW / svgW;
+          mode = 'width-priority';
+        } else {
+          z = aH / svgH;
+          mode = 'height-priority';
+        }
+      }
+      return { zoom: clamp(z, config.minZoom, config.maxInitialZoom), mode };
+    }
+
+    function fitDiagram() {
+      if (!svgW) return;
+      const fit = computeSmartFit();
+      zoom = fit.zoom;
+      fitMode = fit.mode;
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+
+    function setOneToOne() {
+      zoom = clamp(1, config.minZoom, config.maxZoom);
+      fitMode = '1:1';
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom);
+      const ratio = next / zoom;
+      panX = cx - ratio * (cx - panX);
+      panY = cy - ratio * (cy - panY);
+      zoom = next;
+      fitMode = 'custom';
+      applyTransform();
+    }
+
+    function readSvgNaturalSize(svg) {
+      let w = 0;
+      let h = 0;
+      if (svg.viewBox?.baseVal?.width > 0) {
+        w = svg.viewBox.baseVal.width;
+        h = svg.viewBox.baseVal.height;
+      }
+      if (!w) {
+        w = parseFloat(svg.getAttribute('width')) || 0;
+        h = parseFloat(svg.getAttribute('height')) || 0;
+      }
+      if (!w) {
+        const b = svg.getBBox();
+        w = b.width;
+        h = b.height;
+      }
+      if (!w) {
+        const r = svg.getBoundingClientRect();
+        w = r.width || 1000;
+        h = r.height || 700;
+      }
+      if (!svg.getAttribute('viewBox')) {
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      }
+      return { w, h };
+    }
+
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const maxVp = Math.floor(innerHeight * config.maxHeightVh);
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, maxVp));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+
+    function openInNewTab() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true);
+      clone.style.width = '';
+      clone.style.height = '';
+      const bg = isDark ? '#0c1222' : '#f1f5f9';
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Diagram</title><style>
+      body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:${bg};padding:40px;box-sizing:border-box}
+      svg{max-width:100%;max-height:90vh;height:auto}
+      </style></head><body>${clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+
+    async function render() {
+      try {
+        const code = source.textContent.trim();
+        if (!code) {
+          label.textContent = 'Error: Empty source';
+          return;
+        }
+
+        const id = 'diagram-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { svg } = await mermaid.render(id, code);
+        canvas.innerHTML = svg;
+
+        const svgNode = canvas.querySelector('svg');
+        if (!svgNode) {
+          label.textContent = 'Error: No SVG';
+          return;
+        }
+
+        const size = readSvgNaturalSize(svgNode);
+        svgW = size.w;
+        svgH = size.h;
+
+        svgNode.removeAttribute('width');
+        svgNode.removeAttribute('height');
+        svgNode.style.maxWidth = 'none';
+        svgNode.style.display = 'block';
+
+        setAdaptiveHeight();
+        fitDiagram();
+      } catch (err) {
+        console.error('Mermaid render failed:', err);
+        label.textContent = 'Error: ' + (err.message || 'Render failed');
+      }
+    }
+
+    const actions = {
+      'zoom-in': () => zoomAround(1 + config.zoomStep, viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-out': () => zoomAround(1 / (1 + config.zoomStep), viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-fit': fitDiagram,
+      'zoom-one': setOneToOne,
+      'zoom-expand': openInNewTab
+    };
+
+    Object.entries(actions).forEach(([action, handler]) => {
+      wrap.querySelector(`[data-action="${action}"]`)?.addEventListener('click', handler);
+    });
+
+    viewport.addEventListener('dblclick', fitDiagram);
+
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const rect = viewport.getBoundingClientRect();
+        const factor = e.deltaY < 0 ? 1 + config.zoomStep : 1 / (1 + config.zoomStep);
+        zoomAround(factor, e.clientX - rect.left, e.clientY - rect.top);
+        return;
+      }
+      if (canPan()) {
+        e.preventDefault();
+        panX -= e.deltaX;
+        panY -= e.deltaY;
+        applyTransform();
+      }
+    }, { passive: false });
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.zoom-controls') || !canPan()) return;
+      wrap.classList.add('is-panning');
+      sx = e.clientX;
+      sy = e.clientY;
+      spx = panX;
+      spy = panY;
+      e.preventDefault();
+
+      activeDrag = {
+        onMove: (ev) => {
+          panX = spx + (ev.clientX - sx);
+          panY = spy + (ev.clientY - sy);
+          applyTransform();
+        },
+        onEnd: () => {
+          wrap.classList.remove('is-panning');
+        }
+      };
+    });
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        sx = e.touches[0].clientX;
+        sy = e.touches[0].clientY;
+        spx = panX;
+        spy = panY;
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDist = Math.sqrt(dx * dx + dy * dy);
+        const r = viewport.getBoundingClientRect();
+        touchCx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+        touchCy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && canPan()) {
+        if (touchDist > 0) {
+          sx = e.touches[0].clientX;
+          sy = e.touches[0].clientY;
+          spx = panX;
+          spy = panY;
+          touchDist = 0;
+        }
+        e.preventDefault();
+        panX = spx + (e.touches[0].clientX - sx);
+        panY = spy + (e.touches[0].clientY - sy);
+        applyTransform();
+      } else if (e.touches.length === 2 && touchDist > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        zoomAround(d / touchDist, touchCx, touchCy);
+        touchDist = d;
+      }
+    }, { passive: false });
+
+    new ResizeObserver(() => {
+      if (svgW) {
+        setAdaptiveHeight();
+        fitDiagram();
+      }
+    }).observe(wrap);
+
+    render();
+  }
+
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+
+<!-- ====== SCROLL SPY ====== -->
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  const links = toc.querySelectorAll('a');
+  const sections = [];
+
+  links.forEach(link => {
+    const id = link.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, link });
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = sections.find(s => s.el === entry.target);
+        if (match) {
+          match.link.classList.add('active');
+          if (window.innerWidth <= 1000) {
+            match.link.scrollIntoView({
+              behavior: 'smooth', block: 'nearest', inline: 'center'
+            });
+          }
+        }
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => observer.observe(s.el));
+
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const id = link.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', '#' + id);
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
