@@ -30,12 +30,12 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.6.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       Hermes is a Python-based AI agent framework that connects LLMs to the real world
       through 30+ tools, 16 messaging platforms, multiple execution backends, and a
-      composable skill system. It runs as a CLI, a messaging gateway daemon, an ACP
-      server for editors, and an MCP server for tool interop.
+      composable skill system. It runs as a CLI, a React terminal TUI, a web dashboard,
+      a messaging gateway daemon, an ACP server for editors, and an MCP server for tool interop.
     </p>
 
     <!-- ====== KPIs ====== -->
@@ -61,8 +61,8 @@
         <div class="kpi-card__label">Memory Providers</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--slate)">4</div>
-        <div class="kpi-card__label">Deploy Modes</div>
+        <div class="kpi-card__value" style="color:var(--slate)">6</div>
+        <div class="kpi-card__label">Entry Points</div>
       </div>
     </div>
 
@@ -113,7 +113,7 @@
 
           llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +14</small>"]
           platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +13</small>"]
-          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona</small>"]
+          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
           memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +4</small>"]
@@ -155,11 +155,11 @@
     <div id="containers" class="sec-head anim" style="--i:10; color:var(--teal)">
       <span class="dot" style="background:var(--teal)"></span> Level 2 &mdash; Container Diagram
     </div>
-    <h2 class="anim" style="--i:11">Four deployment modes, one core engine</h2>
+    <h2 class="anim" style="--i:11">Six entry points, one core engine</h2>
     <p class="section-desc anim" style="--i:12">
-      Hermes deploys in four modes &mdash; CLI, Gateway, ACP Server, and MCP Server &mdash; all
-      driving the same AIAgent core. The core delegates to an intelligence layer, a tool system,
-      persistent state, a cron scheduler, and optional RL training environments.
+      Hermes deploys in six modes &mdash; CLI, TUI (React/Ink), Web Dashboard, Gateway, ACP Server,
+      and MCP Server &mdash; all driving the same AIAgent core. The core delegates to an intelligence
+      layer, a tool system, persistent state, a cron scheduler, and optional RL environments.
     </p>
 
     <section class="diagram-shell anim" style="--i:13">
@@ -183,6 +183,8 @@
         graph TD
           subgraph entry["Entry Points"]
             cli["CLI Interface<br/><small>hermes chat</small>"]
+            tui["TUI<br/><small>hermes --tui</small>"]
+            webdash["Web Dashboard<br/><small>hermes web</small>"]
             gw["Gateway Daemon<br/><small>hermes gateway</small>"]
             acp["ACP Server<br/><small>hermes acp</small>"]
             mcp["MCP Server<br/><small>hermes mcp serve</small>"]
@@ -201,6 +203,8 @@
           rlenv["RL Environments<br/><small>environments/</small>"]
 
           cli --> core
+          tui --> core
+          webdash --> core
           gw --> core
           acp --> core
           mcp --> core
@@ -217,7 +221,7 @@
           classDef sub fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
           classDef opt fill:#e11d4808,stroke:#e11d4844,stroke-width:1px,stroke-dasharray:5 5
 
-          class cli,gw,acp,mcp entry
+          class cli,tui,webdash,gw,acp,mcp entry
           class core core
           class intel,tools,memprov,state,cronmod sub
           class rlenv opt
@@ -225,16 +229,36 @@
     </section>
 
     <!-- Entry points detail cards -->
-    <div class="grid-4 anim" style="--i:14">
+    <div class="grid-3 gap-24 anim" style="--i:14">
       <div class="ve-card c-amber">
         <div class="ve-card__label">CLI</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
-            Interactive TUI via <code>prompt_toolkit</code>. Streaming output,
+            Classic <code>prompt_toolkit</code> REPL. Streaming output,
             session picker, inline model switching.
           </div>
         </div>
       </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">TUI</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            React/Ink terminal UI (<code data-ref="tui-entry">ui-tui/</code>). Communicates with a
+            Python JSON-RPC backend (<code data-ref="tui-gateway-server">tui_gateway/</code>).
+          </div>
+        </div>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Web Dashboard</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            React 19 + Vite browser SPA (<code data-ref="web-dashboard">web/</code>). Config, sessions,
+            logs, analytics. Plugin-extensible tabs. FastAPI backend.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-3 gap-24 anim" style="--i:14">
       <div class="ve-card c-amber">
         <div class="ve-card__label">Gateway</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
@@ -543,7 +567,7 @@
             <ul class="node-list">
               <li><code data-ref="mcp-tool">mcp_tool</code> call external MCP servers</li>
               <li><code>homeassistant</code> smart home control</li>
-              <li><code>honcho_tools</code> AI-native memory</li>
+              <li><code>honcho_tools</code> AI-native memory (plugin)</li>
             </ul>
           </div>
         </div>
@@ -705,7 +729,7 @@
     <div class="ve-card c-accent anim" style="--i:39; margin-bottom:16px">
       <div class="ve-card__label">Interactive CLI Session</div>
       <div class="pipeline">
-        <div class="pipeline-step"><div class="step-name">User types</div><div class="step-detail">prompt_toolkit<br>REPL</div></div>
+        <div class="pipeline-step"><div class="step-name">User types</div><div class="step-detail">CLI / TUI /<br>Web / Gateway</div></div>
         <div class="pipeline-arrow">→</div>
         <div class="pipeline-step" style="border-color:var(--teal-dim)"><div class="step-name">AIAgent</div><div class="step-detail">run_conversation()</div></div>
         <div class="pipeline-arrow">→</div>
@@ -779,7 +803,9 @@
           <li><code>Python &ge;3.11</code> — primary language</li>
           <li><code>openai</code> + <code>anthropic</code> SDK — LLM clients</li>
           <li><code>httpx</code> — async HTTP client</li>
-          <li><code>prompt_toolkit</code> — CLI TUI</li>
+          <li><code>prompt_toolkit</code> — classic CLI</li>
+          <li><code>React</code> + <code>Ink</code> — TUI (TypeScript)</li>
+          <li><code>React 19</code> + <code>Vite</code> — Web dashboard</li>
           <li><code>SQLite</code> WAL + FTS5 — state persistence</li>
           <li><code>YAML</code> + <code>.env</code> — configuration</li>
         </ul>

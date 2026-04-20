@@ -137,8 +137,8 @@
         <div>
           <h3 style="color:var(--tutorial)">Ring 1: Entry Points</h3>
           <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
-            CLI, Gateway, ACP, MCP Server. These accept messages from different worlds and
-            normalize them. They are <em>thin</em> &mdash; as little logic as possible.
+            CLI, TUI, Web Dashboard, Gateway, ACP, MCP Server. These accept messages from
+            different worlds and normalize them. They are <em>thin</em> &mdash; as little logic as possible.
           </p>
         </div>
         <div>
@@ -330,7 +330,9 @@
       <script type="text/plain" class="diagram-source">
         graph TD
           subgraph entry["Entry Layer"]
-            cli["cli.py<br/><small>7900 lines &middot; HermesCLI</small>"]
+            cli["cli.py<br/><small>HermesCLI</small>"]
+            tuigw["tui_gateway/server.py<br/><small>JSON-RPC backend</small>"]
+            webdash["web/<br/><small>React 19 + FastAPI</small>"]
             gwrun["gateway/run.py<br/><small>GatewayRunner</small>"]
             acpsrv["acp_adapter/server.py<br/><small>ACP protocol</small>"]
             mcpsrv["mcp_serve.py<br/><small>MCP stdio server</small>"]
@@ -359,6 +361,8 @@
           end
 
           cli --> runagent
+          tuigw --> runagent
+          webdash --> runagent
           gwrun --> runagent
           acpsrv --> runagent
           mcpsrv --> runagent
@@ -382,7 +386,7 @@
           classDef tool fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
           classDef st fill:#933eea11,stroke:#933eea44,stroke-width:1.5px
 
-          class cli,gwrun,acpsrv,mcpsrv entry
+          class cli,tuigw,webdash,gwrun,acpsrv,mcpsrv entry
           class runagent,promptb,compress,routing,creds,memmgr,memabc core
           class mt,reg,ts tool
           class sdb,mem,config st
@@ -453,6 +457,7 @@
 ├── state.db             <span style="color:var(--text-dim)">— SQLite sessions + messages</span>
 ├── skills/              <span style="color:var(--text-dim)">— installed skills (SKILL.md files)</span>
 ├── plugins/             <span style="color:var(--text-dim)">— user plugins</span>
+├── scripts/             <span style="color:var(--text-dim)">— cron pre-run scripts</span>
 ├── cron/
 │   ├── jobs.json        <span style="color:var(--text-dim)">— scheduled job definitions</span>
 │   └── output/          <span style="color:var(--text-dim)">— job execution logs</span>
