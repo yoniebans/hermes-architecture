@@ -36,7 +36,7 @@ window.ATLAS_REFS = {
       "path": "agent/auxiliary_client.py"
     },
     "memory-provider": {
-      "path": "memory/provider.py"
+      "path": "agent/memory_provider.py"
     },
     "skill-commands": {
       "path": "agent/skill_commands.py"
@@ -88,6 +88,18 @@ window.ATLAS_REFS = {
     },
     "acp-adapter": {
       "path": "acp_adapter"
+    },
+    "web-dashboard": {
+      "path": "web"
+    },
+    "memory-manager": {
+      "path": "agent/memory_manager.py"
+    },
+    "credential-pool": {
+      "path": "agent/credential_pool.py"
+    },
+    "plugins": {
+      "path": "plugins"
     }
   }
 };
