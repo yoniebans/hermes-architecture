@@ -233,16 +233,27 @@ function initDiagram(shell) {
     wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
   }
 
+  function getDiagramTitle() {
+    let el = shell.previousElementSibling;
+    while (el) {
+      const h = el.tagName?.match(/^H[1-6]$/) ? el : el.querySelector('h1,h2,h3,h4,h5,h6');
+      if (h) return h.textContent.trim();
+      el = el.previousElementSibling;
+    }
+    return 'Diagram';
+  }
+
   function openInNewTab() {
     const svg = canvas.querySelector('svg');
     if (!svg) return;
     const clone = svg.cloneNode(true);
     clone.style.width = '';
     clone.style.height = '';
+    const title = getDiagramTitle();
     const bg = isDark ? '#0c1222' : '#f1f5f9';
     const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagram</title><style>
+    <title>${title}</title><style>
     body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
     background:${bg};padding:40px;box-sizing:border-box}
     svg{max-width:100%;max-height:90vh;height:auto}
