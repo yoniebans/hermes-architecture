@@ -18,6 +18,7 @@
     <a href="#overview">Overview</a>
     <a href="#cli-flow">CLI Message Flow</a>
     <a href="#gateway-flow">Gateway Flow</a>
+    <a href="#tui-flow">TUI Message Flow</a>
     <a href="#agent-loop">Agent Loop</a>
     <a href="#context-compression">Compression</a>
     <a href="#tool-execution">Tool Execution</a>
@@ -30,7 +31,7 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">Interaction Sequences &mdash; v0.6.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">Interaction Sequences &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       How messages, tools, and decisions flow through time. These sequence diagrams
       trace the lifecycle of every interaction &mdash; from a user typing in the CLI,
@@ -40,11 +41,11 @@
     <!-- ====== KPIs ====== -->
     <div class="kpi-row anim" style="--i:3">
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--teal)">7</div>
+        <div class="kpi-card__value" style="color:var(--teal)">8</div>
         <div class="kpi-card__label">Key Sequences</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--sky)">2</div>
+        <div class="kpi-card__value" style="color:var(--sky)">4</div>
         <div class="kpi-card__label">Entry Points</div>
       </div>
       <div class="kpi-card">
@@ -311,6 +312,135 @@
           deactivate GR
           A-->>P: deliver response
           deactivate A
+      </script>
+    </section>
+
+    <!-- ============================== -->
+    <!-- SECTION 2b: TUI MESSAGE FLOW   -->
+    <!-- ============================== -->
+    <div id="tui-flow" class="sec-head anim" style="--i:14; color:var(--emerald)">
+      <span class="dot" style="background:var(--emerald)"></span> Sequence 2b
+    </div>
+    <h2 class="anim" style="--i:15">TUI Message Flow</h2>
+    <p class="section-desc anim" style="--i:16">
+      The React/Ink terminal UI communicates with the Python backend over a JSON-RPC bridge.
+      The TypeScript process spawns <code data-ref="tui-gateway-server">tui_gateway</code> as a child
+      process, sending requests over stdin/stdout. This two-process architecture keeps the
+      rich UI rendering in Node.js while the agent logic stays in Python.
+    </p>
+
+    <div class="grid-2 anim" style="--i:17">
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Participants</div>
+        <ul class="step-list">
+          <li><code>User</code> &mdash; Human at the terminal</li>
+          <li><code data-ref="tui-entry">TUI (Ink/React)</code> &mdash; TypeScript terminal UI</li>
+          <li><code>GatewayClient</code> &mdash; JSON-RPC bridge in Node.js</li>
+          <li><code data-ref="tui-gateway-server">TUIGateway</code> &mdash; Python JSON-RPC server (child process)</li>
+          <li><code data-ref="ai-agent">AIAgent</code> &mdash; Core agent engine</li>
+          <li><code>LLMProvider</code> &mdash; Remote inference API</li>
+        </ul>
+      </div>
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Key Steps</div>
+        <ul class="step-list">
+          <li>TUI spawns <code>tui_gateway</code> as stdio child process</li>
+          <li>User input serialized as JSON-RPC over stdin</li>
+          <li>Gateway creates AIAgent, calls <code>run_conversation()</code></li>
+          <li>Streaming tokens sent back as JSON-RPC notifications</li>
+          <li>Slash commands routed to persistent <code>SlashWorker</code> subprocess</li>
+          <li>TUI renders markdown, thinking blocks, and tool activity</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:18">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:580px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant U as User
+          participant TUI as TUI (Ink/React)
+          participant GC as GatewayClient
+          participant GW as TUIGateway (Python)
+          participant SW as SlashWorker
+          participant AG as AIAgent
+          participant LLM as LLMProvider
+
+          Note over TUI,GW: Startup: TUI spawns tui_gateway as stdio child process
+          TUI->>GW: JSON-RPC initialize
+          activate GW
+          GW-->>TUI: server capabilities
+          deactivate GW
+
+          U->>TUI: types message
+          activate TUI
+          TUI->>GC: submit input
+          activate GC
+
+          alt Slash Command
+            GC->>GW: JSON-RPC slash request
+            activate GW
+            GW->>SW: forward to persistent CLI subprocess
+            activate SW
+            SW-->>GW: command result
+            deactivate SW
+            GW-->>GC: JSON-RPC response
+            deactivate GW
+            GC-->>TUI: render command output
+          else Chat Message
+            GC->>GW: JSON-RPC chat request
+            activate GW
+            GW->>GW: create or reuse session
+            GW->>AG: create AIAgent and run_conversation
+            activate AG
+
+            AG->>LLM: inference request
+            activate LLM
+            LLM-->>AG: streaming tokens
+            deactivate LLM
+
+            loop Streaming Response
+              AG-->>GW: token chunks
+              GW-->>GC: JSON-RPC notification (token)
+              GC-->>TUI: render markdown incrementally
+            end
+
+            loop Tool Calls Present
+              AG-->>GW: tool activity notification
+              GW-->>GC: JSON-RPC notification (tool status)
+              GC-->>TUI: render tool spinner
+              AG->>AG: execute tools
+              AG->>LLM: send tool results
+              activate LLM
+              LLM-->>AG: next response
+              deactivate LLM
+            end
+
+            AG-->>GW: final response
+            deactivate AG
+            GW-->>GC: JSON-RPC result
+            deactivate GW
+            GC-->>TUI: render complete response
+          end
+
+          deactivate GC
+          TUI-->>U: formatted output with markdown and thinking
+          deactivate TUI
       </script>
     </section>
 
