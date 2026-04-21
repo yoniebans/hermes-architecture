@@ -1,40 +1,30 @@
 name: Deploy Atlas
 
 on:
+  pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  pull-requests: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: preview-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Prepare site
-        run: |
-          mkdir -p _site
-          cp *.html *.css *.js _site/ 2>/dev/null || true
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Preview Pages
+        uses: rajyan/preview-pages@v1
         with:
-          path: _site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          source-dir: .
+          pr-per-commit: "false"
+          pr-comment: sticky
+          branch-per-commit: "false"
