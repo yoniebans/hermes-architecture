@@ -1,93 +1,30 @@
 name: Deploy Atlas
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
   pull-requests: write
+  contents: write
 
 concurrency:
-  group: "pages-${{ github.event.pull_request.number || 'main' }}"
+  group: preview-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # For PRs: build into a preview/ subfolder so main site stays intact
-      - name: Prepare site
-        run: |
-          mkdir -p _site
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            mkdir -p _site/preview
-            cp *.html *.css *.js _site/preview/ 2>/dev/null || true
-            # Also copy main branch content to root so the full site works
-            git fetch origin main
-            git show origin/main:index.html > _site/index.html 2>/dev/null || true
-            git show origin/main:data-model.html > _site/data-model.html 2>/dev/null || true
-            git show origin/main:sequence-diagrams.html > _site/sequence-diagrams.html 2>/dev/null || true
-            git show origin/main:diataxis.html > _site/diataxis.html 2>/dev/null || true
-            git show origin/main:styles.css > _site/styles.css 2>/dev/null || true
-            git show origin/main:mermaid-zoom.js > _site/mermaid-zoom.js 2>/dev/null || true
-            git show origin/main:scrollspy.js > _site/scrollspy.js 2>/dev/null || true
-            git show origin/main:enhancer.js > _site/enhancer.js 2>/dev/null || true
-            git show origin/main:refs.js > _site/refs.js 2>/dev/null || true
-          else
-            cp *.html *.css *.js _site/ 2>/dev/null || true
-          fi
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Preview Pages
+        uses: rajyan/preview-pages@v1
         with:
-          path: _site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Comment preview URL on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const preview_url = `https://yoniebans.github.io/hermes-architecture/preview/`;
-            const body = `🔍 **Atlas preview deployed!**\n\n${preview_url}\n\nThis preview reflects the changes in this PR. The main site remains unchanged.`;
-            
-            // Check if we already commented
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const existing = comments.data.find(c => c.body.includes('Atlas preview deployed'));
-            
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body: body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body,
-              });
-            }
+          source-dir: .
+          pr-per-commit: "false"
+          pr-comment: sticky
+          branch-per-commit: "false"
