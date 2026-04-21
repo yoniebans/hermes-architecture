@@ -234,7 +234,13 @@ function initDiagram(shell) {
   }
 
   function getDiagramTitle() {
-    let el = shell.previousElementSibling;
+    // Walk up to the outermost diagram-shell (may be nested)
+    let top = shell;
+    while (top.parentElement?.closest('.diagram-shell')) {
+      top = top.parentElement.closest('.diagram-shell');
+    }
+    // Walk backwards through siblings to find nearest heading
+    let el = top.previousElementSibling;
     while (el) {
       const h = el.tagName?.match(/^H[1-6]$/) ? el : el.querySelector('h1,h2,h3,h4,h5,h6');
       if (h) return h.textContent.trim();
