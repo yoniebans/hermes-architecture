@@ -23,6 +23,7 @@
   <a href="#tool-registry">Tool Registry</a>
   <a href="#skill-structure">Skill Structure</a>
   <a href="#config-hierarchy">Config Hierarchy</a>
+  <a href="#plugin-system">Plugin System</a>
   <a href="#memory-providers">Memory Providers</a>
   </nav>
 
@@ -67,8 +68,9 @@
   </div>
   <h2 class="anim" style="--i:6">Core Entity Map</h2>
   <p class="section-desc anim" style="--i:7">
-    The seven key entities and how they relate. Sessions contain messages, tools are grouped into
-    toolsets, skills live on disk, config layers override each other, and memory providers plug in.
+    The eight key entities and how they relate. Sessions contain messages, tools are grouped into
+    toolsets, skills live on disk, config layers override each other, memory providers plug in,
+    and plugins extend the system via hooks and tools.
   </p>
 
   <div class="diagram-shell anim" style="--i:8">
@@ -97,6 +99,9 @@ erDiagram
     CONFIG ||--|| AUXILIARY_TASK : "configures"
     MEMORY_PROVIDER ||--o{ TOOL_ENTRY : "registers"
     SKILL |o--o{ SKILL : "related_skills"
+    PLUGIN ||--o{ TOOL_ENTRY : "registers"
+    PLUGIN ||--o{ PLUGIN : "hooks into"
+    PLUGIN }o--|| CONFIG : "configured by"
 
     SESSION {
         text id PK
@@ -874,6 +879,133 @@ graph TD
     class DM,NMT,NRK,EEV process
     class FINAL,AUX,COMP,TERM,AGENT output
       </script>
+    </div>
+  </div>
+</section>
+
+<!-- ──────── PLUGIN SYSTEM ──────── -->
+<section id="plugin-system">
+  <div class="sec-head anim" style="--i:44; color:var(--emerald)">
+    <span class="dot" style="background:var(--emerald)"></span> Plugins
+  </div>
+  <h2 class="anim" style="--i:44">Plugin System</h2>
+  <p class="section-desc anim" style="--i:44">
+    Hermes uses a plugin architecture for extensibility. Four plugin categories exist: memory providers,
+    context engines, general-purpose plugins, and dashboard plugins. The
+    <code data-ref="plugin-manager">PluginManager</code> discovers and loads plugins from four sources
+    in precedence order.
+  </p>
+
+  <div class="diagram-shell anim" style="--i:44">
+    <p class="diagram-shell__hint">Plugin Architecture &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
+    <div class="mermaid-wrap" style="height:520px">
+      <div class="mermaid-viewport">
+        <div class="mermaid-canvas"></div>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
+        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
+        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
+        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+      </div>
+      <div class="zoom-label"></div>
+      <script type="text/plain" class="diagram-source">
+classDiagram
+    class PluginManager {
+        -Dict~str,PluginInfo~ _plugins
+        -List~str~ _enabled
+        -List~str~ _disabled
+        +discover_plugins() List~PluginInfo~
+        +load_plugin(name) PluginInfo
+        +register_all()
+        +get_tools() List~ToolEntry~
+        +get_hooks() Dict
+        +get_commands() Dict
+    }
+
+    class PluginContext {
+        +plugin_name: str
+        +hermes_home: str
+        +register_tool(schema, handler)
+        +register_hook(event, callback)
+        +register_command(name, handler)
+        +register_cli_command(name, parser)
+        +register_skill(skill_data)
+        +register_context_engine(engine)
+        +inject_message(role, content)
+        +dispatch_tool(name, args)
+    }
+
+    class PluginInfo {
+        +name: str
+        +version: str
+        +source: str
+        +description: str
+        +pip_dependencies: List
+        +hooks: List
+        +enabled: bool
+    }
+
+    PluginManager "1" *-- "0..*" PluginInfo : manages
+    PluginManager ..> PluginContext : creates per plugin
+    PluginContext ..> ToolRegistry : register_tool
+    PluginContext ..> AIAgent : register_hook
+
+    note for PluginManager "Discovery order:\n1. Bundled (repo/plugins/)\n2. User (~/.hermes/plugins/)\n3. Project (.hermes/plugins/)\n4. Pip (entry-point group)"
+      </script>
+    </div>
+  </div>
+
+  <div class="card-grid anim" style="--i:44">
+    <div class="ve-card">
+      <h3 style="color:var(--teal)">plugin.yaml Schema</h3>
+      <table class="schema-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="col-name">name</span></td><td>str</td><td>Unique plugin identifier</td></tr>
+          <tr><td><span class="col-name">version</span></td><td>str</td><td>Semver version</td></tr>
+          <tr><td><span class="col-name">description</span></td><td>str</td><td>Human-readable description</td></tr>
+          <tr><td><span class="col-name">pip_dependencies</span></td><td>list</td><td>Auto-installed pip packages</td></tr>
+          <tr><td><span class="col-name">hooks</span></td><td>list</td><td>Lifecycle hooks this plugin uses</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ve-card">
+      <h3 style="color:var(--emerald)">Plugin Categories</h3>
+      <table class="schema-table">
+        <thead><tr><th>Category</th><th>Constraint</th></tr></thead>
+        <tbody>
+          <tr><td><span class="col-name">Memory Provider</span></td><td>At most 1 active external provider</td></tr>
+          <tr><td><span class="col-name">Context Engine</span></td><td>At most 1 replaces built-in compressor</td></tr>
+          <tr><td><span class="col-name">General Plugin</span></td><td>Opt-in via config.yaml enable list</td></tr>
+          <tr><td><span class="col-name">Dashboard Plugin</span></td><td>JS bundle + manifest.json for web UI tabs</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ve-card anim" style="--i:44">
+    <h3 style="color:var(--amber)">14 Lifecycle Hooks</h3>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+      Plugins register callbacks for any combination of these events via
+      <code>ctx.register_hook(event, callback)</code>.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.25rem;font-size:0.82rem;font-family:var(--mono)">
+      <span>pre_tool_call</span>
+      <span>post_tool_call</span>
+      <span>pre_llm_call</span>
+      <span>post_llm_call</span>
+      <span>pre_api_request</span>
+      <span>post_api_request</span>
+      <span>transform_terminal_output</span>
+      <span>transform_tool_result</span>
+      <span>on_session_start</span>
+      <span>on_session_end</span>
+      <span>on_session_finalize</span>
+      <span>on_session_reset</span>
+      <span>subagent_stop</span>
+      <span>on_memory_write</span>
     </div>
   </div>
 </section>

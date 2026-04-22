@@ -100,6 +100,18 @@ window.ATLAS_REFS = {
     },
     "plugins": {
       "path": "plugins"
+    },
+    "plugin-manager": {
+      "path": "hermes_cli/plugins.py"
+    },
+    "context-engine": {
+      "path": "agent/context_engine.py"
+    },
+    "memory-plugins": {
+      "path": "plugins/memory"
+    },
+    "tui-gateway-client": {
+      "path": "ui-tui/src/gatewayClient.ts"
     }
   }
 };
