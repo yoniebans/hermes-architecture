@@ -85,27 +85,27 @@
 <!-- ──────── HERO ──────── -->
 <section id="overview">
   <h1 class="anim" style="--i:0">Hermes Agent &mdash; Data Model</h1>
-  <p class="subtitle anim" style="--i:2">Entities, schemas, and the structures that hold everything together</p>
+  <p class="subtitle anim" style="--i:1">Entities, schemas, and the structures that hold everything together</p>
 
   <div class="kpi-row anim" style="--i:3">
-    <div class="kpi-card"><div class="kpi-card__value">4</div><div class="kpi-card__label">SQLite tables</div></div>
-    <div class="kpi-card"><div class="kpi-card__value">40+</div><div class="kpi-card__label">Config keys</div></div>
-    <div class="kpi-card"><div class="kpi-card__value">40+</div><div class="kpi-card__label">Registered tools</div></div>
-    <div class="kpi-card"><div class="kpi-card__value">22</div><div class="kpi-card__label">Toolset groups</div></div>
-    <div class="kpi-card"><div class="kpi-card__value">6</div><div class="kpi-card__label">Schema versions</div></div>
-    <div class="kpi-card"><div class="kpi-card__value">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">SQLite tables</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">22</div><div class="kpi-card__label">Toolset groups</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">6</div><div class="kpi-card__label">Schema versions</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
   </div>
 
-  <div class="ve-card anim" style="--i:4">
+  <div class="ve-card c-accent anim" style="--i:4">
     <h3>Reading Guide</h3>
-    <p style="font-size:0.9rem;color:var(--text-dim)">
+    <p style="font-size:14px;color:var(--text-dim)">
       This page documents the <strong>data structures</strong> at the heart of Hermes Agent &mdash;
       the database schema that persists sessions and messages, the message format that flows between
       the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file
       format, the layered configuration system, and the pluggable memory provider interface.
       Each section has ER or class diagrams you can zoom and pan.
     </p>
-    <p style="font-size:0.82rem;color:var(--text-dim);margin-top:0.5rem">
+    <p style="font-size:12px;color:var(--text-dim);margin-top:8px">
       For how these structures <em>interact over time</em>, see
       <a href="sequence-diagrams.html" style="color:var(--accent)">Interaction Sequences</a>.
       For the high-level system overview, see
@@ -126,20 +126,20 @@
     and plugins extend the system via hooks and tools.
   </p>
 
-  <div class="diagram-shell anim" style="--i:8">
+  <section class="diagram-shell anim" style="--i:8">
     <p class="diagram-shell__hint">Entity Relationship Overview &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:400px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 erDiagram
     SESSION ||--o{ MESSAGE : contains
@@ -238,8 +238,7 @@ erDiagram
         text toolset
     }
       </script>
-    </div>
-  </div>
+  </section>
 </section>
 
 <!-- ──────── SQLITE SCHEMA ──────── -->
@@ -260,8 +259,8 @@ erDiagram
   </div>
 
   <!-- sessions table -->
-  <div class="ve-card anim" style="--i:14">
-    <h3 style="display:flex;align-items:center;gap:0.5rem">
+  <div class="ve-card c-amber anim" style="--i:14; margin-bottom:16px">
+    <h3 style="display:flex;align-items:center;gap:8px">
       <span style="color:var(--amber)">&#9632;</span> sessions
       <span class="col-version">v1 + v3 + v4 + v5</span>
     </h3>
@@ -299,8 +298,8 @@ erDiagram
   </div>
 
   <!-- messages table -->
-  <div class="ve-card anim" style="--i:15">
-    <h3 style="display:flex;align-items:center;gap:0.5rem">
+  <div class="ve-card c-sky anim" style="--i:15; margin-bottom:16px">
+    <h3 style="display:flex;align-items:center;gap:8px">
       <span style="color:var(--sky)">&#9632;</span> messages
       <span class="col-version">v1 + v2 + v6</span>
     </h3>
@@ -325,12 +324,12 @@ erDiagram
   </div>
 
   <!-- FTS5 + triggers -->
-  <div class="ve-card anim" style="--i:16">
-    <h3 style="display:flex;align-items:center;gap:0.5rem">
+  <div class="ve-card c-emerald anim" style="--i:16; margin-bottom:16px">
+    <h3 style="display:flex;align-items:center;gap:8px">
       <span style="color:var(--emerald)">&#9632;</span> messages_fts
       <span class="col-version">FTS5 Virtual Table</span>
     </h3>
-    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
       Full-text search index over message content. Backed by the <code>messages</code> table
       via <code>content=messages, content_rowid=id</code>.
     </p>
@@ -353,20 +352,20 @@ AFTER UPDATE ON messages →
   </div>
 
   <!-- Schema ER diagram -->
-  <div class="diagram-shell anim" style="--i:17">
+  <section class="diagram-shell anim" style="--i:17">
     <p class="diagram-shell__hint">Database ER Diagram &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:400px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 erDiagram
     sessions ||--o{ messages : "contains"
@@ -421,11 +420,10 @@ erDiagram
         INTEGER version "currently 6"
     }
       </script>
-    </div>
-  </div>
+  </section>
 
   <!-- Migration history -->
-  <div class="ve-card anim" style="--i:18">
+  <div class="ve-card c-teal anim" style="--i:18">
     <h3>Migration History</h3>
     <table class="schema-table">
       <thead><tr><th>Version</th><th>Change</th></tr></thead>
@@ -501,20 +499,20 @@ erDiagram
     </div>
   </div>
 
-  <div class="diagram-shell anim" style="--i:23">
+  <section class="diagram-shell anim" style="--i:23">
     <p class="diagram-shell__hint">Message Flow Through the Agent Loop &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="height:380px">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:380px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 graph LR
     U["User Message<br/><small>role: user</small>"] --> A["Agent Loop"]
@@ -536,8 +534,7 @@ graph LR
     class LLM llm
     class RESP agent
       </script>
-    </div>
-  </div>
+  </section>
 
   <div class="callout anim" style="--i:24">
     <strong>Reasoning content:</strong> When using extended thinking (Anthropic, Codex), the
@@ -559,20 +556,20 @@ graph LR
     for the high-level view.
   </p>
 
-  <div class="diagram-shell anim" style="--i:28">
+  <section class="diagram-shell anim" style="--i:28">
     <p class="diagram-shell__hint">Tool Registry Class Diagram &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="height:480px">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:480px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 classDiagram
     class ToolRegistry {
@@ -614,12 +611,11 @@ classDiagram
 
     note for ToolRegistry "Singleton instance: registry = ToolRegistry()\nImported by all tool files at module load time.\nCircular-import safe (no tool deps)."
       </script>
-    </div>
-  </div>
+  </section>
 
-  <div class="ve-card anim" style="--i:29">
+  <div class="ve-card c-amber anim" style="--i:29; margin-bottom:16px">
     <h3>OpenAI Function Schema Format</h3>
-    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
       Every tool registers a schema dict following the OpenAI function calling format.
       When served to the LLM via <code>get_definitions()</code>, each is wrapped as
       <code>{"type": "function", "function": {schema}}</code>.
@@ -650,16 +646,16 @@ classDiagram
 }</code></pre>
   </div>
 
-  <div class="ve-card anim" style="--i:30">
+  <div class="ve-card c-sky anim" style="--i:30">
     <h3>Toolset Composition</h3>
-    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
       Toolsets are either <strong>leaf</strong> (directly list tools) or <strong>composite</strong>
       (include other toolsets). Platform toolsets compose everything needed for a deployment mode.
     </p>
     <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-      <div style="background:var(--sky-dim);padding:0.75rem;border-radius:8px">
-        <div style="font-weight:600;font-size:0.82rem;color:var(--sky);margin-bottom:0.3rem">Leaf Toolsets</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.6">
+      <div style="background:var(--sky-dim);padding:12px;border-radius:8px">
+        <div style="font-weight:600;font-size:12px;color:var(--sky);margin-bottom:4px">Leaf Toolsets</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.6">
           web &middot; terminal &middot; file &middot; browser &middot;
           vision &middot; image_gen &middot; skills &middot; tts &middot;
           todo &middot; memory &middot; session_search &middot; clarify &middot;
@@ -667,16 +663,16 @@ classDiagram
           homeassistant &middot; search &middot; moa
         </div>
       </div>
-      <div style="background:var(--teal-dim);padding:0.75rem;border-radius:8px">
-        <div style="font-weight:600;font-size:0.82rem;color:var(--teal);margin-bottom:0.3rem">Composite Toolsets</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.6">
+      <div style="background:var(--teal-dim);padding:12px;border-radius:8px">
+        <div style="font-weight:600;font-size:12px;color:var(--teal);margin-bottom:4px">Composite Toolsets</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.6">
           <strong>debugging</strong> = terminal + process + web + file<br>
           <strong>safe</strong> = moa + web + vision + image_gen
         </div>
       </div>
-      <div style="background:var(--amber-dim);padding:0.75rem;border-radius:8px">
-        <div style="font-weight:600;font-size:0.82rem;color:var(--amber);margin-bottom:0.3rem">Platform Toolsets</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.6">
+      <div style="background:var(--amber-dim);padding:12px;border-radius:8px">
+        <div style="font-weight:600;font-size:12px;color:var(--amber);margin-bottom:4px">Platform Toolsets</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.6">
           hermes-cli &middot; hermes-telegram &middot; hermes-discord &middot;
           hermes-slack &middot; hermes-whatsapp &middot; hermes-signal &middot;
           hermes-acp &middot; hermes-gateway
@@ -706,7 +702,7 @@ classDiagram
     <a href="diataxis.html#design-rationale" style="color:var(--accent)">prompt cache efficiency</a>.
   </p>
 
-  <div class="ve-card anim" style="--i:35">
+  <div class="ve-card c-rose anim" style="--i:35; margin-bottom:16px">
     <h3>Directory Layout</h3>
     <div class="tree">
       <ul>
@@ -729,14 +725,14 @@ classDiagram
         </li>
       </ul>
     </div>
-    <p style="font-size:0.82rem;color:var(--text-dim);margin-top:0.75rem">
+    <p style="font-size:12px;color:var(--text-dim);margin-top:12px">
       Categories: <code>creative</code>, <code>devops</code>, <code>github</code>,
       <code>mlops</code>, <code>productivity</code>, <code>research</code>,
       <code>software-development</code>, <code>social-media</code>, etc.
     </p>
   </div>
 
-  <div class="ve-card anim" style="--i:36">
+  <div class="ve-card c-indigo anim" style="--i:36">
     <h3>YAML Frontmatter Schema</h3>
     <pre><code>---
 name: visual-explainer                    # Required: kebab-case slug
@@ -766,20 +762,20 @@ metadata:
 ...</code></pre>
   </div>
 
-  <div class="diagram-shell anim" style="--i:37">
+  <section class="diagram-shell anim" style="--i:37">
     <p class="diagram-shell__hint">Skill Loading and Injection &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="height:340px">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:340px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 graph TD
     SCAN["scan_skill_commands()<br/><small>Scans skills/ directories</small>"] --> REG["Skill Registry<br/><small>name, path, description</small>"]
@@ -801,8 +797,7 @@ graph TD
     class INJECT inject
     class WARN warn
       </script>
-    </div>
-  </div>
+  </section>
 </section>
 
 <!-- ──────── CONFIG HIERARCHY ──────── -->
@@ -838,45 +833,45 @@ graph TD
     </div>
   </div>
 
-  <div class="ve-card anim" style="--i:42">
+  <div class="ve-card c-emerald anim" style="--i:42; margin-bottom:16px">
     <h3>Top-Level Config Keys</h3>
     <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
       <div>
-        <div style="font-weight:600;font-size:0.82rem;color:var(--amber);margin-bottom:0.3rem">Core</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+        <div style="font-weight:600;font-size:12px;color:var(--amber);margin-bottom:4px">Core</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8">
           model<br>providers<br>fallback_providers<br>toolsets<br>agent<br>delegation
         </div>
       </div>
       <div>
-        <div style="font-weight:600;font-size:0.82rem;color:var(--sky);margin-bottom:0.3rem">Execution</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+        <div style="font-weight:600;font-size:12px;color:var(--sky);margin-bottom:4px">Execution</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8">
           terminal<br>browser<br>compression<br>auxiliary<br>smart_model_routing
         </div>
       </div>
       <div>
-        <div style="font-weight:600;font-size:0.82rem;color:var(--teal);margin-bottom:0.3rem">Interface</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+        <div style="font-weight:600;font-size:12px;color:var(--teal);margin-bottom:4px">Interface</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8">
           display<br>tts<br>stt<br>voice<br>human_delay
         </div>
       </div>
       <div>
-        <div style="font-weight:600;font-size:0.82rem;color:var(--emerald);margin-bottom:0.3rem">State</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+        <div style="font-weight:600;font-size:12px;color:var(--emerald);margin-bottom:4px">State</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8">
           memory<br>skills<br>checkpoints<br>privacy<br>security
         </div>
       </div>
       <div>
-        <div style="font-weight:600;font-size:0.82rem;color:var(--rose);margin-bottom:0.3rem">Platform</div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+        <div style="font-weight:600;font-size:12px;color:var(--rose);margin-bottom:4px">Platform</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8">
           discord<br>whatsapp<br>approvals<br>cron<br>gateway
         </div>
       </div>
     </div>
   </div>
 
-  <div class="ve-card anim" style="--i:43">
+  <div class="ve-card c-amber anim" style="--i:43">
     <h3>Auxiliary Task Configuration</h3>
-    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
       Eight auxiliary tasks can each be routed to different LLM providers.
       Each task has the same schema: <code>provider</code>, <code>model</code>,
       <code>base_url</code>, <code>api_key</code>, <code>timeout</code>.
@@ -896,20 +891,20 @@ graph TD
     </table>
   </div>
 
-  <div class="diagram-shell anim" style="--i:44">
+  <section class="diagram-shell anim" style="--i:44">
     <p class="diagram-shell__hint">Config Resolution Flow &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="height:380px">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:380px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 graph TD
     DC["DEFAULT_CONFIG<br/><small>Hardcoded defaults</small>"] --> DM["_deep_merge()"]
@@ -932,8 +927,7 @@ graph TD
     class DM,NMT,NRK,EEV process
     class FINAL,AUX,COMP,TERM,AGENT output
       </script>
-    </div>
-  </div>
+  </section>
 </section>
 
 <!-- ──────── PLUGIN SYSTEM ──────── -->
@@ -949,20 +943,20 @@ graph TD
     in precedence order.
   </p>
 
-  <div class="diagram-shell anim" style="--i:44">
+  <section class="diagram-shell anim" style="--i:44">
     <p class="diagram-shell__hint">Plugin Architecture &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="height:520px">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:520px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 classDiagram
     class PluginManager {
@@ -1007,8 +1001,7 @@ classDiagram
 
     note for PluginManager "Discovery order:\n1. Bundled (repo/plugins/)\n2. User (~/.hermes/plugins/)\n3. Project (.hermes/plugins/)\n4. Pip (entry-point group)"
       </script>
-    </div>
-  </div>
+  </section>
 
   <div class="card-grid anim" style="--i:44">
     <div class="ve-card">
@@ -1038,13 +1031,13 @@ classDiagram
     </div>
   </div>
 
-  <div class="ve-card anim" style="--i:44">
-    <h3 style="color:var(--amber)">14 Lifecycle Hooks</h3>
-    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">
+  <div class="ve-card c-amber anim" style="--i:44">
+    <h3>14 Lifecycle Hooks</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
       Plugins register callbacks for any combination of these events via
       <code>ctx.register_hook(event, callback)</code>.
     </p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.25rem;font-size:0.82rem;font-family:var(--mono)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.25rem;font-size:12px;font-family:var(--mono)">
       <span>pre_tool_call</span>
       <span>post_tool_call</span>
       <span>pre_llm_call</span>
@@ -1075,20 +1068,20 @@ classDiagram
     The <code data-ref="memory-provider">MemoryManager</code> fans out calls to all active providers.
   </p>
 
-  <div class="diagram-shell anim" style="--i:48">
+  <section class="diagram-shell anim" style="--i:48">
     <p class="diagram-shell__hint">Memory Provider Class Hierarchy &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="height:560px">
-      <div class="mermaid-viewport">
-        <div class="mermaid-canvas"></div>
-      </div>
+    <div class="mermaid-wrap" style="min-height:560px">
       <div class="zoom-controls">
-        <button class="zoom-btn" data-action="zoom-in" title="Zoom in">+</button>
-        <button class="zoom-btn" data-action="zoom-out" title="Zoom out">&minus;</button>
-        <button class="zoom-btn" data-action="fit" title="Fit to view">&#8718;</button>
-        <button class="zoom-btn" data-action="reset" title="1:1">1:1</button>
-        <button class="zoom-btn" data-action="expand" title="Open in new tab">&#x29C9;</button>
+        <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+        <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+        <span class="zoom-label">Loading...</span>
       </div>
-      <div class="zoom-label"></div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>    </div>
       <script type="text/plain" class="diagram-source">
 classDiagram
     class MemoryProvider {
@@ -1155,8 +1148,7 @@ classDiagram
 
     note for MemoryManager "Builtin always active.\nAt most ONE external provider.\nFan-out: calls all providers.\nShutdown in reverse order."
       </script>
-    </div>
-  </div>
+  </section>
 
   <div class="card-grid anim" style="--i:49">
     <div class="ve-card">
@@ -1191,14 +1183,7 @@ classDiagram
   </div>
 </section>
 
-<hr class="anim" style="--i:50">
-
-<!-- ============================== -->
-<!-- FOOTER: COMPANION PAGES         -->
-<!-- ============================== -->
-<div class="sec-head anim" style="--i:51; color:var(--slate)">
-
-  </div><!-- /main -->
+</div><!-- /main -->
 </div><!-- /wrap -->
 
 <!-- ====== SCRIPTS ====== -->
