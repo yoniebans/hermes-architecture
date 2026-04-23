@@ -7,7 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="base/styles.css">
+  <link rel="stylesheet" href="base/presentation.css">
+  <script src="base/theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
 <body>
@@ -15,16 +17,66 @@
 <div class="wrap">
 
   <nav class="toc" id="toc">
-    <div class="toc-title">Data Model</div>
-  <a href="#overview">Overview</a>
-  <a href="#entity-map">Entity Map</a>
-  <a href="#sqlite-schema">SQLite Schema</a>
-  <a href="#message-format">Message Format</a>
-  <a href="#tool-registry">Tool Registry</a>
-  <a href="#skill-structure">Skill Structure</a>
-  <a href="#config-hierarchy">Config Hierarchy</a>
-  <a href="#plugin-system">Plugin System</a>
-  <a href="#memory-providers">Memory Providers</a>
+    <a class="toc-back" href="https://yoniebans.github.io">← all posts</a>
+
+    <div class="toc-page" data-page="index.html">
+      <a class="toc-page__title" href="index.html">C4 Architecture</a>
+      <div class="toc-page__sections">
+        <a href="index.html#overview">Overview</a>
+        <a href="index.html#context">L1: System Context</a>
+        <a href="index.html#containers">L2: Containers</a>
+        <a href="index.html#core-engine">Core Engine</a>
+        <a href="index.html#tools">Tool System</a>
+        <a href="index.html#gateway">Gateway</a>
+        <a href="index.html#state">State</a>
+        <a href="index.html#data-flows">Data Flows</a>
+        <a href="index.html#tech-stack">Tech Stack</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="diataxis.html">
+      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
+      <div class="toc-page__sections">
+        <a href="diataxis.html#overview">The Framework</a>
+        <a href="diataxis.html#mental-model">Tutorial</a>
+        <a href="diataxis.html#extension-points">How-to</a>
+        <a href="diataxis.html#module-map">Reference</a>
+        <a href="diataxis.html#design-rationale">Explanation</a>
+        <a href="diataxis.html#design-decisions">Design Decisions</a>
+        <a href="diataxis.html#patterns">Cross-cutting</a>
+        <a href="diataxis.html#extension-surfaces">Extension Map</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="data-model.html">
+      <a class="toc-page__title" href="data-model.html">Data Model</a>
+      <div class="toc-page__sections">
+        <a href="data-model.html#overview">Overview</a>
+        <a href="data-model.html#entity-map">Entity Map</a>
+        <a href="data-model.html#sqlite-schema">SQLite Schema</a>
+        <a href="data-model.html#message-format">Message Format</a>
+        <a href="data-model.html#tool-registry">Tool Registry</a>
+        <a href="data-model.html#skill-structure">Skill Structure</a>
+        <a href="data-model.html#config-hierarchy">Config Hierarchy</a>
+        <a href="data-model.html#plugin-system">Plugin System</a>
+        <a href="data-model.html#memory-providers">Memory Providers</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="sequence-diagrams.html">
+      <a class="toc-page__title" href="sequence-diagrams.html">Interaction Sequences</a>
+      <div class="toc-page__sections">
+        <a href="sequence-diagrams.html#overview">Overview</a>
+        <a href="sequence-diagrams.html#cli-flow">CLI Message Flow</a>
+        <a href="sequence-diagrams.html#gateway-flow">Gateway Flow</a>
+        <a href="sequence-diagrams.html#tui-flow">TUI Message Flow</a>
+        <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
+        <a href="sequence-diagrams.html#context-compression">Compression</a>
+        <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
+        <a href="sequence-diagrams.html#subagent-delegation">Subagent Delegation</a>
+        <a href="sequence-diagrams.html#error-recovery">Error Recovery</a>
+      </div>
+    </div>
   </nav>
 
   <div class="main">
@@ -1144,37 +1196,18 @@ classDiagram
 <!-- FOOTER: COMPANION PAGES         -->
 <!-- ============================== -->
 <div class="sec-head anim" style="--i:51; color:var(--slate)">
-  <span class="dot" style="background:var(--slate)"></span> Companion Pages
-</div>
-<h2 class="anim" style="--i:52">Related Documentation</h2>
-<p class="section-desc anim" style="--i:53">
-  This data-model reference complements the structural, conceptual, and behavioral views.
-  Explore the companion pages for architecture diagrams, design rationale, and interaction flows.
-</p>
 
-<div class="companion-grid anim" style="--i:54; margin-bottom:60px">
-  <a class="companion-link" href="index.html">
-    <div class="companion-link__title">C4 System Architecture</div>
-    <div class="companion-link__desc">Structural views of Hermes at system, container, and component levels. Covers all 4 deployment modes and 30+ tool integrations.</div>
-  </a>
-  <a class="companion-link" href="diataxis.html">
-    <div class="companion-link__title">Documentation Map</div>
-    <div class="companion-link__desc">A Diátaxis lens on Hermes — tutorial, how-to, reference, explanation. Includes mental model and 9 design principles.</div>
-  </a>
-  <a class="companion-link" href="sequence-diagrams.html">
-    <div class="companion-link__title">Interaction Sequences</div>
-    <div class="companion-link__desc">Behavioral views — CLI and gateway message flows, the agent loop, context compression, tool execution, subagent delegation, error recovery.</div>
-  </a>
-</div>
   </div><!-- /main -->
 </div><!-- /wrap -->
 
 <!-- ====== MERMAID + ZOOM ENGINE ====== -->
-<script src="mermaid-zoom.js" defer></script>
+<script src="base/mermaid-zoom.js" defer></script>
 
 <!-- ====== SCROLL SPY ====== -->
-<script src="scrollspy.js"></script>
+<script src="base/page-nav.js" defer></script>
+  <script src="base/scrollspy.js"></script>
 <script src="refs.js"></script>
-<script src="enhancer.js" defer></script>
+<script src="base/presentation.js" defer></script>
+  <script src="base/enhancer.js" defer></script>
 </body>
 </html>
