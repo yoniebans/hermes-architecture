@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent — C4 System Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base/styles.css">
+  <link rel="stylesheet" href="base/presentation.css">
+  <script src="base/theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc" id="toc">
+    <a class="toc-back" href="https://yoniebans.github.io">← all posts</a>
+
+    <div class="toc-page" data-page="index.html">
+      <a class="toc-page__title" href="index.html">C4 Architecture</a>
+      <div class="toc-page__sections">
+        <a href="index.html#overview">Overview</a>
+        <a href="index.html#context">L1: System Context</a>
+        <a href="index.html#containers">L2: Containers</a>
+        <a href="index.html#core-engine">Core Engine</a>
+        <a href="index.html#tools">Tool System</a>
+        <a href="index.html#gateway">Gateway</a>
+        <a href="index.html#state">State</a>
+        <a href="index.html#data-flows">Data Flows</a>
+        <a href="index.html#tech-stack">Tech Stack</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="diataxis.html">
+      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
+      <div class="toc-page__sections">
+        <a href="diataxis.html#overview">The Framework</a>
+        <a href="diataxis.html#mental-model">Tutorial</a>
+        <a href="diataxis.html#extension-points">How-to</a>
+        <a href="diataxis.html#module-map">Reference</a>
+        <a href="diataxis.html#design-rationale">Explanation</a>
+        <a href="diataxis.html#design-decisions">Design Decisions</a>
+        <a href="diataxis.html#patterns">Cross-cutting</a>
+        <a href="diataxis.html#extension-surfaces">Extension Map</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="data-model.html">
+      <a class="toc-page__title" href="data-model.html">Data Model</a>
+      <div class="toc-page__sections">
+        <a href="data-model.html#overview">Overview</a>
+        <a href="data-model.html#entity-map">Entity Map</a>
+        <a href="data-model.html#sqlite-schema">SQLite Schema</a>
+        <a href="data-model.html#message-format">Message Format</a>
+        <a href="data-model.html#tool-registry">Tool Registry</a>
+        <a href="data-model.html#skill-structure">Skill Structure</a>
+        <a href="data-model.html#config-hierarchy">Config Hierarchy</a>
+        <a href="data-model.html#plugin-system">Plugin System</a>
+        <a href="data-model.html#memory-providers">Memory Providers</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="sequence-diagrams.html">
+      <a class="toc-page__title" href="sequence-diagrams.html">Interaction Sequences</a>
+      <div class="toc-page__sections">
+        <a href="sequence-diagrams.html#overview">Overview</a>
+        <a href="sequence-diagrams.html#cli-flow">CLI Message Flow</a>
+        <a href="sequence-diagrams.html#gateway-flow">Gateway Flow</a>
+        <a href="sequence-diagrams.html#tui-flow">TUI Message Flow</a>
+        <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
+        <a href="sequence-diagrams.html#context-compression">Compression</a>
+        <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
+        <a href="sequence-diagrams.html#subagent-delegation">Subagent Delegation</a>
+        <a href="sequence-diagrams.html#error-recovery">Error Recovery</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- ====== HEADER ====== -->
+    <h1 class="anim" style="--i:0">Hermes Agent</h1>
+    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; Nous Research</p>
+    <p class="lead anim" style="--i:2">
+      Hermes is a Python-based AI agent framework that connects LLMs to the real world
+      through 30+ tools, 16 messaging platforms, multiple execution backends, and a
+      composable skill system. It runs as a CLI, a React terminal TUI, a web dashboard,
+      a messaging gateway daemon, an ACP server for editors, and an MCP server for tool interop.
+    </p>
+
+    <!-- ====== KPIs ====== -->
+    <div class="kpi-row anim" style="--i:3">
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--accent)">30+</div>
+        <div class="kpi-card__label">Built-in Tools</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--teal)">16</div>
+        <div class="kpi-card__label">Platform Adapters</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--amber)">17</div>
+        <div class="kpi-card__label">LLM Providers</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--emerald)">7</div>
+        <div class="kpi-card__label">Exec Backends</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--indigo)">7</div>
+        <div class="kpi-card__label">Memory Providers</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__value" style="color:var(--slate)">6</div>
+        <div class="kpi-card__label">Entry Points</div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- LEVEL 1: SYSTEM CONTEXT        -->
+    <!-- ============================== -->
+    <div id="overview" class="sec-head anim" style="--i:4; color:var(--accent)">
+      <span class="dot" style="background:var(--accent)"></span> Overview
+    </div>
+
+    <div id="context" class="sec-head anim" style="--i:5; color:var(--accent)">
+      <span class="dot" style="background:var(--accent)"></span> Level 1 &mdash; System Context
+    </div>
+    <h2 class="anim" style="--i:6">Who interacts with Hermes?</h2>
+    <p class="section-desc anim" style="--i:7">
+      Five actor types drive Hermes, and it depends on seven categories of external systems.
+      The diagram below shows the complete system boundary.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:8">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:500px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        graph TD
+          user["Human User"]
+          editor["Editor / IDE"]
+          mcpClient["MCP Client"]
+          cron["Cron Timer"]
+          rl["RL Training Framework"]
+
+          subgraph hermes["Hermes Agent System"]
+            core["Core Agent Engine"]
+          end
+
+          llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +14</small>"]
+          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +13</small>"]
+          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity</small>"]
+          browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
+          mcpServers["External MCP Servers"]
+          memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +4</small>"]
+          media["Media Services<br/><small>Fal.ai, ElevenLabs, Whisper</small>"]
+
+          user -->|"CLI / Chat"| core
+          editor -->|"ACP"| core
+          mcpClient -->|"MCP"| core
+          cron -->|"scheduled jobs"| core
+          rl -->|"RL env"| core
+
+          core -->|"inference"| llm
+          core -->|"messages"| platforms
+          core -->|"commands"| compute
+          core -->|"browsing"| browser
+          core -->|"tools"| mcpServers
+          core -->|"memory"| memProviders
+          core -->|"generation"| media
+
+          classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+          classDef sys fill:#0d948822,stroke:#0d9488,stroke-width:2px
+          classDef actor fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
+
+          class user,editor,mcpClient,cron,rl actor
+          class llm,platforms,compute,browser,mcpServers,memProviders,media ext
+          class core sys
+      </script>
+    </section>
+
+    <div class="legend anim" style="--i:9">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--amber-dim);border:1px solid var(--amber)"></div>Actors</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--teal-dim);border:1px solid var(--teal)"></div>Hermes System</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-dim);border:1px solid var(--accent)"></div>External Systems</div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- LEVEL 2: CONTAINERS            -->
+    <!-- ============================== -->
+    <div id="containers" class="sec-head anim" style="--i:10; color:var(--teal)">
+      <span class="dot" style="background:var(--teal)"></span> Level 2 &mdash; Container Diagram
+    </div>
+    <h2 class="anim" style="--i:11">Six entry points, one core engine</h2>
+    <p class="section-desc anim" style="--i:12">
+      Hermes deploys in six modes &mdash; CLI, TUI (React/Ink), Web Dashboard, Gateway, ACP Server,
+      and MCP Server &mdash; all driving the same AIAgent core. The core delegates to an intelligence
+      layer, a tool system, persistent state, a cron scheduler, and optional RL environments.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:13">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:520px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        graph TD
+          subgraph entry["Entry Points"]
+            cli["CLI Interface<br/><small>hermes chat</small>"]
+            tui["TUI<br/><small>hermes --tui</small>"]
+            webdash["Web Dashboard<br/><small>hermes web</small>"]
+            gw["Gateway Daemon<br/><small>hermes gateway</small>"]
+            acp["ACP Server<br/><small>hermes acp</small>"]
+            mcp["MCP Server<br/><small>hermes mcp serve</small>"]
+          end
+
+          core["AIAgent<br/><small>run_agent.py</small>"]
+
+          subgraph internals["Core Subsystems"]
+            intel["Agent Intelligence<br/><small>agent/ subpackage</small>"]
+            tools["Tool System<br/><small>tools/ + model_tools.py</small>"]
+            memprov["Memory Providers<br/><small>agent/memory_manager.py</small>"]
+            state["State and Persistence<br/><small>SQLite + Files</small>"]
+            cronmod["Cron Scheduler<br/><small>cron/</small>"]
+          end
+
+          rlenv["RL Environments<br/><small>environments/</small>"]
+
+          cli --> core
+          tui --> core
+          webdash --> core
+          gw --> core
+          acp --> core
+          mcp --> core
+
+          core --> intel
+          core --> tools
+          core --> memprov
+          core --> state
+          core -.-> cronmod
+          core -.-> rlenv
+
+          classDef entry fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
+          classDef core fill:#0d948822,stroke:#0d9488,stroke-width:2px
+          classDef sub fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+          classDef opt fill:#e11d4808,stroke:#e11d4844,stroke-width:1px,stroke-dasharray:5 5
+
+          class cli,tui,webdash,gw,acp,mcp entry
+          class core core
+          class intel,tools,memprov,state,cronmod sub
+          class rlenv opt
+      </script>
+    </section>
+
+    <!-- Entry points detail cards -->
+    <div class="grid-3 gap-24 anim" style="--i:14">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">CLI</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            Classic <code>prompt_toolkit</code> REPL. Streaming output,
+            session picker, inline model switching.
+          </div>
+        </div>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">TUI</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            React/Ink terminal UI (<code data-ref="tui-entry">ui-tui/</code>). Communicates with a
+            Python JSON-RPC backend (<code data-ref="tui-gateway-server">tui_gateway/</code>).
+          </div>
+        </div>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Web Dashboard</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            React 19 + Vite browser SPA (<code data-ref="web-dashboard">web/</code>). Config, sessions,
+            logs, analytics. Plugin-extensible tabs. FastAPI backend.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-3 gap-24 anim" style="--i:14">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Gateway</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            Long-running daemon. Bridges 16 messaging platforms.
+            Manages sessions, cron, reconnection.
+          </div>
+        </div>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">ACP Server</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            Agent Client Protocol for Cursor/VS Code.
+            Sessions, prompts, fork, cancel, slash commands.
+          </div>
+        </div>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">MCP Server</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            Exposes gateway conversations as MCP tools.
+            Claude Code, Cursor, Codex can consume them.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- LEVEL 3: CORE ENGINE           -->
+    <!-- ============================== -->
+    <div id="core-engine" class="sec-head anim" style="--i:15; color:var(--emerald)">
+      <span class="dot" style="background:var(--emerald)"></span> Level 3 &mdash; Core Agent Engine
+    </div>
+    <h2 class="anim" style="--i:16">The conversation loop</h2>
+    <p class="section-desc anim" style="--i:17">
+      <code data-ref="ai-agent.run-conversation">AIAgent.run_conversation()</code> is the heart of the system &mdash; a multi-turn loop
+      that calls the LLM, parses tool calls, executes them (optionally in parallel), checks
+      context limits, and loops until the model produces a final text response. It orchestrates
+      all agent intelligence components.
+    </p>
+
+    <!-- Pipeline: the conversation loop steps -->
+    <div class="ve-card ve-card--hero anim" style="--i:18; margin-bottom:20px">
+      <div class="ve-card__label" style="color:var(--emerald)">Conversation Loop</div>
+      <div class="pipeline">
+        <div class="pipeline-step" style="border-color:var(--emerald-dim)">
+          <div class="step-name">Build Prompt</div>
+          <div class="step-detail">Identity, persona,<br>skills, memory</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--accent-dim)">
+          <div class="step-name">Get Tools</div>
+          <div class="step-detail">Resolve toolsets,<br>filter, schema</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--teal-dim)">
+          <div class="step-name">Call LLM</div>
+          <div class="step-detail">Streaming via<br>OpenAI/Anthropic SDK</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--amber-dim)">
+          <div class="step-name">Parse Response</div>
+          <div class="step-detail">Text or tool_calls<br>+ native parsers</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--rose-dim)">
+          <div class="step-name">Execute Tools</div>
+          <div class="step-detail">Parallel when safe,<br>safety analysis</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--indigo-dim)">
+          <div class="step-name">Compress?</div>
+          <div class="step-detail">LLM-summarize if<br>near token limit</div>
+        </div>
+        <div class="pipeline-arrow">⟳</div>
+      </div>
+    </div>
+
+    <!-- Intelligence components grid -->
+    <div class="grid-3 gap-24 anim" style="--i:19">
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Prompt Builder</div>
+        <ul class="node-list">
+          <li><code>identity</code> agent name and persona</li>
+          <li><code>soul</code> personality / custom persona</li>
+          <li><code>skills</code> available skill catalog</li>
+          <li><code>memory</code> frozen snapshot at session start</li>
+          <li><code>context files</code> .hermes.md, AGENTS.md</li>
+          <li>Security scan for injection in context</li>
+        </ul>
+      </div>
+      <div class="ve-card c-accent">
+        <div class="ve-card__label">Context Compressor</div>
+        <ul class="node-list">
+          <li>LLM-based mid-conversation compression</li>
+          <li>Protect head messages (system prompt)</li>
+          <li>Protect tail by token budget (~20K)</li>
+          <li>Summarize middle into structured template</li>
+          <li>Iterative re-compression support</li>
+          <li>Uses cheap auxiliary model</li>
+        </ul>
+      </div>
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Smart Model Routing</div>
+        <ul class="node-list">
+          <li>Short/simple messages → cheap model</li>
+          <li>Complex messages → primary model</li>
+          <li>Heuristics: length, words, keywords</li>
+          <li>No code blocks, URLs, or multi-line</li>
+          <li>Config-driven via <code>config.yaml</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-3 gap-24 anim" style="--i:20">
+      <div class="ve-card c-indigo">
+        <div class="ve-card__label">Credential Pool</div>
+        <ul class="node-list">
+          <li>Multiple API keys per provider</li>
+          <li>Round-robin key rotation</li>
+          <li>Automatic retry on rate limits</li>
+        </ul>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Usage Pricing</div>
+        <ul class="node-list">
+          <li>Per-provider pricing tables</li>
+          <li>Real-time cost tracking</li>
+          <li>Token counting and limits</li>
+        </ul>
+      </div>
+      <div class="ve-card c-rose">
+        <div class="ve-card__label">Iteration Budget</div>
+        <ul class="node-list">
+          <li>90 iterations default (parent)</li>
+          <li>Per-subagent independent budget</li>
+          <li>Thread-safe counter</li>
+          <li><code data-ref="code-execution-tool">execute_code</code> iterations refunded</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- LEVEL 3: TOOL SYSTEM           -->
+    <!-- ============================== -->
+    <div id="tools" class="sec-head anim" style="--i:21; color:var(--accent)">
+      <span class="dot" style="background:var(--accent)"></span> Level 3 &mdash; Tool System
+    </div>
+    <h2 class="anim" style="--i:22">Registry, toolsets, and execution</h2>
+    <p class="section-desc anim" style="--i:23">
+      Every tool self-registers into a singleton <code data-ref="tool-registry">ToolRegistry</code> at import time.
+      <code data-ref="model-tools">model_tools.py</code> discovers all tool modules, resolves composable toolsets,
+      and provides the OpenAI-format schemas to the agent. Execution environments are
+      pluggable backends for the terminal tool.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:24">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap" style="min-height:420px">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        graph TD
+          agent["AIAgent"] -->|"get_tool_definitions()"| mt["model_tools.py"]
+          agent -->|"handle_function_call()"| mt
+          mt -->|"discover + dispatch"| reg["ToolRegistry<br/><small>singleton</small>"]
+          mt -->|"resolve"| ts["Toolsets<br/><small>composable groups</small>"]
+
+          reg --> coreTools["Core Tools<br/><small>30+ built-in</small>"]
+          reg --> mcpTools["MCP Server Tools<br/><small>dynamic discovery</small>"]
+          reg --> pluginTools["Plugin Tools<br/><small>user-defined</small>"]
+
+          coreTools --> termTool["terminal"]
+          coreTools --> webTool["web search/extract"]
+          coreTools --> fileTool["file ops"]
+          coreTools --> delegateTool["delegate"]
+          coreTools --> memTool["memory"]
+          coreTools --> browserTool["browser"]
+          coreTools --> otherTools["vision, tts, cron, ..."]
+
+          termTool --> envs["Execution Environments"]
+
+          classDef hub fill:#0d948822,stroke:#0d9488,stroke-width:2px
+          classDef mid fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+          classDef leaf fill:#d9770611,stroke:#d9770644,stroke-width:1px
+
+          class agent,reg hub
+          class mt,ts,coreTools,mcpTools,pluginTools mid
+          class termTool,webTool,fileTool,delegateTool,memTool,browserTool,otherTools,envs leaf
+      </script>
+    </section>
+
+    <!-- Execution backends -->
+    <div class="ve-card c-accent anim" style="--i:25; margin-bottom:20px">
+      <div class="ve-card__label">Execution Environment Backends</div>
+      <div class="pipeline">
+        <div class="pipeline-step"><div class="step-name">Local</div><div class="step-detail">Direct subprocess</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">Docker</div><div class="step-detail">Container isolation</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">SSH</div><div class="step-detail">Remote execution</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">Modal</div><div class="step-detail">Cloud GPU compute</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">Daytona</div><div class="step-detail">Cloud dev envs</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">Singularity</div><div class="step-detail">HPC containers</div></div>
+      </div>
+    </div>
+
+    <!-- Subagent architecture -->
+    <div class="ve-card c-indigo anim" style="--i:26; margin-bottom:20px">
+      <div class="ve-card__label">Subagent Architecture (delegate_tool)</div>
+      <div class="inner-grid">
+        <div class="inner-card">
+          <div class="title">Spawning</div>
+          <div class="desc">
+            Parent AIAgent spawns children via <code>ThreadPoolExecutor</code>.
+            Max 3 concurrent children. Max depth 2 (no deep recursion).
+          </div>
+        </div>
+        <div class="inner-card">
+          <div class="title">Isolation</div>
+          <div class="desc">
+            Each child gets its own conversation, task_id, restricted toolset.
+            Cannot: <code>delegate</code>, <code>clarify</code>, <code>memory</code>, <code>send_message</code>, <code data-ref="code-execution-tool">execute_code</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool categories -->
+    <details class="collapsible anim" style="--i:27">
+      <summary>All 30+ Built-in Tools</summary>
+      <div class="collapsible__body">
+        <div class="grid-3" style="margin:0">
+          <div>
+            <strong style="font-size:12px;color:var(--accent)">Terminal & File</strong>
+            <ul class="node-list">
+              <li><code data-ref="terminal-tool">terminal</code> execute shell commands</li>
+              <li><code data-ref="file-tools">read_file</code> read with line numbers</li>
+              <li><code data-ref="file-tools">write_file</code> create / overwrite files</li>
+              <li><code data-ref="file-tools">search_files</code> ripgrep-backed search</li>
+              <li><code>patch</code> fuzzy find-and-replace</li>
+              <li><code>process</code> manage background procs</li>
+            </ul>
+          </div>
+          <div>
+            <strong style="font-size:12px;color:var(--teal)">Web & Browser</strong>
+            <ul class="node-list">
+              <li><code data-ref="web-tools">web_search</code> multi-backend search</li>
+              <li><code data-ref="web-tools">web_extract</code> page content extraction</li>
+              <li><code data-ref="browser-tool">browser_navigate</code> open URLs</li>
+              <li><code data-ref="browser-tool">browser_click</code> interact with elements</li>
+              <li><code data-ref="browser-tool">browser_snapshot</code> accessibility tree</li>
+              <li><code data-ref="browser-tool">browser_vision</code> screenshot + AI analysis</li>
+            </ul>
+          </div>
+          <div>
+            <strong style="font-size:12px;color:var(--emerald)">Agent & Memory</strong>
+            <ul class="node-list">
+              <li><code>memory</code> persistent key-value store</li>
+              <li><code>session_search</code> search past sessions</li>
+              <li><code data-ref="delegate-tool">delegate_task</code> spawn subagents</li>
+              <li><code data-ref="code-execution-tool">execute_code</code> Python scripting</li>
+              <li><code>clarify</code> ask user questions</li>
+              <li><code>todo</code> task list management</li>
+              <li><code data-ref="cron">cronjob</code> schedule tasks</li>
+              <li><code>send_message</code> cross-platform delivery</li>
+            </ul>
+          </div>
+        </div>
+        <div class="grid-3" style="margin:12px 0 0">
+          <div>
+            <strong style="font-size:12px;color:var(--amber)">Skills</strong>
+            <ul class="node-list">
+              <li><code data-ref="skill-commands">skill_view</code> load skill content</li>
+              <li><code data-ref="skill-commands">skill_manage</code> create/edit/delete</li>
+              <li><code data-ref="skill-commands">skills_list</code> browse catalog</li>
+            </ul>
+          </div>
+          <div>
+            <strong style="font-size:12px;color:var(--rose)">Media</strong>
+            <ul class="node-list">
+              <li><code>vision_analyze</code> image understanding</li>
+              <li><code>image_generate</code> FLUX 2 Pro</li>
+              <li><code>text_to_speech</code> multi-provider TTS</li>
+            </ul>
+          </div>
+          <div>
+            <strong style="font-size:12px;color:var(--indigo)">Integration</strong>
+            <ul class="node-list">
+              <li><code data-ref="mcp-tool">mcp_tool</code> call external MCP servers</li>
+              <li><code>homeassistant</code> smart home control</li>
+              <li><code>honcho_tools</code> AI-native memory (plugin)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ============================== -->
+    <!-- LEVEL 3: GATEWAY               -->
+    <!-- ============================== -->
+    <div id="gateway" class="sec-head anim" style="--i:28; color:var(--rose)">
+      <span class="dot" style="background:var(--rose)"></span> Level 3 &mdash; Gateway
+    </div>
+    <h2 class="anim" style="--i:29">16 platforms, one session layer</h2>
+    <p class="section-desc anim" style="--i:30">
+      The Gateway daemon multiplexes across all messaging platforms. <code data-ref="gateway-runner">GatewayRunner</code>
+      manages platform adapter lifecycles, caches AIAgent instances per session for prefix-cache
+      efficiency, and routes output via <code>DeliveryRouter</code>.
+    </p>
+
+    <div class="grid-3 gap-24 anim" style="--i:31">
+      <div class="ve-card c-rose">
+        <div class="ve-card__label">GatewayRunner</div>
+        <ul class="node-list">
+          <li>Platform adapter lifecycle management</li>
+          <li>AIAgent cache per session</li>
+          <li>Interrupt and approval handling</li>
+          <li>Background platform reconnection</li>
+          <li>Spawns cron tick every 60s</li>
+        </ul>
+      </div>
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">SessionStore</div>
+        <ul class="node-list">
+          <li>Conversation persistence to disk</li>
+          <li>Reset policy evaluation</li>
+          <li>Platform tagging per session</li>
+          <li>PII hashing (phone IDs)</li>
+        </ul>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">DeliveryRouter</div>
+        <ul class="node-list">
+          <li><code>"origin"</code> → back to source</li>
+          <li><code>"telegram:123"</code> → explicit target</li>
+          <li>Home channel routing</li>
+          <li>Deduplication</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Platform adapters grid -->
+    <div class="ve-card ve-card--recessed anim" style="--i:32; margin-top:16px; margin-bottom:20px">
+      <div class="ve-card__label" style="color:var(--rose)">Platform Adapters (BasePlatformAdapter)</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px">
+        <span class="tag tag--accent">Telegram</span>
+        <span class="tag tag--accent">Discord</span>
+        <span class="tag tag--accent">Slack</span>
+        <span class="tag tag--teal">WhatsApp</span>
+        <span class="tag tag--teal">Signal</span>
+        <span class="tag tag--teal">Matrix</span>
+        <span class="tag tag--amber">Mattermost</span>
+        <span class="tag tag--amber">Email</span>
+        <span class="tag tag--amber">SMS</span>
+        <span class="tag tag--emerald">Home Assistant</span>
+        <span class="tag tag--emerald">Webhook</span>
+        <span class="tag tag--emerald">API Server</span>
+        <span class="tag tag--indigo">DingTalk</span>
+        <span class="tag tag--indigo">Feishu</span>
+        <span class="tag tag--indigo">WeCom</span>
+        <span class="tag tag--slate">Telegram Network</span>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- STATE & PERSISTENCE            -->
+    <!-- ============================== -->
+    <div id="state" class="sec-head anim" style="--i:33; color:var(--amber)">
+      <span class="dot" style="background:var(--amber)"></span> State &amp; Persistence
+    </div>
+    <h2 class="anim" style="--i:34">Pluggable memory, built-in state</h2>
+
+    <div class="grid-2 gap-24 anim" style="--i:35">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">SessionDB (SQLite)</div>
+        <ul class="node-list">
+          <li>WAL mode for concurrent readers</li>
+          <li>Schema v6 with migrations</li>
+          <li><code>sessions</code> table — model, tokens, costs, title</li>
+          <li><code>messages</code> table — role, content, tool_calls</li>
+          <li><code>messages_fts</code> — FTS5 full-text search</li>
+          <li>Application-level retry with jitter</li>
+          <li>Compression-triggered session splitting</li>
+        </ul>
+      </div>
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Built-in Memory (always on)</div>
+        <ul class="node-list">
+          <li><code>MEMORY.md</code> — agent knowledge notes</li>
+          <li><code>USER.md</code> — user profile and prefs</li>
+          <li>§-delimited entries, character-limited</li>
+          <li>Snapshot frozen at session start</li>
+          <li>Security scan on writes</li>
+          <li>Wrapped as <code>builtin_memory_provider.py</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Memory Provider layer -->
+    <div class="ve-card ve-card--hero c-indigo anim" style="--i:35; margin-bottom:20px">
+      <div class="ve-card__label">Pluggable Memory Providers (MemoryProvider ABC)</div>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:12px">
+        One external provider active alongside built-in memory. Managed by <code>agent/memory_manager.py</code>.
+        Providers live in <code>plugins/memory/&lt;name&gt;/</code> with lifecycle hooks:
+        <code>on_pre_compress()</code>, <code>on_delegation()</code>, session-scoped <code>session_id</code>.
+        Prefetch cached once before tool loop to avoid latency spikes. Non-blocking sync via threads.
+      </p>
+      <div style="display:flex; flex-wrap:wrap; gap:6px">
+        <span class="tag tag--indigo">Honcho</span>
+        <span class="tag tag--indigo">OpenViking</span>
+        <span class="tag tag--indigo">Mem0</span>
+        <span class="tag tag--indigo">Hindsight</span>
+        <span class="tag tag--indigo">Holographic</span>
+        <span class="tag tag--indigo">RetainDB</span>
+        <span class="tag tag--indigo">ByteRover</span>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24 anim" style="--i:36">
+      <div class="ve-card c-teal">
+        <div class="ve-card__label">Skills System</div>
+        <ul class="node-list">
+          <li>YAML frontmatter + Markdown body</li>
+          <li>Categories, templates, scripts, references</li>
+          <li>Skills Hub for community sharing</li>
+          <li>Optional skills directory</li>
+        </ul>
+      </div>
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Configuration</div>
+        <ul class="node-list">
+          <li><code>config.yaml</code> — main settings + memory provider selection</li>
+          <li><code>.env</code> — API keys (0600 perms)</li>
+          <li><code>auth.json</code> — credential pool state</li>
+          <li><code>hermes memory setup</code> — interactive provider wizard</li>
+          <li><code>hermes memory status</code> / <code>hermes memory off</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- DATA FLOWS                     -->
+    <!-- ============================== -->
+    <div id="data-flows" class="sec-head anim" style="--i:37; color:var(--indigo)">
+      <span class="dot" style="background:var(--indigo)"></span> Key Data Flows
+    </div>
+    <h2 class="anim" style="--i:38">How messages travel through the system</h2>
+
+    <!-- CLI flow -->
+    <div class="ve-card c-accent anim" style="--i:39; margin-bottom:16px">
+      <div class="ve-card__label">Interactive CLI Session</div>
+      <div class="pipeline">
+        <div class="pipeline-step"><div class="step-name">User types</div><div class="step-detail">CLI / TUI /<br>Web / Gateway</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--teal-dim)"><div class="step-name">AIAgent</div><div class="step-detail">run_conversation()</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--emerald-dim)"><div class="step-name">LLM Call</div><div class="step-detail">streaming<br>response</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--amber-dim)"><div class="step-name">Tool Exec</div><div class="step-detail">parallel when<br>safe</div></div>
+        <div class="pipeline-arrow">⟳</div>
+        <div class="pipeline-step" style="border-color:var(--indigo-dim)"><div class="step-name">Response</div><div class="step-detail">stream to<br>terminal</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--rose-dim)"><div class="step-name">Save</div><div class="step-detail">SessionDB</div></div>
+      </div>
+    </div>
+
+    <!-- Gateway flow -->
+    <div class="ve-card c-rose anim" style="--i:40; margin-bottom:16px">
+      <div class="ve-card__label">Gateway Message Flow</div>
+      <div class="pipeline">
+        <div class="pipeline-step"><div class="step-name">Platform Msg</div><div class="step-detail">Telegram/<br>Discord/...</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step"><div class="step-name">Adapter</div><div class="step-detail">receive +<br>normalize</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--teal-dim)"><div class="step-name">SessionStore</div><div class="step-detail">load / create</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--emerald-dim)"><div class="step-name">Smart Route</div><div class="step-detail">cheap vs<br>primary</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--amber-dim)"><div class="step-name">AIAgent</div><div class="step-detail">run_conversation()</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--indigo-dim)"><div class="step-name">Deliver</div><div class="step-detail">DeliveryRouter<br>→ Adapter.send()</div></div>
+      </div>
+    </div>
+
+    <!-- Cron flow -->
+    <div class="ve-card c-amber anim" style="--i:41; margin-bottom:20px">
+      <div class="ve-card__label">Cron Job Execution</div>
+      <div class="pipeline">
+        <div class="pipeline-step"><div class="step-name">60s Tick</div><div class="step-detail">Gateway daemon<br>background thread</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step"><div class="step-name">File Lock</div><div class="step-detail">.tick.lock<br>prevents races</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--teal-dim)"><div class="step-name">Scan Jobs</div><div class="step-detail">jobs.json<br>find due</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--emerald-dim)"><div class="step-name">Spawn Agent</div><div class="step-detail">isolated session<br>+ skill prompts</div></div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--indigo-dim)"><div class="step-name">Deliver</div><div class="step-detail">target platform<br>or local</div></div>
+      </div>
+    </div>
+
+    <!-- Auxiliary model callout -->
+    <div class="callout anim" style="--i:42">
+      <strong>Auxiliary Model System.</strong>
+      Side tasks use separate model configs, not the main conversation model.
+      Eight auxiliary channels: <code>vision</code>, <code data-ref="web-tools">web_extract</code>,
+      <code>compression</code>, <code>session_search</code>, <code>skills_hub</code>,
+      <code>approval</code>, <code>mcp</code>, <code>flush_memories</code>.
+      Default fallback: <code>google/gemini-3-flash-preview</code> via OpenRouter.
+      Each is independently configurable in <code>config.yaml</code>.
+    </div>
+
+    <!-- ============================== -->
+    <!-- TECH STACK                     -->
+    <!-- ============================== -->
+    <div id="tech-stack" class="sec-head anim" style="--i:43; color:var(--slate)">
+      <span class="dot" style="background:var(--slate)"></span> Technology Stack
+    </div>
+    <h2 class="anim" style="--i:44">What powers Hermes under the hood</h2>
+
+    <div class="grid-2 gap-24 anim" style="--i:45">
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Core Runtime</div>
+        <ul class="node-list">
+          <li><code>Python &ge;3.11</code> — primary language</li>
+          <li><code>openai</code> + <code>anthropic</code> SDK — LLM clients</li>
+          <li><code>httpx</code> — async HTTP client</li>
+          <li><code>prompt_toolkit</code> — classic CLI</li>
+          <li><code>React</code> + <code>Ink</code> — TUI (TypeScript)</li>
+          <li><code>React 19</code> + <code>Vite</code> — Web dashboard</li>
+          <li><code>SQLite</code> WAL + FTS5 — state persistence</li>
+          <li><code>YAML</code> + <code>.env</code> — configuration</li>
+        </ul>
+      </div>
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Protocols</div>
+        <ul class="node-list">
+          <li><code>ACP</code> — Agent Client Protocol (editor integration)</li>
+          <li><code>MCP</code> — Model Context Protocol (tool interop)</li>
+          <li><code>OpenAI API</code> — standard tool calling format</li>
+          <li><code>Anthropic API</code> — native adapter with caching</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24 anim" style="--i:46">
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Messaging SDKs</div>
+        <ul class="node-list">
+          <li><code>python-telegram-bot</code></li>
+          <li><code>discord.py</code> (with voice)</li>
+          <li><code>slack-bolt</code> + <code>slack-sdk</code></li>
+          <li><code>matrix-nio</code> (E2E encryption)</li>
+          <li><code>dingtalk-stream</code>, <code>lark-oapi</code></li>
+        </ul>
+      </div>
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Media & Cloud</div>
+        <ul class="node-list">
+          <li><code>Fal.ai</code> — image generation</li>
+          <li><code>ElevenLabs</code> / <code>edge-tts</code> / <code>OpenAI TTS</code></li>
+          <li><code>faster-whisper</code> — local speech-to-text</li>
+          <li><code>Firecrawl</code>, <code>Exa</code>, <code>Tavily</code> — web backends</li>
+          <li><code>Modal</code>, <code>Daytona</code> — cloud compute</li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="anim" style="--i:48">
+
+    <!-- ============================== -->
+    <!-- FOOTER: COMPANION PAGES         -->
+    <!-- ============================== -->
+    <div class="sec-head anim" style="--i:49; color:var(--slate)">
+
+  </div><!-- /main -->
+</div><!-- /wrap -->
+
+<!-- ====== MERMAID + ZOOM ENGINE ====== -->
+<script src="base/mermaid-zoom.js" defer></script>
+
+<!-- ====== SCROLL SPY ====== -->
+<script src="base/page-nav.js" defer></script>
+  <script src="base/scrollspy.js"></script>
+<script src="refs.js"></script>
+<script src="base/presentation.js" defer></script>
+  <script src="base/enhancer.js" defer></script>
+</body>
+</html>
