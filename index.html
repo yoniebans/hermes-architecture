@@ -1,36 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hermes Agent — C4 System Architecture</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermes Agent — C4 System Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="base/styles.css">
+  <link rel="stylesheet" href="base/presentation.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { primaryColor: '#1e293b', primaryTextColor: '#e2e8f0', lineColor: '#475569', secondaryColor: '#0f172a', tertiaryColor: '#1e293b' }});</script>
+  <script src="base/theme.js"></script>
 </head>
 <body>
 <div class="wrap">
 
   <nav class="toc" id="toc">
-    <div class="toc-title">C4 Architecture</div>
-    <a href="#overview">Overview</a>
-    <a href="#context">L1: System Context</a>
-    <a href="#containers">L2: Containers</a>
-    <a href="#core-engine">Core Engine</a>
-    <a href="#tools">Tool System</a>
-    <a href="#gateway">Gateway</a>
-    <a href="#state">State</a>
-    <a href="#data-flows">Data Flows</a>
-    <a href="#tech-stack">Tech Stack</a>
+    <a class="toc-back" href="https://yoniebans.github.io">← all posts</a>
+
+    <div class="toc-page" data-page="index.html">
+      <a class="toc-page__title" href="index.html">C4 Architecture</a>
+      <div class="toc-page__sections">
+        <a href="index.html#overview">Overview</a>
+        <a href="index.html#context">L1: System Context</a>
+        <a href="index.html#containers">L2: Containers</a>
+        <a href="index.html#core-engine">L3: Core Engine</a>
+        <a href="index.html#tools">L3: Tool System</a>
+        <a href="index.html#gateway">L3: Gateway</a>
+        <a href="index.html#state">L3: State</a>
+        <a href="index.html#data-flows">Data Flows</a>
+        <a href="index.html#tech-stack">Tech Stack</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="diataxis.html">
+      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
+      <div class="toc-page__sections">
+        <a href="diataxis.html#overview">The Framework</a>
+        <a href="diataxis.html#mental-model">Tutorial</a>
+        <a href="diataxis.html#extension-points">How-to</a>
+        <a href="diataxis.html#module-map">Reference</a>
+        <a href="diataxis.html#design-rationale">Explanation</a>
+        <a href="diataxis.html#design-decisions">Design Decisions</a>
+        <a href="diataxis.html#patterns">Cross-cutting</a>
+        <a href="diataxis.html#extension-surfaces">Extension Map</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="data-model.html">
+      <a class="toc-page__title" href="data-model.html">Data Model</a>
+      <div class="toc-page__sections">
+        <a href="data-model.html#overview">Overview</a>
+        <a href="data-model.html#entity-map">Entity Map</a>
+        <a href="data-model.html#sqlite-schema">SQLite Schema</a>
+        <a href="data-model.html#message-format">Message Format</a>
+        <a href="data-model.html#tool-registry">Tool Registry</a>
+        <a href="data-model.html#skill-structure">Skill Structure</a>
+        <a href="data-model.html#config-hierarchy">Config Hierarchy</a>
+        <a href="data-model.html#plugin-system">Plugin System</a>
+        <a href="data-model.html#memory-providers">Memory Providers</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="sequence-diagrams.html">
+      <a class="toc-page__title" href="sequence-diagrams.html">Interaction Sequences</a>
+      <div class="toc-page__sections">
+        <a href="sequence-diagrams.html#overview">Overview</a>
+        <a href="sequence-diagrams.html#cli-flow">CLI Message Flow</a>
+        <a href="sequence-diagrams.html#gateway-flow">Gateway Flow</a>
+        <a href="sequence-diagrams.html#tui-flow">TUI Message Flow</a>
+        <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
+        <a href="sequence-diagrams.html#context-compression">Compression</a>
+        <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
+        <a href="sequence-diagrams.html#subagent-delegation">Subagent Delegation</a>
+        <a href="sequence-diagrams.html#error-recovery">Error Recovery</a>
+      </div>
+    </div>
   </nav>
 
-  <div class="main">
+  <main class="main">
+<section id="overview">
+
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.10.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       Hermes is a Python-based AI agent framework that connects LLMs to the real world
       through 30+ tools, 16 messaging platforms, multiple execution backends, and a
@@ -69,11 +124,11 @@
     <!-- ============================== -->
     <!-- LEVEL 1: SYSTEM CONTEXT        -->
     <!-- ============================== -->
-    <div id="overview" class="sec-head anim" style="--i:4; color:var(--accent)">
-      <span class="dot" style="background:var(--accent)"></span> Overview
-    </div>
 
-    <div id="context" class="sec-head anim" style="--i:5; color:var(--accent)">
+</section>
+
+<section id="context">
+    <div class="sec-head anim" style="--i:5; color:var(--accent)">
       <span class="dot" style="background:var(--accent)"></span> Level 1 &mdash; System Context
     </div>
     <h2 class="anim" style="--i:6">Who interacts with Hermes?</h2>
@@ -152,7 +207,10 @@
     <!-- ============================== -->
     <!-- LEVEL 2: CONTAINERS            -->
     <!-- ============================== -->
-    <div id="containers" class="sec-head anim" style="--i:10; color:var(--teal)">
+</section>
+
+<section id="containers">
+    <div class="sec-head anim" style="--i:10; color:var(--teal)">
       <span class="dot" style="background:var(--teal)"></span> Level 2 &mdash; Container Diagram
     </div>
     <h2 class="anim" style="--i:11">Six entry points, one core engine</h2>
@@ -291,7 +349,10 @@
     <!-- ============================== -->
     <!-- LEVEL 3: CORE ENGINE           -->
     <!-- ============================== -->
-    <div id="core-engine" class="sec-head anim" style="--i:15; color:var(--emerald)">
+</section>
+
+<section id="core-engine">
+    <div class="sec-head anim" style="--i:15; color:var(--emerald)">
       <span class="dot" style="background:var(--emerald)"></span> Level 3 &mdash; Core Agent Engine
     </div>
     <h2 class="anim" style="--i:16">The conversation loop</h2>
@@ -406,7 +467,10 @@
     <!-- ============================== -->
     <!-- LEVEL 3: TOOL SYSTEM           -->
     <!-- ============================== -->
-    <div id="tools" class="sec-head anim" style="--i:21; color:var(--accent)">
+</section>
+
+<section id="tools">
+    <div class="sec-head anim" style="--i:21; color:var(--accent)">
       <span class="dot" style="background:var(--accent)"></span> Level 3 &mdash; Tool System
     </div>
     <h2 class="anim" style="--i:22">Registry, toolsets, and execution</h2>
@@ -577,7 +641,10 @@
     <!-- ============================== -->
     <!-- LEVEL 3: GATEWAY               -->
     <!-- ============================== -->
-    <div id="gateway" class="sec-head anim" style="--i:28; color:var(--rose)">
+</section>
+
+<section id="gateway">
+    <div class="sec-head anim" style="--i:28; color:var(--rose)">
       <span class="dot" style="background:var(--rose)"></span> Level 3 &mdash; Gateway
     </div>
     <h2 class="anim" style="--i:29">16 platforms, one session layer</h2>
@@ -644,7 +711,10 @@
     <!-- ============================== -->
     <!-- STATE & PERSISTENCE            -->
     <!-- ============================== -->
-    <div id="state" class="sec-head anim" style="--i:33; color:var(--amber)">
+</section>
+
+<section id="state">
+    <div class="sec-head anim" style="--i:33; color:var(--amber)">
       <span class="dot" style="background:var(--amber)"></span> State &amp; Persistence
     </div>
     <h2 class="anim" style="--i:34">Pluggable memory, built-in state</h2>
@@ -720,7 +790,10 @@
     <!-- ============================== -->
     <!-- DATA FLOWS                     -->
     <!-- ============================== -->
-    <div id="data-flows" class="sec-head anim" style="--i:37; color:var(--indigo)">
+</section>
+
+<section id="data-flows">
+    <div class="sec-head anim" style="--i:37; color:var(--indigo)">
       <span class="dot" style="background:var(--indigo)"></span> Key Data Flows
     </div>
     <h2 class="anim" style="--i:38">How messages travel through the system</h2>
@@ -791,7 +864,10 @@
     <!-- ============================== -->
     <!-- TECH STACK                     -->
     <!-- ============================== -->
-    <div id="tech-stack" class="sec-head anim" style="--i:43; color:var(--slate)">
+</section>
+
+<section id="tech-stack">
+    <div class="sec-head anim" style="--i:43; color:var(--slate)">
       <span class="dot" style="background:var(--slate)"></span> Technology Stack
     </div>
     <h2 class="anim" style="--i:44">What powers Hermes under the hood</h2>
@@ -844,44 +920,17 @@
       </div>
     </div>
 
-    <hr class="anim" style="--i:48">
+</section>
 
-    <!-- ============================== -->
-    <!-- FOOTER: COMPANION PAGES         -->
-    <!-- ============================== -->
-    <div class="sec-head anim" style="--i:49; color:var(--slate)">
-      <span class="dot" style="background:var(--slate)"></span> Companion Pages
-    </div>
-    <h2 class="anim" style="--i:50">Related Documentation</h2>
-    <p class="section-desc anim" style="--i:51">
-      These C4 architecture diagrams complement the conceptual, behavioral, and data-model views.
-      Explore the companion pages for design rationale, interaction flows, and schema details.
-    </p>
-
-    <div class="companion-grid anim" style="--i:52; margin-bottom:60px">
-      <a class="companion-link" href="diataxis.html">
-        <div class="companion-link__title">Documentation Map</div>
-        <div class="companion-link__desc">A Diátaxis lens on Hermes — tutorial, how-to, reference, explanation. Includes mental model and 9 design principles.</div>
-      </a>
-      <a class="companion-link" href="data-model.html">
-        <div class="companion-link__title">Data Model</div>
-        <div class="companion-link__desc">Entities, schemas, and wire formats. Covers the SQLite store, message format, tool registry, and memory provider interface.</div>
-      </a>
-      <a class="companion-link" href="sequence-diagrams.html">
-        <div class="companion-link__title">Interaction Sequences</div>
-        <div class="companion-link__desc">Behavioral views — CLI and gateway message flows, the agent loop, context compression, tool execution, subagent delegation, error recovery.</div>
-      </a>
-    </div>
-
-  </div><!-- /main -->
+  </main><!-- /main -->
 </div><!-- /wrap -->
 
-<!-- ====== MERMAID + ZOOM ENGINE ====== -->
-<script src="mermaid-zoom.js" defer></script>
-
-<!-- ====== SCROLL SPY ====== -->
-<script src="scrollspy.js"></script>
-<script src="refs.js"></script>
-<script src="enhancer.js" defer></script>
+<!-- ====== SCRIPTS ====== -->
+<script src="base/mermaid-zoom.js" defer></script>
+<script src="base/page-nav.js" defer></script>
+<script src="base/scrollspy.js" defer></script>
+<script src="base/presentation.js" defer></script>
+<script src="base/enhancer.js" defer></script>
+<script src="refs.js" defer></script>
 </body>
 </html>
