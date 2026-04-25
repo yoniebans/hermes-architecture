@@ -112,6 +112,18 @@ window.ATLAS_REFS = {
     },
     "tui-gateway-client": {
       "path": "ui-tui/src/gatewayClient.ts"
+    },
+    "tui-ws": {
+      "path": "tui_gateway/ws.py"
+    },
+    "tui-transport": {
+      "path": "tui_gateway/transport.py"
+    },
+    "web-chat-page": {
+      "path": "web/src/pages/ChatPage.tsx"
+    },
+    "web-gateway-client": {
+      "path": "web/src/lib/gatewayClient.ts"
     }
   }
 };

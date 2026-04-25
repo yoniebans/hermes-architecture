@@ -387,10 +387,13 @@
     </div>
     <h2 class="anim" style="--i:15">TUI Message Flow</h2>
     <p class="section-desc anim" style="--i:16">
-      The React/Ink terminal UI communicates with the Python backend over a JSON-RPC bridge.
-      The TypeScript process spawns <code data-ref="tui-gateway-server">tui_gateway</code> as a child
-      process, sending requests over stdin/stdout. This two-process architecture keeps the
-      rich UI rendering in Node.js while the agent logic stays in Python.
+      The TUI gateway supports two transports: <strong>stdio</strong> (the Ink terminal UI spawns
+      <code data-ref="tui-gateway-server">tui_gateway</code> as a child process) and <strong>WebSocket</strong>
+      (the web dashboard's ChatPage connects via <code data-ref="tui-ws">tui_gateway/ws.py</code>).
+      Both use the same JSON-RPC wire protocol; the transport layer
+      (<code data-ref="tui-transport">tui_gateway/transport.py</code>) abstracts the I/O so the dispatcher
+      is shared. The stdio path is shown below &mdash; the WebSocket path is identical
+      except the startup handshake happens over <code>/api/ws</code> instead of stdin/stdout.
     </p>
 
     <div class="grid-2 anim" style="--i:17">
@@ -409,11 +412,12 @@
         <div class="ve-card__label">Key Steps</div>
         <ul class="step-list">
           <li>TUI spawns <code>tui_gateway</code> as stdio child process</li>
-          <li>User input serialized as JSON-RPC over stdin</li>
+          <li>Web dashboard connects via WebSocket to <code>/api/ws</code></li>
+          <li>User input serialized as JSON-RPC (same wire format on both transports)</li>
           <li>Gateway creates AIAgent, calls <code>run_conversation()</code></li>
           <li>Streaming tokens sent back as JSON-RPC notifications</li>
           <li>Slash commands routed to persistent <code>SlashWorker</code> subprocess</li>
-          <li>TUI renders markdown, thinking blocks, and tool activity</li>
+          <li>TUI/browser renders markdown, thinking blocks, and tool activity</li>
         </ul>
       </div>
     </div>
