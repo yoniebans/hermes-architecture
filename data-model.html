@@ -85,7 +85,7 @@
 <!-- ──────── HERO ──────── -->
 <section id="overview">
   <h1 class="anim" style="--i:0">Hermes Agent</h1>
-  <p class="subtitle anim" style="--i:1">Data Model &mdash; v0.10.0 &mdash; Nous Research</p>
+  <p class="subtitle anim" style="--i:1">Data Model &mdash; v0.11.0 &mdash; Nous Research</p>
 
   <div class="kpi-row anim" style="--i:3">
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">SQLite tables</div></div>
@@ -523,10 +523,10 @@ graph LR
     TR --> A
     LLM -->|"content only"| RESP["Final Response<br/><small>role: assistant</small>"]
 
-    classDef user fill:#dbeafe,stroke:#0284c7,stroke-width:2px
-    classDef agent fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    classDef tool fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
-    classDef llm fill:#ede9fe,stroke:#7c3aed,stroke-width:2px
+    classDef user fill:#dbeafe,stroke:#0284c7,stroke-width:2px,color:#0f172a
+    classDef agent fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a
+    classDef tool fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
+    classDef llm fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#0f172a
 
     class U user
     class A,TC agent
@@ -787,10 +787,10 @@ graph TD
     CHECK -->|"OK"| INJECT["Inject as User Message<br/><small>Preserves prompt cache</small>"]
     CHECK -->|"Missing"| WARN["Setup Warning<br/><small>List missing requirements</small>"]
 
-    classDef scan fill:#dbeafe,stroke:#0284c7,stroke-width:2px
-    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    classDef inject fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
-    classDef warn fill:#fef2f2,stroke:#ef4444,stroke-width:2px
+    classDef scan fill:#dbeafe,stroke:#0284c7,stroke-width:2px,color:#0f172a
+    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a
+    classDef inject fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
+    classDef warn fill:#fef2f2,stroke:#ef4444,stroke-width:2px,color:#0f172a
 
     class SCAN scan
     class REG,LOAD,FRONT,BODY,CHECK process
@@ -919,9 +919,9 @@ graph TD
     FINAL -->|"terminal.backend"| TERM["Terminal Backend"]
     FINAL -->|"agent.max_turns"| AGENT["AIAgent"]
 
-    classDef source fill:#dbeafe,stroke:#0284c7,stroke-width:2px
-    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    classDef output fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
+    classDef source fill:#dbeafe,stroke:#0284c7,stroke-width:2px,color:#0f172a
+    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a
+    classDef output fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
 
     class DC,YF source
     class DM,NMT,NRK,EEV process
