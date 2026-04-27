@@ -85,7 +85,8 @@
 <!-- ──────── HERO ──────── -->
 <section id="overview">
   <h1 class="anim" style="--i:0">Hermes Agent</h1>
-  <p class="subtitle anim" style="--i:1">Data Model &mdash; v0.10.0 &mdash; Nous Research</p>
+  <p class="subtitle anim" style="--i:1">Data Model &mdash; v0.11.0 &mdash; Nous Research</p>
+  <p class="lead anim" style="--i:2">The data structures at the heart of Hermes Agent &mdash; the database schema that persists sessions and messages, the message format that flows between the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file format, the layered configuration system, and the pluggable memory provider interface.</p>
 
   <div class="kpi-row anim" style="--i:3">
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">SQLite tables</div></div>
@@ -94,23 +95,6 @@
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">22</div><div class="kpi-card__label">Toolset groups</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">6</div><div class="kpi-card__label">Schema versions</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
-  </div>
-
-  <div class="ve-card c-accent anim" style="--i:4">
-    <h3>Reading Guide</h3>
-    <p style="font-size:14px;color:var(--text-dim)">
-      This page documents the <strong>data structures</strong> at the heart of Hermes Agent &mdash;
-      the database schema that persists sessions and messages, the message format that flows between
-      the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file
-      format, the layered configuration system, and the pluggable memory provider interface.
-      Each section has ER or class diagrams you can zoom and pan.
-    </p>
-    <p style="font-size:12px;color:var(--text-dim);margin-top:8px">
-      For how these structures <em>interact over time</em>, see
-      <a href="sequence-diagrams.html" style="color:var(--accent)">Interaction Sequences</a>.
-      For the high-level system overview, see
-      <a href="index.html" style="color:var(--accent)">C4 Architecture</a>.
-    </p>
   </div>
 </section>
 
@@ -523,10 +507,10 @@ graph LR
     TR --> A
     LLM -->|"content only"| RESP["Final Response<br/><small>role: assistant</small>"]
 
-    classDef user fill:#dbeafe,stroke:#0284c7,stroke-width:2px
-    classDef agent fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    classDef tool fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
-    classDef llm fill:#ede9fe,stroke:#7c3aed,stroke-width:2px
+    classDef user fill:#0284c711,stroke:#0284c744,stroke-width:2px
+    classDef agent fill:#d9770611,stroke:#d9770644,stroke-width:2px
+    classDef tool fill:#0d948822,stroke:#0d9488,stroke-width:2px
+    classDef llm fill:#7c3aed11,stroke:#7c3aed44,stroke-width:2px
 
     class U user
     class A,TC agent
@@ -787,10 +771,10 @@ graph TD
     CHECK -->|"OK"| INJECT["Inject as User Message<br/><small>Preserves prompt cache</small>"]
     CHECK -->|"Missing"| WARN["Setup Warning<br/><small>List missing requirements</small>"]
 
-    classDef scan fill:#dbeafe,stroke:#0284c7,stroke-width:2px
-    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    classDef inject fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
-    classDef warn fill:#fef2f2,stroke:#ef4444,stroke-width:2px
+    classDef scan fill:#0284c711,stroke:#0284c744,stroke-width:2px
+    classDef process fill:#d9770611,stroke:#d9770644,stroke-width:2px
+    classDef inject fill:#0d948822,stroke:#0d9488,stroke-width:2px
+    classDef warn fill:#e11d4808,stroke:#e11d4844,stroke-width:2px,stroke-dasharray:5 5
 
     class SCAN scan
     class REG,LOAD,FRONT,BODY,CHECK process
@@ -919,9 +903,9 @@ graph TD
     FINAL -->|"terminal.backend"| TERM["Terminal Backend"]
     FINAL -->|"agent.max_turns"| AGENT["AIAgent"]
 
-    classDef source fill:#dbeafe,stroke:#0284c7,stroke-width:2px
-    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    classDef output fill:#ccfbf1,stroke:#0d9488,stroke-width:2px
+    classDef source fill:#0284c711,stroke:#0284c744,stroke-width:2px
+    classDef process fill:#d9770611,stroke:#d9770644,stroke-width:2px
+    classDef output fill:#0d948822,stroke:#0d9488,stroke-width:2px
 
     class DC,YF source
     class DM,NMT,NRK,EEV process
