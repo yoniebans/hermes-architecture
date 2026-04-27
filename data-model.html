@@ -523,10 +523,10 @@ graph LR
     TR --> A
     LLM -->|"content only"| RESP["Final Response<br/><small>role: assistant</small>"]
 
-    classDef user fill:#dbeafe,stroke:#0284c7,stroke-width:2px,color:#0f172a
-    classDef agent fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a
-    classDef tool fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
-    classDef llm fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#0f172a
+    classDef user fill:#0284c711,stroke:#0284c744,stroke-width:2px
+    classDef agent fill:#d9770611,stroke:#d9770644,stroke-width:2px
+    classDef tool fill:#0d948822,stroke:#0d9488,stroke-width:2px
+    classDef llm fill:#7c3aed11,stroke:#7c3aed44,stroke-width:2px
 
     class U user
     class A,TC agent
@@ -787,10 +787,10 @@ graph TD
     CHECK -->|"OK"| INJECT["Inject as User Message<br/><small>Preserves prompt cache</small>"]
     CHECK -->|"Missing"| WARN["Setup Warning<br/><small>List missing requirements</small>"]
 
-    classDef scan fill:#dbeafe,stroke:#0284c7,stroke-width:2px,color:#0f172a
-    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a
-    classDef inject fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
-    classDef warn fill:#fef2f2,stroke:#ef4444,stroke-width:2px,color:#0f172a
+    classDef scan fill:#0284c711,stroke:#0284c744,stroke-width:2px
+    classDef process fill:#d9770611,stroke:#d9770644,stroke-width:2px
+    classDef inject fill:#0d948822,stroke:#0d9488,stroke-width:2px
+    classDef warn fill:#e11d4808,stroke:#e11d4844,stroke-width:2px,stroke-dasharray:5 5
 
     class SCAN scan
     class REG,LOAD,FRONT,BODY,CHECK process
@@ -919,9 +919,9 @@ graph TD
     FINAL -->|"terminal.backend"| TERM["Terminal Backend"]
     FINAL -->|"agent.max_turns"| AGENT["AIAgent"]
 
-    classDef source fill:#dbeafe,stroke:#0284c7,stroke-width:2px,color:#0f172a
-    classDef process fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a
-    classDef output fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
+    classDef source fill:#0284c711,stroke:#0284c744,stroke-width:2px
+    classDef process fill:#d9770611,stroke:#d9770644,stroke-width:2px
+    classDef output fill:#0d948822,stroke:#0d9488,stroke-width:2px
 
     class DC,YF source
     class DM,NMT,NRK,EEV process
