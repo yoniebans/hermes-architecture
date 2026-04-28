@@ -1146,6 +1146,37 @@
       </script>
     </section>
 
+    <!-- Plugin hook reference -->
+    <div class="callout anim" style="--i:44">
+      <strong>Plugin Lifecycle Hooks.</strong>
+      Plugins fire at specific points in the sequences above. Writing a plugin?
+      Here's where each hook executes:
+    </div>
+    <div class="grid-2 gap-24 anim" style="--i:45">
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Agent Loop Hooks</div>
+        <ul class="node-list">
+          <li><code>pre_llm_call</code> &mdash; before each LLM API call</li>
+          <li><code>post_llm_call</code> &mdash; after LLM response received</li>
+          <li><code>pre_api_request</code> &mdash; before HTTP request to provider</li>
+          <li><code>post_api_request</code> &mdash; after HTTP response</li>
+          <li><code>on_session_start</code> / <code>on_session_end</code></li>
+          <li><code>on_session_finalize</code> / <code>on_session_reset</code></li>
+          <li><code>on_memory_write</code> &mdash; after memory tool writes</li>
+          <li><code>subagent_stop</code> &mdash; when child agent finishes</li>
+        </ul>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Tool Execution Hooks</div>
+        <ul class="node-list">
+          <li><code>pre_tool_call</code> &mdash; before each tool handler runs</li>
+          <li><code>post_tool_call</code> &mdash; after tool returns result</li>
+          <li><code>transform_terminal_output</code> &mdash; filter terminal output</li>
+          <li><code>transform_tool_result</code> &mdash; modify any tool result</li>
+        </ul>
+      </div>
+    </div>
+
 </section>
 
   </main><!-- /main -->
