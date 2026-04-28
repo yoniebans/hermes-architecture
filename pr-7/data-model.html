@@ -639,8 +639,8 @@ classDiagram
   <div class="callout anim" style="--i:31">
     <strong>Two-tier dispatch:</strong> Agent-level tools (todo, memory, session_search, clarify, delegate_task)
     are handled directly in <code>_invoke_tool()</code> inside <code data-ref="ai-agent">run_agent.py</code> &mdash; they never
-    hit the registry. Everything else goes through <code>handle_function_call()</code> &rarr;
-    <code>registry.dispatch()</code>. See
+    hit the registry. Everything else goes through <code data-ref="model-tools">handle_function_call()</code> &rarr;
+    <code data-ref="tool-registry">registry.dispatch()</code>. See
     <a href="sequence-diagrams.html#tool-execution" style="color:var(--accent)">Sequences &sect; Tool Execution</a>.
   </div>
 </section>
@@ -783,7 +783,7 @@ graph TD
     </div>
     <div class="config-layer layer-default">
       <div class="layer-label">&#x2463; DEFAULT_CONFIG</div>
-      <div class="layer-desc">Hardcoded in <code>hermes_cli/config.py</code>. 40+ top-level keys.
+      <div class="layer-desc">Hardcoded in <code data-ref="config">hermes_cli/config.py</code>. 40+ top-level keys.
       Lowest priority. Always present.</div>
     </div>
   </div>
