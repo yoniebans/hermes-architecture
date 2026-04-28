@@ -104,6 +104,9 @@ window.ATLAS_REFS = {
     "plugin-manager": {
       "path": "hermes_cli/plugins.py"
     },
+    "config": {
+      "path": "hermes_cli/config.py"
+    },
     "context-engine": {
       "path": "agent/context_engine.py"
     },

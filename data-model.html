@@ -29,23 +29,9 @@
         <a href="index.html#core-engine">L3: Core Engine</a>
         <a href="index.html#tools">L3: Tool System</a>
         <a href="index.html#gateway">L3: Gateway</a>
-        <a href="index.html#state">State</a>
+        <a href="index.html#state">L3: State</a>
         <a href="index.html#data-flows">Data Flows</a>
         <a href="index.html#tech-stack">Tech Stack</a>
-      </div>
-    </div>
-
-    <div class="toc-page" data-page="diataxis.html">
-      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
-      <div class="toc-page__sections">
-        <a href="diataxis.html#overview">The Framework</a>
-        <a href="diataxis.html#mental-model">Tutorial</a>
-        <a href="diataxis.html#extension-points">How-to</a>
-        <a href="diataxis.html#module-map">Reference</a>
-        <a href="diataxis.html#design-rationale">Explanation</a>
-        <a href="diataxis.html#design-decisions">Design Decisions</a>
-        <a href="diataxis.html#patterns">Cross-cutting</a>
-        <a href="diataxis.html#extension-surfaces">Extension Map</a>
       </div>
     </div>
 
@@ -71,11 +57,28 @@
         <a href="sequence-diagrams.html#cli-flow">CLI Message Flow</a>
         <a href="sequence-diagrams.html#gateway-flow">Gateway Flow</a>
         <a href="sequence-diagrams.html#tui-flow">TUI Message Flow</a>
+        <a href="sequence-diagrams.html#web-dashboard-flow">Web Dashboard Flow</a>
+        <a href="sequence-diagrams.html#acp-flow">ACP Editor Flow</a>
+        <a href="sequence-diagrams.html#mcp-flow">MCP Server Flow</a>
         <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
         <a href="sequence-diagrams.html#context-compression">Compression</a>
         <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
         <a href="sequence-diagrams.html#subagent-delegation">Subagent Delegation</a>
         <a href="sequence-diagrams.html#error-recovery">Error Recovery</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="diataxis.html">
+      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
+      <div class="toc-page__sections">
+        <a href="diataxis.html#overview">The Framework</a>
+        <a href="diataxis.html#mental-model">Tutorial</a>
+        <a href="diataxis.html#extension-points">How-to</a>
+        <a href="diataxis.html#module-map">Reference</a>
+        <a href="diataxis.html#design-rationale">Explanation</a>
+        <a href="diataxis.html#design-decisions">Design Decisions</a>
+        <a href="diataxis.html#patterns">Cross-cutting</a>
+        <a href="diataxis.html#extension-surfaces">Extension Map</a>
       </div>
     </div>
   </nav>
@@ -89,11 +92,11 @@
   <p class="lead anim" style="--i:2">The data structures at the heart of Hermes Agent &mdash; the database schema that persists sessions and messages, the message format that flows between the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file format, the layered configuration system, and the pluggable memory provider interface.</p>
 
   <div class="kpi-row anim" style="--i:3">
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">SQLite tables</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">3</div><div class="kpi-card__label">Storage layers</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">22</div><div class="kpi-card__label">Toolset groups</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">6</div><div class="kpi-card__label">Schema versions</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">30+</div><div class="kpi-card__label">Toolset groups</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">10</div><div class="kpi-card__label">Schema versions</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
   </div>
 </section>
@@ -105,14 +108,14 @@
   </div>
   <h2 class="anim" style="--i:6">Core Entity Map</h2>
   <p class="section-desc anim" style="--i:7">
-    The eight key entities and how they relate. Sessions contain messages, tools are grouped into
-    toolsets, skills live on disk, config layers override each other, memory providers plug in,
-    and plugins extend the system via hooks and tools.
+    Where each entity lives. Sessions and messages persist in SQLite, tools and config
+    rebuild from code and YAML at startup, skills and plugins live on the filesystem,
+    and credentials rotate through a managed JSON store.
   </p>
 
   <section class="diagram-shell anim" style="--i:8">
-    <p class="diagram-shell__hint">Entity Relationship Overview &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:400px">
+    <p class="diagram-shell__hint">Entity Storage Map &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -125,104 +128,56 @@
         <div class="mermaid mermaid-canvas"></div>
       </div>    </div>
       <script type="text/plain" class="diagram-source">
-erDiagram
-    SESSION ||--o{ MESSAGE : contains
-    SESSION ||--o| SESSION : "parent (compression)"
-    SESSION }o--|| PLATFORM : "source"
-    MESSAGE }o--o{ TOOL_CALL : "carries"
-    TOOL_CALL }o--|| TOOL_ENTRY : "dispatches to"
-    TOOL_ENTRY }o--|| TOOLSET : "belongs to"
-    TOOLSET }o--o{ TOOLSET : "includes (composite)"
-    CONFIG ||--|| AUXILIARY_TASK : "configures"
-    MEMORY_PROVIDER ||--o{ TOOL_ENTRY : "registers"
-    SKILL |o--o{ SKILL : "related_skills"
-    PLUGIN ||--o{ TOOL_ENTRY : "registers"
-    PLUGIN ||--o{ PLUGIN : "hooks into"
-    PLUGIN }o--|| CONFIG : "configured by"
+graph TD
+    subgraph sqlite["SQLite — state.db"]
+        sessions["Sessions<br/><small>conversations, tokens, costs</small>"]
+        messages["Messages<br/><small>role, content, tool_calls</small>"]
+        fts["messages_fts<br/><small>FTS5 full-text search</small>"]
+        trigram["messages_fts_trigram<br/><small>FTS5 trigram (CJK)</small>"]
+        statemeta["state_meta<br/><small>key-value store</small>"]
+    end
 
-    SESSION {
-        text id PK
-        text source
-        text model
-        text title
-        text parent_session_id FK
-        real started_at
-        real ended_at
-        int message_count
-        int tool_call_count
-        int input_tokens
-        int output_tokens
-        real estimated_cost_usd
-    }
+    subgraph filesystem["Filesystem — ~/.hermes/"]
+        skills["Skills<br/><small>YAML frontmatter + Markdown</small>"]
+        config["config.yaml<br/><small>40+ keys, 4-layer hierarchy</small>"]
+        envfile[".env<br/><small>API keys (0600 perms)</small>"]
+        authjson["auth.json<br/><small>credential pool, OAuth tokens</small>"]
+        jobsjson["jobs.json<br/><small>cron job definitions</small>"]
+        memory["MEMORY.md + USER.md<br/><small>built-in memory (§-delimited)</small>"]
+        plugins["Plugins<br/><small>plugin.yaml + register(ctx)</small>"]
+    end
 
-    MESSAGE {
-        int id PK
-        text session_id FK
-        text role
-        text content
-        text tool_call_id
-        text tool_calls
-        text tool_name
-        real timestamp
-        int token_count
-        text finish_reason
-        text reasoning
-    }
+    subgraph runtime["Runtime — rebuilt at startup"]
+        toolreg["ToolRegistry<br/><small>singleton, self-registering</small>"]
+        toolsets["Toolsets<br/><small>composable groups</small>"]
+        auxconfig["Auxiliary Tasks<br/><small>8 model channels</small>"]
+        memprov["Memory Providers<br/><small>MemoryProvider ABC</small>"]
+    end
 
-    TOOL_ENTRY {
-        text name PK
-        text toolset
-        dict schema
-        fn handler
-        fn check_fn
-        list requires_env
-        bool is_async
-        text emoji
-    }
+    sessions --> messages
+    messages --> fts
+    messages --> trigram
+    config --> auxconfig
+    config --> toolsets
+    plugins --> toolreg
+    plugins --> memprov
+    skills -.->|"loaded on demand"| toolreg
 
-    TOOLSET {
-        text name PK
-        text description
-        list tools
-        list includes
-    }
+    classDef db fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+    classDef fs fill:#0d948822,stroke:#0d9488,stroke-width:1.5px
+    classDef rt fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
 
-    SKILL {
-        text name PK
-        text description
-        text version
-        text category
-        list tags
-        list dependencies
-    }
-
-    CONFIG {
-        text key PK
-        any value
-        text source_layer
-    }
-
-    AUXILIARY_TASK {
-        text task PK
-        text provider
-        text model
-        text base_url
-        int timeout
-    }
-
-    MEMORY_PROVIDER {
-        text name PK
-        bool is_external
-        list tool_schemas
-        text system_prompt
-    }
-
-    PLATFORM {
-        text name PK
-        text toolset
-    }
+    class sessions,messages,fts,trigram,statemeta db
+    class skills,config,envfile,authjson,jobsjson,memory,plugins fs
+    class toolreg,toolsets,auxconfig,memprov rt
       </script>
   </section>
+
+  <div class="legend anim" style="--i:9">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-dim);border:1px solid var(--accent)"></div>SQLite (state.db)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--teal-dim);border:1px solid var(--teal)"></div>Filesystem (~/.hermes/)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--amber-dim);border:1px solid var(--amber)"></div>Runtime (rebuilt at startup)</div>
+  </div>
 </section>
 
 <!-- ──────── SQLITE SCHEMA ──────── -->
@@ -233,7 +188,8 @@ erDiagram
   <h2 class="anim" style="--i:11">SQLite Schema</h2>
   <p class="section-desc anim" style="--i:12">
     All state lives in <code>~/.hermes/state.db</code> &mdash; a SQLite database with WAL mode for
-    concurrent reads. Schema version 6. FTS5 for full-text search across messages.
+    concurrent reads. Schema version 10. FTS5 for full-text search across messages,
+    with a trigram index for CJK/substring queries.
   </p>
 
   <div class="callout anim" style="--i:13">
@@ -277,6 +233,7 @@ erDiagram
         <tr><td><span class="col-name">cost_source</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
         <tr><td><span class="col-name">pricing_version</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
         <tr><td><span class="col-name">title</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v3</span> <span class="col-idx">UNIQUE</span> partial (WHERE NOT NULL)</td></tr>
+        <tr><td><span class="col-name">api_call_count</span></td><td><span class="col-type">INTEGER</span></td><td>Default 0, tool-calling API rounds</td></tr>
       </tbody>
     </table>
   </div>
@@ -301,8 +258,10 @@ erDiagram
         <tr><td><span class="col-name">token_count</span></td><td><span class="col-type">INTEGER</span></td><td>Estimated tokens</td></tr>
         <tr><td><span class="col-name">finish_reason</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v2</span> stop | length | tool_calls</td></tr>
         <tr><td><span class="col-name">reasoning</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> Extended thinking content</td></tr>
+        <tr><td><span class="col-name">reasoning_content</span></td><td><span class="col-type">TEXT</span></td><td>Provider-specific reasoning text</td></tr>
         <tr><td><span class="col-name">reasoning_details</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> JSON-encoded details</td></tr>
         <tr><td><span class="col-name">codex_reasoning_items</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> JSON-encoded Codex items</td></tr>
+        <tr><td><span class="col-name">codex_message_items</span></td><td><span class="col-type">TEXT</span></td><td>JSON-encoded Codex message items</td></tr>
       </tbody>
     </table>
   </div>
@@ -338,7 +297,7 @@ AFTER UPDATE ON messages →
   <!-- Schema ER diagram -->
   <section class="diagram-shell anim" style="--i:17">
     <p class="diagram-shell__hint">Database ER Diagram &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:400px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -355,6 +314,7 @@ erDiagram
     sessions ||--o{ messages : "contains"
     sessions ||--o| sessions : "parent_session_id"
     messages ||--|| messages_fts : "FTS5 sync"
+    messages ||--|| messages_fts_trigram : "FTS5 trigram sync"
 
     sessions {
         TEXT id PK
@@ -378,6 +338,7 @@ erDiagram
         REAL estimated_cost_usd "v5"
         REAL actual_cost_usd "v5"
         TEXT title "v3 UNIQUE partial"
+        INTEGER api_call_count
     }
 
     messages {
@@ -392,16 +353,27 @@ erDiagram
         INTEGER token_count
         TEXT finish_reason "v2"
         TEXT reasoning "v6"
+        TEXT reasoning_content
         TEXT reasoning_details "v6 JSON"
         TEXT codex_reasoning_items "v6 JSON"
+        TEXT codex_message_items "JSON"
     }
 
     messages_fts {
-        TEXT content "FTS5 indexed"
+        TEXT content "FTS5 unicode61"
+    }
+
+    messages_fts_trigram {
+        TEXT content "FTS5 trigram v10"
+    }
+
+    state_meta {
+        TEXT key PK
+        TEXT value
     }
 
     schema_version {
-        INTEGER version "currently 6"
+        INTEGER version "currently 10"
     }
       </script>
   </section>
@@ -418,6 +390,8 @@ erDiagram
         <tr><td><span class="col-version">v4</span></td><td>Added unique partial index on <code>sessions.title</code> (WHERE NOT NULL)</td></tr>
         <tr><td><span class="col-version">v5</span></td><td>Added 11 billing/cost/cache columns to sessions</td></tr>
         <tr><td><span class="col-version">v6</span></td><td>Added reasoning, reasoning_details, codex_reasoning_items to messages</td></tr>
+        <tr><td><span class="col-version">v7–v9</span></td><td>Declarative column reconciliation &mdash; new columns added via schema diff, no explicit migrations</td></tr>
+        <tr><td><span class="col-version">v10</span></td><td>Added <code>messages_fts_trigram</code> (trigram FTS5 for CJK/substring search) with row backfill</td></tr>
       </tbody>
     </table>
   </div>
@@ -485,7 +459,7 @@ erDiagram
 
   <section class="diagram-shell anim" style="--i:23">
     <p class="diagram-shell__hint">Message Flow Through the Agent Loop &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:380px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -542,7 +516,7 @@ graph LR
 
   <section class="diagram-shell anim" style="--i:28">
     <p class="diagram-shell__hint">Tool Registry Class Diagram &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:480px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -668,8 +642,8 @@ classDiagram
   <div class="callout anim" style="--i:31">
     <strong>Two-tier dispatch:</strong> Agent-level tools (todo, memory, session_search, clarify, delegate_task)
     are handled directly in <code>_invoke_tool()</code> inside <code data-ref="ai-agent">run_agent.py</code> &mdash; they never
-    hit the registry. Everything else goes through <code>handle_function_call()</code> &rarr;
-    <code>registry.dispatch()</code>. See
+    hit the registry. Everything else goes through <code data-ref="model-tools">handle_function_call()</code> &rarr;
+    <code data-ref="tool-registry">registry.dispatch()</code>. See
     <a href="sequence-diagrams.html#tool-execution" style="color:var(--accent)">Sequences &sect; Tool Execution</a>.
   </div>
 </section>
@@ -748,7 +722,7 @@ metadata:
 
   <section class="diagram-shell anim" style="--i:37">
     <p class="diagram-shell__hint">Skill Loading and Injection &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:340px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -812,7 +786,7 @@ graph TD
     </div>
     <div class="config-layer layer-default">
       <div class="layer-label">&#x2463; DEFAULT_CONFIG</div>
-      <div class="layer-desc">Hardcoded in <code>hermes_cli/config.py</code>. 40+ top-level keys.
+      <div class="layer-desc">Hardcoded in <code data-ref="config">hermes_cli/config.py</code>. 40+ top-level keys.
       Lowest priority. Always present.</div>
     </div>
   </div>
@@ -877,7 +851,7 @@ graph TD
 
   <section class="diagram-shell anim" style="--i:44">
     <p class="diagram-shell__hint">Config Resolution Flow &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:380px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -929,7 +903,7 @@ graph TD
 
   <section class="diagram-shell anim" style="--i:44">
     <p class="diagram-shell__hint">Plugin Architecture &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:520px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -1050,11 +1024,13 @@ classDiagram
     Memory is pluggable. The built-in provider (file-based, always active) handles <code>memory</code>
     and <code>user</code> targets. At most one external provider (Honcho, etc.) can be added.
     The <code data-ref="memory-provider">MemoryManager</code> fans out calls to all active providers.
+    See <a href="index.html#state" style="color:var(--accent)">C4 Architecture &sect; State</a>
+    for the provider list and runtime behaviour.
   </p>
 
   <section class="diagram-shell anim" style="--i:48">
     <p class="diagram-shell__hint">Memory Provider Class Hierarchy &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
-    <div class="mermaid-wrap" style="min-height:560px">
+    <div class="mermaid-wrap">
       <div class="zoom-controls">
         <button type="button" data-action="zoom-in" title="Zoom in">+</button>
         <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
