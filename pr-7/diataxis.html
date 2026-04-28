@@ -186,7 +186,7 @@
 
     <div class="prose anim" style="--i:10">
       <p>
-        That's the entire system. Everything else &mdash; the 30+ tools, 16 platform adapters, credential pool,
+        That's the entire system. Everything else &mdash; the 30+ tools, 20 platform adapters, credential pool,
         context compressor, cron scheduler &mdash; is <strong>supporting infrastructure</strong> around this single loop.
       </p>
     </div>
@@ -694,7 +694,7 @@
             PR #4623 extracted the ~1,000-line <code>honcho_integration/</code> subsystem into a
             <strong>pluggable provider interface</strong> &mdash; <code data-ref="memory-provider">MemoryProvider</code> ABC in
             <code>agent/memory_provider.py</code>, orchestrated by <code>agent/memory_manager.py</code>.
-            Honcho became just one of 7 plugins in <code>plugins/memory/</code>, matching the same ABC-plus-plugins
+            Honcho became just one of 8 plugins in <code>plugins/memory/</code>, matching the same ABC-plus-plugins
             pattern used for platform adapters and execution backends. Key design choices:
             <ul style="margin: 6px 0 0; padding-left: 20px">
               <li>Built-in memory (<code>MEMORY.md</code> / <code>USER.md</code>) is <strong>always on</strong> alongside the external provider.</li>

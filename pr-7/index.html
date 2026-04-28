@@ -88,7 +88,7 @@
     <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.11.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       Hermes is a Python-based AI agent framework that connects LLMs to the real world
-      through 30+ tools, 16 messaging platforms, multiple execution backends, and a
+      through 30+ tools, 20 messaging platforms, multiple execution backends, and a
       composable skill system. It runs as a CLI, a React terminal TUI, a web dashboard,
       a messaging gateway daemon, an ACP server for editors, and an MCP server for tool interop.
     </p>
@@ -100,11 +100,11 @@
         <div class="kpi-card__label">Built-in Tools</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--teal)">16</div>
+        <div class="kpi-card__value" style="color:var(--teal)">20</div>
         <div class="kpi-card__label">Platform Adapters</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--amber)">17</div>
+        <div class="kpi-card__value" style="color:var(--amber)">30+</div>
         <div class="kpi-card__label">LLM Providers</div>
       </div>
       <div class="kpi-card">
@@ -112,7 +112,7 @@
         <div class="kpi-card__label">Exec Backends</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--indigo)">7</div>
+        <div class="kpi-card__value" style="color:var(--indigo)">8</div>
         <div class="kpi-card__label">Memory Providers</div>
       </div>
       <div class="kpi-card">
@@ -166,8 +166,8 @@
             core["Core Agent Engine"]
           end
 
-          llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +14</small>"]
-          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +13</small>"]
+          llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +27</small>"]
+          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +17</small>"]
           compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
@@ -323,7 +323,7 @@
         <div class="ve-card__label">Gateway</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
-            Long-running daemon. Bridges 16 messaging platforms.
+            Long-running daemon. Bridges 20 messaging platforms.
             Manages sessions, cron, reconnection.
           </div>
         </div>
@@ -649,7 +649,7 @@
     <div class="sec-head anim" style="--i:28; color:var(--rose)">
       <span class="dot" style="background:var(--rose)"></span> Level 3 &mdash; Gateway
     </div>
-    <h2 class="anim" style="--i:29">16 platforms, one session layer</h2>
+    <h2 class="anim" style="--i:29">20 platforms, one session layer</h2>
     <p class="section-desc anim" style="--i:30">
       The Gateway daemon multiplexes across all messaging platforms. <code data-ref="gateway-runner">GatewayRunner</code>
       manages platform adapter lifecycles, caches AIAgent instances per session for prefix-cache
@@ -730,7 +730,7 @@
         <div class="ve-card__label">SessionDB (SQLite)</div>
         <ul class="node-list">
           <li>WAL mode for concurrent readers</li>
-          <li>Schema v6 with migrations</li>
+          <li>Schema v10 with migrations</li>
           <li><code>sessions</code> table — model, tokens, costs, title</li>
           <li><code>messages</code> table — role, content, tool_calls</li>
           <li><code>messages_fts</code> — FTS5 full-text search</li>
