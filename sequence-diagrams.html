@@ -34,20 +34,6 @@
       </div>
     </div>
 
-    <div class="toc-page" data-page="diataxis.html">
-      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
-      <div class="toc-page__sections">
-        <a href="diataxis.html#overview">The Framework</a>
-        <a href="diataxis.html#mental-model">Tutorial</a>
-        <a href="diataxis.html#extension-points">How-to</a>
-        <a href="diataxis.html#module-map">Reference</a>
-        <a href="diataxis.html#design-rationale">Explanation</a>
-        <a href="diataxis.html#design-decisions">Design Decisions</a>
-        <a href="diataxis.html#patterns">Cross-cutting</a>
-        <a href="diataxis.html#extension-surfaces">Extension Map</a>
-      </div>
-    </div>
-
     <div class="toc-page" data-page="data-model.html">
       <a class="toc-page__title" href="data-model.html">Data Model</a>
       <div class="toc-page__sections">
@@ -70,11 +56,28 @@
         <a href="sequence-diagrams.html#cli-flow">CLI Message Flow</a>
         <a href="sequence-diagrams.html#gateway-flow">Gateway Flow</a>
         <a href="sequence-diagrams.html#tui-flow">TUI Message Flow</a>
+        <a href="sequence-diagrams.html#web-dashboard-flow">Web Dashboard Flow</a>
+        <a href="sequence-diagrams.html#acp-flow">ACP Editor Flow</a>
+        <a href="sequence-diagrams.html#mcp-flow">MCP Server Flow</a>
         <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
         <a href="sequence-diagrams.html#context-compression">Compression</a>
         <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
         <a href="sequence-diagrams.html#subagent-delegation">Subagent Delegation</a>
         <a href="sequence-diagrams.html#error-recovery">Error Recovery</a>
+      </div>
+    </div>
+
+    <div class="toc-page" data-page="diataxis.html">
+      <a class="toc-page__title" href="diataxis.html">Documentation Map</a>
+      <div class="toc-page__sections">
+        <a href="diataxis.html#overview">The Framework</a>
+        <a href="diataxis.html#mental-model">Tutorial</a>
+        <a href="diataxis.html#extension-points">How-to</a>
+        <a href="diataxis.html#module-map">Reference</a>
+        <a href="diataxis.html#design-rationale">Explanation</a>
+        <a href="diataxis.html#design-decisions">Design Decisions</a>
+        <a href="diataxis.html#patterns">Cross-cutting</a>
+        <a href="diataxis.html#extension-surfaces">Extension Map</a>
       </div>
     </div>
   </nav>
@@ -187,7 +190,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:550px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -300,7 +303,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:600px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -426,7 +429,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:580px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -513,6 +516,250 @@
     </section>
 
     <!-- ============================== -->
+    <!-- SECTION 2c: WEB DASHBOARD       -->
+    <!-- ============================== -->
+</section>
+
+<section id="web-dashboard-flow">
+    <div class="sec-head anim" style="--i:15; color:var(--teal)">
+      <span class="dot" style="background:var(--teal)"></span> Sequence 2c
+    </div>
+    <h2 class="anim" style="--i:15">Web Dashboard Flow</h2>
+    <p class="section-desc anim" style="--i:15">
+      The web dashboard is a React 19 + Vite SPA served by a FastAPI backend. Its chat page
+      reuses the TUI gateway over WebSocket &mdash; the browser connects to the same JSON-RPC
+      server that drives the terminal TUI. REST endpoints handle config, sessions, and analytics.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:16">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant B as Browser (React SPA)
+          participant FA as FastAPI Backend
+          participant GW as TUIGateway (Python)
+          participant AG as AIAgent
+          participant LLM as LLMProvider
+
+          B->>FA: HTTP GET /
+          activate FA
+          FA-->>B: serve SPA + session token
+          deactivate FA
+
+          Note over B: Chat page opened
+
+          B->>FA: WebSocket /api/pty
+          activate FA
+          FA->>GW: bridge to TUIGateway
+          activate GW
+          GW-->>B: connection established
+          deactivate FA
+
+          B->>GW: JSON-RPC: user message
+          GW->>AG: run_conversation()
+          activate AG
+          AG->>LLM: streaming inference
+          activate LLM
+          LLM-->>AG: response chunks
+          deactivate LLM
+          AG-->>GW: streamed tokens + tool events
+          deactivate AG
+          GW-->>B: JSON-RPC events (text, tool progress, thinking)
+
+          Note over B,FA: REST endpoints for non-chat features
+          B->>FA: GET /api/config, /api/sessions, /api/analytics
+          FA-->>B: JSON responses
+      </script>
+    </section>
+</section>
+
+<!-- ============================== -->
+<!-- SECTION 2d: ACP EDITOR FLOW    -->
+<!-- ============================== -->
+
+<section id="acp-flow">
+    <div class="sec-head anim" style="--i:16; color:var(--indigo)">
+      <span class="dot" style="background:var(--indigo)"></span> Sequence 2d
+    </div>
+    <h2 class="anim" style="--i:16">ACP Editor Flow</h2>
+    <p class="section-desc anim" style="--i:16">
+      The ACP (Agent Client Protocol) server lets editors like VS Code, Cursor, and Zed
+      drive Hermes as a coding agent. The editor manages sessions, sends prompts, receives
+      streaming events (text, thinking, tool progress), and handles approval requests for
+      dangerous commands &mdash; all over stdio JSON-RPC.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:17">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant ED as Editor (VS Code / Cursor)
+          participant ACP as ACP Server (stdio)
+          participant SM as SessionManager
+          participant AG as AIAgent
+          participant LLM as LLMProvider
+
+          ED->>ACP: initialize (capabilities, auth)
+          activate ACP
+          ACP->>ACP: detect_provider from env/config
+          ACP-->>ED: server capabilities + model info
+          deactivate ACP
+
+          ED->>ACP: new_session or resume_session
+          activate ACP
+          ACP->>SM: create/load session state
+          activate SM
+          SM->>SM: create AIAgent with editor toolset
+          SM-->>ACP: session_id + agent ready
+          deactivate SM
+          ACP-->>ED: session info
+          deactivate ACP
+
+          ED->>ACP: prompt (text + images + resources)
+          activate ACP
+          ACP->>ACP: extract text, check slash commands
+
+          alt Slash Command
+            ACP-->>ED: command response
+          else Agent Prompt
+            ACP->>AG: run_conversation() in ThreadPool
+            activate AG
+            AG->>LLM: inference
+            activate LLM
+            LLM-->>AG: streaming response
+            deactivate LLM
+
+            loop Tool Calls
+              AG->>AG: execute tools
+              ACP-->>ED: tool_progress events
+              opt Dangerous Command
+                ACP-->>ED: request_permission
+                ED->>ACP: approval decision
+              end
+              AG-->>ACP: tool results
+            end
+
+            AG-->>ACP: final response
+            deactivate AG
+            ACP-->>ED: text events + stop_reason
+          end
+          deactivate ACP
+
+          ED->>ACP: cancel (interrupt running agent)
+          ACP->>AG: set interrupt flag
+      </script>
+    </section>
+</section>
+
+<!-- ============================== -->
+<!-- SECTION 2e: MCP SERVER FLOW    -->
+<!-- ============================== -->
+
+<section id="mcp-flow">
+    <div class="sec-head anim" style="--i:17; color:var(--slate)">
+      <span class="dot" style="background:var(--slate)"></span> Sequence 2e
+    </div>
+    <h2 class="anim" style="--i:17">MCP Server Flow</h2>
+    <p class="section-desc anim" style="--i:17">
+      The MCP server exposes gateway conversations as tools that any MCP client (Claude Code,
+      Cursor, Codex) can consume. It reads from SessionDB and the gateway sessions index &mdash;
+      it doesn&rsquo;t run an agent itself. An EventBridge polls for new messages and streams
+      updates to connected clients.
+    </p>
+
+    <section class="diagram-shell anim" style="--i:17">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant MC as MCP Client
+          participant MCP as Hermes MCP Server
+          participant EB as EventBridge
+          participant DB as SessionDB
+          participant SI as sessions.json
+
+          MC->>MCP: list tools
+          MCP-->>MC: conversations_list, messages_read, messages_send, etc.
+
+          MC->>MCP: conversations_list(platform, search)
+          activate MCP
+          MCP->>SI: load sessions index
+          SI-->>MCP: session entries
+          MCP-->>MC: filtered conversation list
+          deactivate MCP
+
+          MC->>MCP: messages_read(session_key, limit)
+          activate MCP
+          MCP->>DB: query messages by session
+          DB-->>MCP: message rows
+          MCP-->>MC: formatted message history
+          deactivate MCP
+
+          MC->>MCP: messages_send(session_key, message)
+          activate MCP
+          MCP->>MCP: write to gateway send queue
+          MCP-->>MC: delivery confirmation
+          deactivate MCP
+
+          Note over EB: Background polling thread
+          EB->>DB: poll for new messages
+          EB->>SI: poll for session changes
+
+          MC->>MCP: events_wait(cursor, session_key)
+          activate MCP
+          MCP->>EB: wait_for_event(after_cursor)
+          EB-->>MCP: new event or timeout
+          MCP-->>MC: event data or empty
+          deactivate MCP
+      </script>
+    </section>
+</section>
+
+    <!-- ============================== -->
     <!-- SECTION 3: THE AGENT LOOP       -->
     <!-- ============================== -->
 </section>
@@ -563,7 +810,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:650px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -691,7 +938,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:580px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -806,7 +1053,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:550px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -924,7 +1171,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:520px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -1051,7 +1298,7 @@
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
-      <div class="mermaid-wrap" style="min-height:620px">
+      <div class="mermaid-wrap">
         <div class="zoom-controls">
           <button type="button" data-action="zoom-in" title="Zoom in">+</button>
           <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
@@ -1145,6 +1392,37 @@
           end
       </script>
     </section>
+
+    <!-- Plugin hook reference -->
+    <div class="callout anim" style="--i:44">
+      <strong>Plugin Lifecycle Hooks.</strong>
+      Plugins fire at specific points in the sequences above. Writing a plugin?
+      Here's where each hook executes:
+    </div>
+    <div class="grid-2 gap-24 anim" style="--i:45">
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Agent Loop Hooks</div>
+        <ul class="node-list">
+          <li><code>pre_llm_call</code> &mdash; before each LLM API call</li>
+          <li><code>post_llm_call</code> &mdash; after LLM response received</li>
+          <li><code>pre_api_request</code> &mdash; before HTTP request to provider</li>
+          <li><code>post_api_request</code> &mdash; after HTTP response</li>
+          <li><code>on_session_start</code> / <code>on_session_end</code></li>
+          <li><code>on_session_finalize</code> / <code>on_session_reset</code></li>
+          <li><code>on_memory_write</code> &mdash; after memory tool writes</li>
+          <li><code>subagent_stop</code> &mdash; when child agent finishes</li>
+        </ul>
+      </div>
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Tool Execution Hooks</div>
+        <ul class="node-list">
+          <li><code>pre_tool_call</code> &mdash; before each tool handler runs</li>
+          <li><code>post_tool_call</code> &mdash; after tool returns result</li>
+          <li><code>transform_terminal_output</code> &mdash; filter terminal output</li>
+          <li><code>transform_tool_result</code> &mdash; modify any tool result</li>
+        </ul>
+      </div>
+    </div>
 
 </section>
 
