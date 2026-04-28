@@ -89,7 +89,7 @@
   <p class="lead anim" style="--i:2">The data structures at the heart of Hermes Agent &mdash; the database schema that persists sessions and messages, the message format that flows between the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file format, the layered configuration system, and the pluggable memory provider interface.</p>
 
   <div class="kpi-row anim" style="--i:3">
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">SQLite tables</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">5</div><div class="kpi-card__label">SQLite tables</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">30+</div><div class="kpi-card__label">Toolset groups</div></div>
@@ -277,6 +277,7 @@ erDiagram
         <tr><td><span class="col-name">cost_source</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
         <tr><td><span class="col-name">pricing_version</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v5</span></td></tr>
         <tr><td><span class="col-name">title</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v3</span> <span class="col-idx">UNIQUE</span> partial (WHERE NOT NULL)</td></tr>
+        <tr><td><span class="col-name">api_call_count</span></td><td><span class="col-type">INTEGER</span></td><td>Default 0, tool-calling API rounds</td></tr>
       </tbody>
     </table>
   </div>
@@ -301,8 +302,10 @@ erDiagram
         <tr><td><span class="col-name">token_count</span></td><td><span class="col-type">INTEGER</span></td><td>Estimated tokens</td></tr>
         <tr><td><span class="col-name">finish_reason</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v2</span> stop | length | tool_calls</td></tr>
         <tr><td><span class="col-name">reasoning</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> Extended thinking content</td></tr>
+        <tr><td><span class="col-name">reasoning_content</span></td><td><span class="col-type">TEXT</span></td><td>Provider-specific reasoning text</td></tr>
         <tr><td><span class="col-name">reasoning_details</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> JSON-encoded details</td></tr>
         <tr><td><span class="col-name">codex_reasoning_items</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v6</span> JSON-encoded Codex items</td></tr>
+        <tr><td><span class="col-name">codex_message_items</span></td><td><span class="col-type">TEXT</span></td><td>JSON-encoded Codex message items</td></tr>
       </tbody>
     </table>
   </div>
@@ -355,6 +358,7 @@ erDiagram
     sessions ||--o{ messages : "contains"
     sessions ||--o| sessions : "parent_session_id"
     messages ||--|| messages_fts : "FTS5 sync"
+    messages ||--|| messages_fts_trigram : "FTS5 trigram sync"
 
     sessions {
         TEXT id PK
@@ -378,6 +382,7 @@ erDiagram
         REAL estimated_cost_usd "v5"
         REAL actual_cost_usd "v5"
         TEXT title "v3 UNIQUE partial"
+        INTEGER api_call_count
     }
 
     messages {
@@ -392,16 +397,27 @@ erDiagram
         INTEGER token_count
         TEXT finish_reason "v2"
         TEXT reasoning "v6"
+        TEXT reasoning_content
         TEXT reasoning_details "v6 JSON"
         TEXT codex_reasoning_items "v6 JSON"
+        TEXT codex_message_items "JSON"
     }
 
     messages_fts {
-        TEXT content "FTS5 indexed"
+        TEXT content "FTS5 unicode61"
+    }
+
+    messages_fts_trigram {
+        TEXT content "FTS5 trigram v10"
+    }
+
+    state_meta {
+        TEXT key PK
+        TEXT value
     }
 
     schema_version {
-        INTEGER version "currently 6"
+        INTEGER version "currently 10"
     }
       </script>
   </section>
@@ -418,6 +434,8 @@ erDiagram
         <tr><td><span class="col-version">v4</span></td><td>Added unique partial index on <code>sessions.title</code> (WHERE NOT NULL)</td></tr>
         <tr><td><span class="col-version">v5</span></td><td>Added 11 billing/cost/cache columns to sessions</td></tr>
         <tr><td><span class="col-version">v6</span></td><td>Added reasoning, reasoning_details, codex_reasoning_items to messages</td></tr>
+        <tr><td><span class="col-version">v7–v9</span></td><td>Declarative column reconciliation &mdash; new columns added via schema diff, no explicit migrations</td></tr>
+        <tr><td><span class="col-version">v10</span></td><td>Added <code>messages_fts_trigram</code> (trigram FTS5 for CJK/substring search) with row backfill</td></tr>
       </tbody>
     </table>
   </div>
