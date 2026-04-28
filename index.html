@@ -171,7 +171,7 @@
           compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
-          memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +4</small>"]
+          memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +5</small>"]
           media["Media Services<br/><small>Fal.ai, ElevenLabs, Whisper</small>"]
 
           user -->|"CLI / Chat"| core
@@ -481,6 +481,8 @@
       <code data-ref="model-tools">model_tools.py</code> discovers all tool modules, resolves composable toolsets,
       and provides the OpenAI-format schemas to the agent. Execution environments are
       pluggable backends for the terminal tool.
+      See <a href="data-model.html#tool-registry" style="color:var(--accent)">Data Model &sect; Tool Registry</a>
+      for schemas and toolset composition.
     </p>
 
     <section class="diagram-shell anim" style="--i:24">
@@ -759,6 +761,8 @@
         Providers live in <code>plugins/memory/&lt;name&gt;/</code> with lifecycle hooks:
         <code>on_pre_compress()</code>, <code>on_delegation()</code>, session-scoped <code>session_id</code>.
         Prefetch cached once before tool loop to avoid latency spikes. Non-blocking sync via threads.
+        See <a href="data-model.html#memory-providers" style="color:var(--indigo)">Data Model &sect; Memory Providers</a>
+        for the class hierarchy and interface contract.
       </p>
       <div style="display:flex; flex-wrap:wrap; gap:6px">
         <span class="tag tag--indigo">Honcho</span>
@@ -768,6 +772,7 @@
         <span class="tag tag--indigo">Holographic</span>
         <span class="tag tag--indigo">RetainDB</span>
         <span class="tag tag--indigo">ByteRover</span>
+        <span class="tag tag--indigo">Supermemory</span>
       </div>
     </div>
 
