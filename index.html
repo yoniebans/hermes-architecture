@@ -798,6 +798,30 @@
       </div>
     </div>
 
+    <!-- RL + Batch -->
+    <div class="grid-2 gap-24 anim" style="--i:37">
+      <div class="ve-card c-rose">
+        <div class="ve-card__label">RL Training Environments</div>
+        <ul class="node-list">
+          <li><code>HermesAgentBaseEnv</code> &mdash; Atropos integration</li>
+          <li><code>HermesAgentLoop</code> &mdash; reusable multi-turn engine</li>
+          <li>SWE-bench, web research, agentic OPD environments</li>
+          <li>Tool call parsers for VLLM/SGLang rollouts</li>
+          <li>Two-phase: OpenAI server &rarr; ManagedServer</li>
+        </ul>
+      </div>
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Batch Runner</div>
+        <ul class="node-list">
+          <li>Parallel batch processing via <code>multiprocessing.Pool</code></li>
+          <li>Dataset loading (JSONL) with configurable batch size</li>
+          <li>Checkpointing for fault tolerance and resumption</li>
+          <li>Trajectory saving + tool usage aggregation</li>
+          <li>Toolset distribution selection per run</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- ============================== -->
     <!-- DATA FLOWS                     -->
     <!-- ============================== -->
