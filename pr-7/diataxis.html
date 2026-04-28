@@ -412,6 +412,7 @@
             creds["agent/credential_pool.py"]
             memmgr["agent/memory_manager.py"]
             memabc["agent/memory_provider.py<br/><small>ABC</small>"]
+            transports["agent/transports/<br/><small>Anthropic, Bedrock, Codex, Chat</small>"]
           end
 
           subgraph toolsys["Tool System"]
@@ -438,6 +439,7 @@
           runagent --> routing
           runagent --> creds
           runagent --> memmgr
+          runagent --> transports
           memmgr --> memabc
           runagent --> mt
 
@@ -453,7 +455,7 @@
           classDef st fill:#933eea11,stroke:#933eea44,stroke-width:1.5px
 
           class cli,tuigw,webdash,gwrun,acpsrv,mcpsrv entry
-          class runagent,promptb,compress,routing,creds,memmgr,memabc core
+          class runagent,promptb,compress,routing,creds,memmgr,memabc,transports core
           class mt,reg,ts tool
           class sdb,mem,config st
       </script>
@@ -800,6 +802,7 @@
             memplugin["Memory Provider<br/><small>MemoryProvider ABC</small>"]
             adapter["Platform Adapter<br/><small>BasePlatformAdapter subclass</small>"]
             env["Exec Backend<br/><small>BaseEnvironment subclass</small>"]
+            rlenv["RL Environment<br/><small>HermesAgentBaseEnv subclass</small>"]
           end
 
           subgraph effort["Implementation Effort"]
@@ -809,6 +812,7 @@
             e3b["1 folder + 2 files<br/><small>Lifecycle hooks + ABC</small>"]
             e4["1 Python class<br/><small>3 abstract methods</small>"]
             e5["1 Python class<br/><small>2 abstract methods</small>"]
+            e6["1 Python class<br/><small>4 abstract methods + Atropos</small>"]
           end
 
           skill --> e1
@@ -817,12 +821,13 @@
           memplugin --> e3b
           adapter --> e4
           env --> e5
+          rlenv --> e6
 
           classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
           classDef eff fill:#933eea11,stroke:#933eea44,stroke-width:1px
 
-          class skill,tool,plugin,memplugin,adapter,env ext
-          class e1,e2,e3,e3b,e4,e5 eff
+          class skill,tool,plugin,memplugin,adapter,env,rlenv ext
+          class e1,e2,e3,e3b,e4,e5,e6 eff
       </script>
     </section>
 
