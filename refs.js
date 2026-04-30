@@ -2,6 +2,7 @@ window.ATLAS_REFS = {
   "repo": "NousResearch/hermes-agent",
   "branch": "main",
   "refs": {
+    "platform-registry": { "path": "gateway/platform_registry.py" },
     "tool-registry": {
       "path": "tools/registry.py"
     },

@@ -895,8 +895,8 @@ graph TD
   </div>
   <h2 class="anim" style="--i:44">Plugin System</h2>
   <p class="section-desc anim" style="--i:44">
-    Hermes uses a plugin architecture for extensibility. Four plugin categories exist: memory providers,
-    context engines, general-purpose plugins, and dashboard plugins. The
+    Hermes uses a plugin architecture for extensibility. Five plugin categories exist: memory providers,
+    context engines, general-purpose plugins, dashboard plugins, and platform plugins. The
     <code data-ref="plugin-manager">PluginManager</code> discovers and loads plugins from four sources
     in precedence order.
   </p>
@@ -972,6 +972,8 @@ classDiagram
           <tr><td><span class="col-name">description</span></td><td>str</td><td>Human-readable description</td></tr>
           <tr><td><span class="col-name">pip_dependencies</span></td><td>list</td><td>Auto-installed pip packages</td></tr>
           <tr><td><span class="col-name">hooks</span></td><td>list</td><td>Lifecycle hooks this plugin uses</td></tr>
+          <tr><td><span class="col-name">kind</span></td><td>str</td><td>Plugin category (<code>platform</code>, <code>memory</code>, etc.)</td></tr>
+          <tr><td><span class="col-name">required_env</span></td><td>list</td><td>Required environment variables (platform plugins)</td></tr>
         </tbody>
       </table>
     </div>
@@ -984,6 +986,7 @@ classDiagram
           <tr><td><span class="col-name">Context Engine</span></td><td>At most 1 replaces built-in compressor</td></tr>
           <tr><td><span class="col-name">General Plugin</span></td><td>Opt-in via config.yaml enable list</td></tr>
           <tr><td><span class="col-name">Dashboard Plugin</span></td><td>JS bundle + manifest.json for web UI tabs</td></tr>
+          <tr><td><span class="col-name">Platform Plugin</span></td><td>Registers adapter via <code>PlatformRegistry</code>; lives in <code>plugins/platforms/</code></td></tr>
         </tbody>
       </table>
     </div>

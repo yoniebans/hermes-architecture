@@ -103,7 +103,7 @@
         <div class="kpi-card__label">Built-in Tools</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--teal)">20</div>
+        <div class="kpi-card__value" style="color:var(--teal)">21</div>
         <div class="kpi-card__label">Platform Adapters</div>
       </div>
       <div class="kpi-card">
@@ -111,7 +111,7 @@
         <div class="kpi-card__label">LLM Providers</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--emerald)">7</div>
+        <div class="kpi-card__value" style="color:var(--emerald)">8</div>
         <div class="kpi-card__label">Exec Backends</div>
       </div>
       <div class="kpi-card">
@@ -170,8 +170,8 @@
           end
 
           llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +27</small>"]
-          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +17</small>"]
-          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity</small>"]
+          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +18</small>"]
+          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity, Vercel</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
           memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +5</small>"]
@@ -326,7 +326,7 @@
         <div class="ve-card__label">Gateway</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
-            Long-running daemon. Bridges 20 messaging platforms.
+            Long-running daemon. Bridges 21 messaging platforms.
             Manages sessions, cron, reconnection.
           </div>
         </div>
@@ -551,6 +551,8 @@
         <div class="pipeline-step"><div class="step-name">Daytona</div><div class="step-detail">Cloud dev envs</div></div>
         <div class="pipeline-arrow">|</div>
         <div class="pipeline-step"><div class="step-name">Singularity</div><div class="step-detail">HPC containers</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">Vercel</div><div class="step-detail">Cloud sandboxes</div></div>
       </div>
     </div>
 
@@ -654,7 +656,7 @@
     <div class="sec-head anim" style="--i:28; color:var(--rose)">
       <span class="dot" style="background:var(--rose)"></span> Level 3 &mdash; Gateway
     </div>
-    <h2 class="anim" style="--i:29">20 platforms, one session layer</h2>
+    <h2 class="anim" style="--i:29">21 platforms, one session layer</h2>
     <p class="section-desc anim" style="--i:30">
       The Gateway daemon multiplexes across all messaging platforms. <code data-ref="gateway-runner">GatewayRunner</code>
       manages platform adapter lifecycles, caches AIAgent instances per session for prefix-cache
@@ -665,7 +667,7 @@
       <div class="ve-card c-rose">
         <div class="ve-card__label">GatewayRunner</div>
         <ul class="node-list">
-          <li>Platform adapter lifecycle management</li>
+          <li>Platform adapter lifecycle via <code data-ref="platform-registry">PlatformRegistry</code></li>
           <li>AIAgent cache per session</li>
           <li>Interrupt and approval handling</li>
           <li>Background platform reconnection</li>
@@ -694,7 +696,7 @@
 
     <!-- Platform adapters grid -->
     <div class="ve-card ve-card--recessed anim" style="--i:32; margin-top:16px; margin-bottom:20px">
-      <div class="ve-card__label" style="color:var(--rose)">Platform Adapters (BasePlatformAdapter)</div>
+      <div class="ve-card__label" style="color:var(--rose)">Platform Adapters (BasePlatformAdapter + PlatformRegistry)</div>
       <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px">
         <span class="tag tag--accent">Telegram</span>
         <span class="tag tag--accent">Discord</span>
@@ -716,7 +718,12 @@
         <span class="tag tag--indigo">QQBot</span>
         <span class="tag tag--indigo">Yuanbao</span>
         <span class="tag tag--slate">Telegram Network</span>
+        <span class="tag tag--slate">IRC</span>
       </div>
+      <p style="font-size:11px;color:var(--text-dim);margin-top:8px;margin-bottom:0">
+        Built-in adapters live in <code>gateway/platforms/</code>. Plugin adapters (e.g. IRC) register
+        dynamically via <code data-ref="platform-registry">PlatformRegistry</code>.
+      </p>
     </div>
 
     <!-- ============================== -->
