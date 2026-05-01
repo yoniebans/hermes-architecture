@@ -239,7 +239,7 @@
     </div>
     <h2 class="anim" style="--i:14">How to extend Hermes</h2>
     <p class="section-desc anim" style="--i:15">
-      Hermes has five well-defined extension surfaces. For each one: what it is,
+      Hermes has six well-defined extension surfaces. For each one: what it is,
       when to use it, and what's involved.
     </p>
 
@@ -269,14 +269,15 @@
     </div>
 
     <div class="ve-card c-howto anim" style="--i:17; margin-bottom:16px">
-      <div class="ve-card__label">Add a Platform Adapter (1 class)</div>
+      <div class="ve-card__label">Add a Platform Adapter (1 class or plugin)</div>
       <div class="grid-2 gap-24" style="margin:0">
         <div>
           <div class="prose">
             <p><strong>When:</strong> You want Hermes to speak a new messaging platform
-            (e.g., Zulip, IRC, a custom webhook format).</p>
-            <p><strong>Interface:</strong> Subclass <code>BasePlatformAdapter</code> and implement three
-            abstract methods. You get media caching, session tracking, and interrupt support for free.</p>
+            (e.g., Zulip, Teams, a custom webhook format).</p>
+            <p><strong>Interface:</strong> Subclass <code>BasePlatformAdapter</code> and implement three abstract methods.
+            Can live in <code>gateway/platforms/</code> (built-in) or as a platform plugin
+            that self-registers via <code data-ref="platform-registry">PlatformRegistry</code>.</p>
           </div>
         </div>
         <div>
@@ -286,6 +287,7 @@
             <li>Required: <code>send(chat_id, content, ...)</code> → SendResult</li>
             <li>Optional: <code>send_image</code>, <code>send_voice</code>, <code>send_document</code>, <code>edit_message</code></li>
             <li>Incoming messages emit <code>MessageEvent</code> (normalized format)</li>
+            <li><strong>Plugin path:</strong> <code>plugins/platforms/&lt;name&gt;/</code> with <code>plugin.yaml</code> (<code>kind: platform</code>)</li>
           </ul>
         </div>
       </div>
