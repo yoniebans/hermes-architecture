@@ -128,6 +128,21 @@ window.ATLAS_REFS = {
     },
     "web-gateway-client": {
       "path": "web/src/lib/gatewayClient.ts"
+    },
+    "tool-guardrails": {
+      "path": "agent/tool_guardrails.py"
+    },
+    "kanban-db": {
+      "path": "hermes_cli/kanban_db.py"
+    },
+    "kanban-tools": {
+      "path": "tools/kanban_tools.py"
+    },
+    "kanban-dashboard": {
+      "path": "plugins/kanban/dashboard/plugin_api.py"
+    },
+    "teams-adapter": {
+      "path": "plugins/platforms/teams/adapter.py"
     }
   }
 };

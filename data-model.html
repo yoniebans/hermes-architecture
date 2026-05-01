@@ -92,7 +92,7 @@
   <p class="lead anim" style="--i:2">The data structures at the heart of Hermes Agent &mdash; the database schema that persists sessions and messages, the message format that flows between the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file format, the layered configuration system, and the pluggable memory provider interface.</p>
 
   <div class="kpi-row anim" style="--i:3">
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">3</div><div class="kpi-card__label">Storage layers</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">Storage layers</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">30+</div><div class="kpi-card__label">Toolset groups</div></div>
@@ -137,6 +137,13 @@ graph TD
         statemeta["state_meta<br/><small>key-value store</small>"]
     end
 
+    subgraph kanbandb["SQLite — kanban.db"]
+        tasks["Tasks<br/><small>title, assignee, status, priority, workspace</small>"]
+        taskruns["Task Runs<br/><small>attempt history, heartbeat, outcome</small>"]
+        taskevents["Task Events<br/><small>append-only audit log</small>"]
+        taskcomments["Task Comments<br/><small>threaded discussion</small>"]
+    end
+
     subgraph filesystem["Filesystem — ~/.hermes/"]
         skills["Skills<br/><small>YAML frontmatter + Markdown</small>"]
         config["config.yaml<br/><small>40+ keys, 4-layer hierarchy</small>"]
@@ -162,12 +169,17 @@ graph TD
     plugins --> toolreg
     plugins --> memprov
     skills -.->|"loaded on demand"| toolreg
+    tasks --> taskruns
+    tasks --> taskevents
+    tasks --> taskcomments
 
     classDef db fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
+    classDef kanbandb fill:#818cf811,stroke:#818cf844,stroke-width:1.5px
     classDef fs fill:#0d948822,stroke:#0d9488,stroke-width:1.5px
     classDef rt fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
 
     class sessions,messages,fts,trigram,statemeta db
+    class tasks,taskruns,taskevents,taskcomments kanbandb
     class skills,config,envfile,authjson,jobsjson,memory,plugins fs
     class toolreg,toolsets,auxconfig,memprov rt
       </script>
@@ -175,6 +187,7 @@ graph TD
 
   <div class="legend anim" style="--i:9">
     <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-dim);border:1px solid var(--accent)"></div>SQLite (state.db)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--indigo-dim);border:1px solid var(--indigo)"></div>SQLite (kanban.db)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:var(--teal-dim);border:1px solid var(--teal)"></div>Filesystem (~/.hermes/)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:var(--amber-dim);border:1px solid var(--amber)"></div>Runtime (rebuilt at startup)</div>
   </div>
@@ -618,7 +631,7 @@ classDiagram
           vision &middot; image_gen &middot; skills &middot; tts &middot;
           todo &middot; memory &middot; session_search &middot; clarify &middot;
           code_execution &middot; delegation &middot; cronjob &middot; messaging &middot;
-          homeassistant &middot; search &middot; moa
+          homeassistant &middot; search &middot; moa &middot; kanban
         </div>
       </div>
       <div style="background:var(--teal-dim);padding:12px;border-radius:8px">
