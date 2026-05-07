@@ -91,7 +91,7 @@
     <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.11.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       Hermes is a Python-based AI agent framework that connects LLMs to the real world
-      through 30+ tools, 20 messaging platforms, multiple execution backends, and a
+      through 30+ tools, 22 messaging platforms, multiple execution backends, and a
       composable skill system. It runs as a CLI, a React terminal TUI, a web dashboard,
       a messaging gateway daemon, an ACP server for editors, and an MCP server for tool interop.
     </p>
@@ -103,7 +103,7 @@
         <div class="kpi-card__label">Built-in Tools</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--teal)">20</div>
+        <div class="kpi-card__value" style="color:var(--teal)">22</div>
         <div class="kpi-card__label">Platform Adapters</div>
       </div>
       <div class="kpi-card">
@@ -111,7 +111,7 @@
         <div class="kpi-card__label">LLM Providers</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--emerald)">7</div>
+        <div class="kpi-card__value" style="color:var(--emerald)">8</div>
         <div class="kpi-card__label">Exec Backends</div>
       </div>
       <div class="kpi-card">
@@ -170,8 +170,8 @@
           end
 
           llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +27</small>"]
-          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +17</small>"]
-          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity</small>"]
+          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +19</small>"]
+          compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity, Vercel</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
           memProviders["Memory Providers<br/><small>Honcho, Mem0, Hindsight, +5</small>"]
@@ -259,6 +259,7 @@
             memprov["Memory Providers<br/><small>agent/memory_manager.py</small>"]
             state["State and Persistence<br/><small>SQLite + Files</small>"]
             cronmod["Cron Scheduler<br/><small>cron/</small>"]
+            kanban["Kanban Board<br/><small>hermes_cli/kanban_db.py</small>"]
           end
 
           rlenv["RL Environments<br/><small>environments/</small>"]
@@ -326,7 +327,7 @@
         <div class="ve-card__label">Gateway</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
-            Long-running daemon. Bridges 20 messaging platforms.
+            Long-running daemon. Bridges 21 messaging platforms.
             Manages sessions, cron, reconnection.
           </div>
         </div>
@@ -390,6 +391,11 @@
         <div class="pipeline-step" style="border-color:var(--amber-dim)">
           <div class="step-name">Parse Response</div>
           <div class="step-detail">Text or tool_calls<br>+ native parsers</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" style="border-color:var(--rose-dim)">
+          <div class="step-name">Guardrails</div>
+          <div class="step-detail">Loop detection,<br>duplicate filtering</div>
         </div>
         <div class="pipeline-arrow">→</div>
         <div class="pipeline-step" style="border-color:var(--rose-dim)">
@@ -467,6 +473,21 @@
           <li><code data-ref="code-execution-tool">execute_code</code> iterations refunded</li>
         </ul>
       </div>
+    </div>
+
+    <div class="ve-card c-rose anim" style="--i:20; margin-bottom:16px">
+      <div class="ve-card__label">Tool Guardrails</div>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:8px">
+        Pure stateless controller (<code data-ref="tool-guardrails">agent/tool_guardrails.py</code>) that
+        sits between response parsing and tool execution. Tracks per-turn observations
+        and returns decisions &mdash; no side effects.
+      </p>
+      <ul class="node-list" style="font-size:12px">
+        <li>Detects repeated identical tool calls (idempotent loop detection)</li>
+        <li>Classifies tools as idempotent vs mutating</li>
+        <li>Fingerprints tool calls for duplicate filtering</li>
+        <li>Returns guidance/warnings, never blocks directly</li>
+      </ul>
     </div>
 
     <!-- ============================== -->
@@ -551,6 +572,8 @@
         <div class="pipeline-step"><div class="step-name">Daytona</div><div class="step-detail">Cloud dev envs</div></div>
         <div class="pipeline-arrow">|</div>
         <div class="pipeline-step"><div class="step-name">Singularity</div><div class="step-detail">HPC containers</div></div>
+        <div class="pipeline-arrow">|</div>
+        <div class="pipeline-step"><div class="step-name">Vercel</div><div class="step-detail">Cloud sandboxes</div></div>
       </div>
     </div>
 
@@ -654,7 +677,7 @@
     <div class="sec-head anim" style="--i:28; color:var(--rose)">
       <span class="dot" style="background:var(--rose)"></span> Level 3 &mdash; Gateway
     </div>
-    <h2 class="anim" style="--i:29">20 platforms, one session layer</h2>
+    <h2 class="anim" style="--i:29">21 platforms, one session layer</h2>
     <p class="section-desc anim" style="--i:30">
       The Gateway daemon multiplexes across all messaging platforms. <code data-ref="gateway-runner">GatewayRunner</code>
       manages platform adapter lifecycles, caches AIAgent instances per session for prefix-cache
@@ -665,7 +688,7 @@
       <div class="ve-card c-rose">
         <div class="ve-card__label">GatewayRunner</div>
         <ul class="node-list">
-          <li>Platform adapter lifecycle management</li>
+          <li>Platform adapter lifecycle via <code data-ref="platform-registry">PlatformRegistry</code></li>
           <li>AIAgent cache per session</li>
           <li>Interrupt and approval handling</li>
           <li>Background platform reconnection</li>
@@ -694,7 +717,7 @@
 
     <!-- Platform adapters grid -->
     <div class="ve-card ve-card--recessed anim" style="--i:32; margin-top:16px; margin-bottom:20px">
-      <div class="ve-card__label" style="color:var(--rose)">Platform Adapters (BasePlatformAdapter)</div>
+      <div class="ve-card__label" style="color:var(--rose)">Platform Adapters (BasePlatformAdapter + PlatformRegistry)</div>
       <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px">
         <span class="tag tag--accent">Telegram</span>
         <span class="tag tag--accent">Discord</span>
@@ -716,7 +739,13 @@
         <span class="tag tag--indigo">QQBot</span>
         <span class="tag tag--indigo">Yuanbao</span>
         <span class="tag tag--slate">Telegram Network</span>
+        <span class="tag tag--slate">IRC</span>
+        <span class="tag tag--slate">Teams</span>
       </div>
+      <p style="font-size:11px;color:var(--text-dim);margin-top:8px;margin-bottom:0">
+        Built-in adapters live in <code>gateway/platforms/</code>. Plugin adapters (e.g. IRC) register
+        dynamically via <code data-ref="platform-registry">PlatformRegistry</code>.
+      </p>
     </div>
 
     <!-- ============================== -->
@@ -776,6 +805,42 @@
         <span class="tag tag--indigo">RetainDB</span>
         <span class="tag tag--indigo">ByteRover</span>
         <span class="tag tag--indigo">Supermemory</span>
+      </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="ve-card ve-card--hero c-sky anim" style="--i:35; margin-bottom:20px">
+      <div class="ve-card__label">Kanban Board (multi-agent task coordination)</div>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:12px">
+        Separate <code data-ref="kanban-db">kanban.db</code> SQLite database &mdash; profile-agnostic, shared
+        across all Hermes profiles on one machine. CAS-based claim protocol with 15-min TTL
+        and heartbeat extension. The dispatcher (embedded in gateway) polls ready tasks,
+        spawns worker agents with <code data-ref="kanban-tools">kanban_tools</code> (gated by
+        <code>HERMES_KANBAN_TASK</code> env var &mdash; invisible in normal sessions). Dashboard plugin
+        provides a FastAPI router + WebSocket event stream for live board updates.
+        See <a href="data-model.html#entity-map" style="color:var(--sky)">Data Model &sect; Entity Map</a>
+        for the full schema.
+      </p>
+      <div class="grid-2 gap-24" style="margin:0">
+        <div>
+          <div style="font-weight:600;font-size:12px;color:var(--sky);margin-bottom:4px">Entities</div>
+          <ul class="node-list" style="font-size:12px">
+            <li><code>tasks</code> &mdash; title, assignee, status (7 states), priority, workspace</li>
+            <li><code>task_runs</code> &mdash; attempt history with heartbeat and outcome</li>
+            <li><code>task_events</code> &mdash; append-only audit log (tailed by WebSocket)</li>
+            <li><code>task_comments</code> &mdash; threaded discussion per task</li>
+            <li><code>task_links</code> &mdash; parent-child DAG for subtasks</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:12px;color:var(--sky);margin-bottom:4px">Surfaces</div>
+          <ul class="node-list" style="font-size:12px">
+            <li><code>hermes kanban</code> CLI &mdash; human board management</li>
+            <li><code>/kanban</code> slash command &mdash; gateway access</li>
+            <li><code data-ref="kanban-dashboard">Dashboard plugin</code> &mdash; web UI tab with live updates</li>
+            <li>Dispatcher &mdash; embedded in gateway, spawns worker agents</li>
+          </ul>
+        </div>
       </div>
     </div>
 
