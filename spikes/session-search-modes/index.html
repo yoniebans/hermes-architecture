@@ -242,43 +242,53 @@
       </p>
 
       <div class="ve-card c-rose anim" style="--i:19; margin-bottom:20px">
-        <div class="ve-card__label">Per-query latency &amp; result-blob size — three modes (composed costs for guided, with steering improvements)</div>
+        <div class="ve-card__label">Per-query end-to-end latency &amp; payload size — three modes</div>
+        <p style="font-size:12px;color:var(--text-dim);margin:0 0 12px">
+          <strong>Read this caption before the table.</strong> Fast is a single tool call
+          and the only mode whose wall time is meaningful as a latency comparison.
+          Summary is a single tool call but it triggers an auxiliary LLM fan-out, so its
+          wall time IS its end-to-end cost. Guided is never used in isolation — it always
+          rides on top of a prior fast call <em>plus</em> the main-agent inference turn
+          that picks the anchors. The "fast → think → guided (e2e)" column below
+          accounts for that round-trip; the raw guided DB read is sub-3 ms but it is not
+          a standalone latency you can compare against fast.
+        </p>
         <table class="schema-table">
-          <thead><tr><th>Query</th><th style="text-align:right">fast</th><th style="text-align:right">summary</th><th style="text-align:right">fast+guided</th><th style="text-align:right">fast B</th><th style="text-align:right">summary B</th><th style="text-align:right">fast+guided B</th></tr></thead>
+          <thead><tr><th>Query</th><th style="text-align:right">fast (1 call)</th><th style="text-align:right">summary (1 call)</th><th style="text-align:right">fast → think → guided (e2e)</th><th style="text-align:right">fast B</th><th style="text-align:right">summary B</th><th style="text-align:right">guided B</th></tr></thead>
           <tbody>
-            <tr><td><code>pii redaction multimodal</code></td><td style="text-align:right;color:var(--emerald)">11 ms</td><td style="text-align:right;color:var(--rose)">65.85 s</td><td style="text-align:right;color:var(--emerald)">~13 ms</td><td style="text-align:right">6,032</td><td style="text-align:right">21,099</td><td style="text-align:right">137,631</td></tr>
-            <tr><td><code>session_search_investigation</code></td><td style="text-align:right;color:var(--emerald)">5 ms</td><td style="text-align:right;color:var(--rose)">63.71 s</td><td style="text-align:right;color:var(--emerald)">~8 ms</td><td style="text-align:right">6,545</td><td style="text-align:right">22,546</td><td style="text-align:right">68,332</td></tr>
-            <tr><td><code>daily plan</code></td><td style="text-align:right;color:var(--emerald)">7 ms</td><td style="text-align:right;color:var(--rose)">42.41 s</td><td style="text-align:right;color:var(--emerald)">~10 ms</td><td style="text-align:right">5,618</td><td style="text-align:right">15,721</td><td style="text-align:right">37,426</td></tr>
-            <tr style="opacity:0.6"><td><code>atlas commons rewording</code></td><td style="text-align:right">0.27 ms</td><td style="text-align:right">0.17 ms</td><td style="text-align:right">— (skip)</td><td style="text-align:right">138</td><td style="text-align:right">141</td><td style="text-align:right">—</td></tr>
+            <tr><td><code>pii redaction multimodal</code></td><td style="text-align:right;color:var(--emerald)">11 ms</td><td style="text-align:right;color:var(--rose)">65.85 s</td><td style="text-align:right;color:var(--amber)">~15 s</td><td style="text-align:right">6,568</td><td style="text-align:right">21,389</td><td style="text-align:right">131,599</td></tr>
+            <tr><td><code>session_search_investigation</code></td><td style="text-align:right;color:var(--emerald)">5 ms</td><td style="text-align:right;color:var(--rose)">63.71 s</td><td style="text-align:right;color:var(--amber)">~15 s</td><td style="text-align:right">6,545</td><td style="text-align:right">22,546</td><td style="text-align:right">61,787</td></tr>
+            <tr><td><code>daily plan</code></td><td style="text-align:right;color:var(--emerald)">7 ms</td><td style="text-align:right;color:var(--rose)">42.41 s</td><td style="text-align:right;color:var(--amber)">~15 s</td><td style="text-align:right">5,618</td><td style="text-align:right">15,721</td><td style="text-align:right">31,808</td></tr>
+            <tr style="opacity:0.6"><td><code>atlas commons rewording</code></td><td style="text-align:right">0.27 ms</td><td style="text-align:right">0.17 ms</td><td style="text-align:right">— (no anchors)</td><td style="text-align:right">138</td><td style="text-align:right">141</td><td style="text-align:right">—</td></tr>
           </tbody>
         </table>
-        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          <strong>This run reflects the steering improvements:</strong> fast/summary use
-          <code>limit=5</code> (was 3) so the user has more anchors to react to. Guided is
-          multi-anchor — drills into the top-3 fast hits in a single call. Numbers are
-          tool-side wall time and response payload bytes.
+        <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
+          <strong>How the e2e column is computed:</strong> fast tool wall (5–11 ms,
+          measured) + main-agent inference to pick top-K anchors from the fast hits
+          (~15 s on Opus, the user's main model) + guided tool wall (2–3 ms, measured).
+          Inference time dominates by ~3 orders of magnitude. The fast column is
+          structurally faster; the e2e column is "fast end-to-end as a drill-down
+          workflow" and it sits in the same order of magnitude as summary's tool wall
+          (15 s vs 42–66 s), not below it.
         </p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          <strong>What this column does NOT include:</strong> the main-agent inference turn
-          between the fast and guided tool calls. The agent has to look at the fast results,
-          pick the top-K, and emit the multi-anchor guided call — that's a full reasoning
-          turn against the user's main model (~10–20s on Opus). End-to-end on a fresh
-          drill-down question is therefore closer to <em>fast (~11ms) + agent-think (~15s) +
-          guided (~2ms) + agent-answer (~15s) ≈ 30s</em> — same order of magnitude as
-          summary's 60s tool wall, possibly faster end-to-end given summary's auxiliary LLM
-          time roughly doubled with limit=5. <strong>Where guided actually wins is
-          interactivity, not raw speed</strong> — see §6.
+          <strong>Steering-improvements run:</strong> fast/summary use <code>limit=5</code>
+          (was 3); guided is multi-anchor and drills the top-3 fast hits in a single
+          call. The wider limit roughly doubles fast/summary payload (more sessions
+          surfaced) and roughly triples guided payload (three windows instead of one).
+          DB: 247 MB SQLite snapshot, 280 sessions, 18,157 messages.
         </p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          <strong>Payload trade-off, sharpened:</strong> multi-anchor guided's payload is now
-          ~4–6× larger than summary's recap (137 kB vs 21 kB on Q1) because the agent gets
-          three full message windows. The strip-tools-from-payload follow-up (see §9) is
-          even more justified now — Q1's 137 kB is dominated by JSON tool-result bodies the
-          agent doesn't need for steering.
+          <strong>Payload trade-off, sharpened:</strong> multi-anchor guided's payload is
+          ~3–6× larger than summary's recap (131 kB vs 21 kB on Q1) because the agent
+          gets three full message windows of raw transcript. The strip-tool-results
+          follow-up (see §9) is even more justified now — Q1's 131 kB is dominated by
+          JSON tool-result bodies the agent doesn't need for steering.
         </p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          Q4 has no FTS5 hits (the wider limit doesn't help when nothing matches), so guided
-          has nothing to anchor on (correctly skipped by the harness).
+          Q4 returns zero FTS5 hits (the wider limit doesn't help when nothing matches),
+          so guided has nothing to anchor on. The harness correctly skips it; the deeper
+          retrieval bug is the lever this PR doesn't pull (see §9).
         </p>
       </div>
 
@@ -461,7 +471,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
       </div>
 
       <div class="sec-head" style="color:var(--indigo);margin-top:24px">
-        <span class="dot" style="background:var(--indigo)"></span> GUIDED PATH — ~11 ms total (fast 10 ms + guided 0.7 ms)
+        <span class="dot" style="background:var(--indigo)"></span> GUIDED PATH — fast → agent-think (~15s) → guided (~2ms)
       </div>
 
       <div class="step-header"><div class="step-header__num">STEP 4G — INPUT (composed: requires fast first)</div><div class="step-header__title">Agent reads top fast hit, calls back with session_id + match_message_id</div></div>
@@ -1171,25 +1181,29 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
 
       <div class="grid-2 gap-24 anim" style="--i:44e">
         <div class="ve-card c-emerald">
-          <div class="ve-card__label">Case for fast-as-default — partially supported, with caveat</div>
+          <div class="ve-card__label">Case for fast-as-default — rejected, with caveat</div>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
             <strong>Hypothesis:</strong> if guided composes cheaply with fast and covers
             the synthesis use case, fast-as-default becomes viable.
           </p>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-            <strong>What we saw:</strong> guided's <em>tool-side</em> latency is sub-ms, and
-            on Q1 the fast→guided answer was more faithful than summary alone. But the
-            end-to-end story includes a main-agent reasoning turn between fast and guided
-            (~15s on Opus to look at fast results, pick a hit, emit the guided call). So
-            fast→guided isn't actually faster than summary at the end-to-end level — see §6's
-            steering reframing.
+            <strong>What we saw:</strong> guided's <em>tool-side</em> DB read is 2–3 ms,
+            but that number is misleading in isolation. Guided is never used standalone —
+            it always rides on a prior fast call <em>plus</em> a main-agent inference turn
+            that picks the anchors (~15 s on Opus). The honest end-to-end cost of
+            "fast → guided" as a drill-down workflow is <strong>~15 s</strong>, dominated
+            by inference, in the same order of magnitude as summary's 42–66 s tool wall —
+            <em>not below it.</em> Quality-wise, on Q1 the fast→guided answer was more
+            faithful than summary alone (it surfaced the four-pass span-manifest design
+            that summary missed) — that's the real win, not speed.
           </p>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            <strong>Verdict:</strong> fast-as-default would force every drill-down through that
-            extra inference turn for the same end-to-end cost as summary. Worse if the model is
-            slower than the summary aux model. Fast stays opt-in; the schema teaches the agent
-            to use it when the user wants to be in the retrieval loop, not when the user wants
-            the fastest path to an answer.
+            <strong>Verdict:</strong> fast-as-default would force every drill-down through
+            that extra inference turn for end-to-end cost roughly equal to summary, and
+            possibly worse since summary's aux model is smaller and faster than the user's
+            main model. Fast stays opt-in; the schema teaches the agent to use it when the
+            user wants to be in the retrieval loop, not when the user wants the fastest
+            path to an answer.
           </p>
         </div>
         <div class="ve-card c-rose">
@@ -1211,22 +1225,24 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           <div class="ve-card__label">Surprise finding — guided's payload is bigger than summary's, and the composed cost is bigger still</div>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
             We expected guided to be the smallest payload (no auxiliary LLM, just raw
-            messages). Instead it's the <em>largest</em> on long-message sessions: Q1 guided
-            returned 49 kB vs summary's 12 kB. The window=5 captured 11 messages, some of
-            which were multi-kB tool outputs.
+            messages). Instead it's the <em>largest</em> on long-message sessions: Q1
+            multi-anchor guided returned 131 kB vs summary's 21 kB. Three windows of 11
+            messages each, some of which were multi-kB tool outputs.
           </p>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
             And that's just the second tool call. The agent had to call <code>fast</code>
-            first to learn the anchor, so the <strong>composed payload</strong> the calling
-            agent absorbs across both turns is fast (3.9 kB) + guided (49 kB) = <strong>53
-            kB</strong> on Q1 — vs summary's single 12 kB recap.
+            first to learn the anchors, so the <strong>composed payload</strong> the
+            calling agent absorbs across both turns is fast (6.6 kB) + guided (131 kB) =
+            <strong>~138 kB</strong> on Q1 — vs summary's single 21 kB recap.
           </p>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            Trade-off: summary spends ~30s of tool wall to produce a smaller, distilled
-            payload in one call. Fast+guided spends ~11ms total but the calling agent
-            absorbs the full window into its context — those tokens cost compute on every
-            subsequent turn. <em>Lesson: tool-side speedup isn't free at the agent-context
-            level, especially when the cheap path is two tool calls deep.</em>
+            Trade-off: summary spends ~66 s of tool wall to produce a smaller, distilled
+            payload in one call. Fast → think → guided spends ~15 s end-to-end (dominated
+            by the agent-inference turn between the two tool calls, not the tool walls
+            themselves) but the calling agent absorbs three full message windows into its
+            context — those tokens cost compute on every subsequent turn. <em>Lesson:
+            tool-side speedup isn't free at the agent-context level, especially when the
+            "cheap" path is two tool calls deep.</em>
           </p>
         </div>
         <div class="ve-card c-slate">
