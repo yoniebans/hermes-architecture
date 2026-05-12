@@ -59,6 +59,7 @@
         <a href="#state-walk">5. State walk</a>
         <a href="#decision">6. Decision</a>
         <a href="#consumer-replay">6.5. Consumer simulation</a>
+        <a href="#interaction-model">6.7. Interaction model</a>
         <a href="#guided-spec">7. Guided mode spec</a>
         <a href="#downstream">8. Downstream effects</a>
         <a href="#followups">9. Future work</a>
@@ -899,6 +900,157 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
           The corrected harness (<code>replay_session_search_consumer.py</code>) is reproducible
           alongside <code>profile_session_search.py</code>; see §10.
+        </p>
+      </div>
+    </section>
+
+    <section id="interaction-model">
+      <div class="sec-head anim" style="--i:26b; color:var(--indigo)">
+        <span class="dot" style="background:var(--indigo)"></span> 6.7. Interaction model
+      </div>
+      <h2 class="anim" style="--i:26c">How the agent actually uses these three modes</h2>
+      <p class="section-desc anim" style="--i:26d">
+        The PR doesn't ship an "agentic loop". It ships <strong>three tool modes that
+        compose well</strong> through the same LLM tool-calling that every other tool uses.
+        The model's judgement plus the schema description does all the steering. This
+        section makes that explicit, because it's been under-documented in §6 and §7.
+      </p>
+
+      <div class="ve-card c-indigo anim" style="--i:26e">
+        <div class="ve-card__label">Activation surface — one tool, one <code>mode</code> argument</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 12px">
+          There is exactly one registered tool: <code>session_search</code>. Mode is just
+          a string argument the LLM passes. Activation is "emit the right
+          <code>tool_call</code> arguments." No router, no separate tools, no special
+          state machine.
+        </p>
+        <table class="schema-table">
+          <thead><tr><th>What the agent emits</th><th>What runs</th></tr></thead>
+          <tbody>
+            <tr><td><code>session_search()</code> (no args)</td><td>Recent sessions — DB browse, no FTS5, no LLM</td></tr>
+            <tr><td><code>session_search(query="X")</code></td><td><strong>mode=summary (default)</strong> — FTS5 + auxiliary LLM recap</td></tr>
+            <tr><td><code>session_search(query="X", mode="fast")</code></td><td>FTS5 snippets only, no LLM</td></tr>
+            <tr><td><code>session_search(query="X", mode="summary")</code></td><td>Same as the default</td></tr>
+            <tr><td><code>session_search(mode="guided", session_id=..., around_message_id=...)</code></td><td>Single-anchor drill — DB-only, returns window of messages</td></tr>
+            <tr><td><code>session_search(mode="guided", anchors=[{session_id, around_message_id}, ...])</code></td><td>Multi-anchor drill — one window per anchor, in one call</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
+          The default lives in two places: <code>SESSION_SEARCH_SCHEMA["parameters"]["properties"]["mode"]["default"] = "summary"</code> tells the LLM what to assume, and <code>mode = (mode or "summary")</code> inside <code>session_search()</code> normalises it server-side. Both are needed (defaults aren't always honoured by every provider).
+        </p>
+      </div>
+
+      <div class="ve-card c-indigo anim" style="--i:26f; margin-top:16px">
+        <div class="ve-card__label">A drill-down is four turns of the normal agent loop</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 12px">
+          "Turn-based guided search" is just standard LLM tool calling. The agent does
+          not call <code>fast</code> and <code>guided</code> in one step — it can't, the
+          model has to <em>see</em> fast's results before it can know what to anchor on.
+          Each tool call is a separate inference turn:
+        </p>
+<pre class="state shared">TURN 1 — user message
+  "what was the final design for the PII redaction work?"
+
+TURN 2 — agent reasons, emits tool_call
+  session_search(query="pii redaction multimodal", mode="fast", limit=5)
+  └─ tool returns in ~11 ms:
+     5 sessions, each with snippet + context + match_message_id
+
+TURN 3 — agent reads fast results, reasons, emits tool_call
+  session_search(mode="guided", anchors=[
+    {session_id: "cron_6d05d24...", around_message_id: 12793},
+    {session_id: "cron_d72ae25...", around_message_id: 12824},
+    {session_id: "cron_9e8bb74...", around_message_id: 13621},
+  ], window=5)
+  └─ tool returns in ~3 ms:
+     3 windows of raw messages, anchor-flagged
+
+TURN 4 — agent reads windows, composes final user-facing answer
+  "Here's the final design — a four-pass span-manifest pipeline on
+   feat/redaction-passes, replacing the standalone redactor that was
+   scoped on May 1..."
+</pre>
+        <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
+          <strong>Where the ~15 s end-to-end goes:</strong> the tool walls (11 ms + 3 ms)
+          are negligible. The cost is two inference turns against the user's main model
+          — turn 3 (reason about fast results, emit guided call) and turn 4 (compose
+          final answer). Each is ~7–10 s on Opus. That's why "fast → think → guided" is
+          ~15 s end-to-end, not the ~14 ms the tool walls add up to.
+        </p>
+      </div>
+
+      <div class="ve-card c-rose anim" style="--i:26g; margin-top:16px">
+        <div class="ve-card__label">What the tool does NOT do</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
+          Being explicit because the spec page underspecified this and it's where most
+          confusion lands:
+        </p>
+        <ul class="node-list">
+          <li><strong>No enforced "stop" condition.</strong> The tool doesn't limit how many times it can be called or in what order. The agent could call fast three times in a row, or call guided cold (with a session_id and message_id from anywhere — memory, a previous chat, a user message). The schema description nudges toward "one fast, one guided", but nothing enforces it.</li>
+          <li><strong>No "ask for guidance" API.</strong> "Asking for guidance" is just the agent generating a user-facing turn instead of another tool call. If the model sees five fast hits and isn't sure which to drill, it writes "I see hits in A, B, and C — which is closest to what you mean?" That's a normal text response, not a tool primitive.</li>
+          <li><strong>No fast → guided coupling.</strong> Guided doesn't require a prior fast call. <code>match_message_id</code> in fast's response is just a convenient handle; the agent can supply any valid <code>(session_id, message_id)</code> pair. We just expect the common path to be fast-then-guided.</li>
+          <li><strong>No max-depth or recursion limit.</strong> The agent can call guided again with different anchors after the first drill if it wants to. The tool will happily serve more windows.</li>
+          <li><strong>No multi-turn state.</strong> Each call is independent. There's no "in-progress search session" the tool tracks. If the agent wants to remember which sessions it's already drilled, that's the agent's job.</li>
+        </ul>
+      </div>
+
+      <div class="ve-card c-emerald anim" style="--i:26h; margin-top:16px">
+        <div class="ve-card__label">Two valid steering postures: agent-as-picker, user-as-picker</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
+          The same tool surface supports two interaction shapes. Same code path, different
+          actor doing the picking:
+        </p>
+        <div class="grid-2 gap-24">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px">
+            <strong style="color:var(--emerald)">Agent-as-picker (typical)</strong>
+            <p style="font-size:12px;line-height:1.55;margin:6px 0 0">
+              User asks a question. Agent picks fast (or summary). Agent reads results,
+              decides which to drill, emits guided. User sees only the final synthesised
+              answer.
+              <br><br>
+              <em>When this is right:</em> user wants the answer, doesn't care about the
+              intermediate hits.
+            </p>
+          </div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px">
+            <strong style="color:var(--accent)">User-as-picker (steering)</strong>
+            <p style="font-size:12px;line-height:1.55;margin:6px 0 0">
+              User says "find the latest sessions about X, show me the hits". Agent calls
+              fast with a wide <code>limit</code>. User reads the 5–10 hits in the response,
+              tells the agent which to drill. Agent emits multi-anchor guided with the
+              user's picks.
+              <br><br>
+              <em>When this is right:</em> retrieval is ambiguous, the user has tacit
+              knowledge about which session matters that the model doesn't, or the user
+              wants to verify the agent isn't hallucinating from a recap.
+            </p>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
+          The schema description hints at when each is appropriate but doesn't enforce
+          either — both compile down to the same tool calls. "Steering surface" in §6
+          means the second posture is supported as a first-class workflow, not that it's
+          mandatory.
+        </p>
+      </div>
+
+      <div class="ve-card c-amber anim" style="--i:26i; margin-top:16px">
+        <div class="ve-card__label">What governs the loop: schema description + model judgement</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
+          Since there's no hard logic forcing a particular flow, the schema description
+          is doing real work. The current schema teaches the model:
+        </p>
+        <ul class="node-list">
+          <li>"what did we decide about X" → summary (one call, recap)</li>
+          <li>"find the latest session about Y" → fast (one call, cheap discovery)</li>
+          <li>"I see the fast hit but want the actual back-and-forth" → guided (with anchor from fast)</li>
+          <li><code>limit</code> defaults to 3; bump to 5–10 when the user wants to be in the retrieval loop</li>
+        </ul>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
+          That's the only "loop logic" in the system. Everything else is the model
+          deciding, on each turn, whether to emit a tool call or a text response. If the
+          flow turns out wrong in practice, the fix is iterating on the schema description
+          and re-running the consumer-replay harness (§6.5), not adding code.
         </p>
       </div>
     </section>
