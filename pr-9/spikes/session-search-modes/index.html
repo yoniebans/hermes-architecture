@@ -31,11 +31,11 @@
     pre.state.summary { border-left: 4px solid var(--rose, #f43f5e); }
     pre.state.shared { border-left: 4px solid var(--accent, #0284c7); }
     pre.state.spec { border-left: 4px solid var(--amber, #f59e0b); }
-    .label { display: inline-block; font-family: 'Fira Code', monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; }
-    .label.fast { background: rgba(16,185,129,0.15); color: var(--emerald, #10b981); border: 1px solid rgba(16,185,129,0.4); }
-    .label.summary { background: rgba(244,63,94,0.15); color: var(--rose, #f43f5e); border: 1px solid rgba(244,63,94,0.4); }
-    .label.shared { background: rgba(2,132,199,0.15); color: var(--accent, #0284c7); border: 1px solid rgba(2,132,199,0.4); }
-    .label.spec { background: rgba(245,158,11,0.15); color: var(--amber, #f59e0b); border: 1px solid rgba(245,158,11,0.4); }
+    .mode-label { display: inline-block; font-family: 'Fira Code', monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; }
+    .mode-label.fast { background: rgba(16,185,129,0.15); color: var(--emerald, #10b981); border: 1px solid rgba(16,185,129,0.4); }
+    .mode-label.summary { background: rgba(244,63,94,0.15); color: var(--rose, #f43f5e); border: 1px solid rgba(244,63,94,0.4); }
+    .mode-label.shared { background: rgba(2,132,199,0.15); color: var(--accent, #0284c7); border: 1px solid rgba(2,132,199,0.4); }
+    .mode-label.spec { background: rgba(245,158,11,0.15); color: var(--amber, #f59e0b); border: 1px solid rgba(245,158,11,0.4); }
     .step-header { margin-top: 28px; margin-bottom: 12px; padding: 10px 14px; border-left: 4px solid var(--amber, #f59e0b); background: rgba(245,158,11,0.08); border-radius: 0 6px 6px 0; }
     .step-header__num { display: inline-block; font-family: 'Fira Code', monospace; font-size: 11px; color: var(--amber, #f59e0b); font-weight: 600; letter-spacing: 0.5px; }
     .step-header__title { font-size: 15px; font-weight: 600; margin-top: 2px; }
@@ -328,7 +328,7 @@
       </p>
 
       <div class="step-header"><div class="step-header__num">STEP 1 — INPUT (shared)</div><div class="step-header__title">The agent calls session_search</div></div>
-      <span class="label shared">SHARED</span>
+      <span class="mode-label shared">SHARED</span>
 <pre class="state shared">{
   "query": "pii redaction multimodal",
   "limit": 3,
@@ -337,7 +337,7 @@
 
       <div class="step-header"><div class="step-header__num">STEP 2 — FTS5 RAW HITS (shared)</div><div class="step-header__title">db.search_messages() — up to 50 ranked message hits</div></div>
       <div class="meta-row">FTS5 BM25 against <code>messages_fts</code> (unicode61). Each row carries snippet, +/-1 message context, session metadata. ~10 ms wall.</div>
-      <span class="label shared">SHARED — one row of ~50</span>
+      <span class="mode-label shared">SHARED — one row of ~50</span>
 <pre class="state shared">{
   "id": 1234567,
   "session_id": "cron_6d05d247688f_20260501_160003",
@@ -356,7 +356,7 @@
 }</pre>
 
       <div class="step-header"><div class="step-header__num">STEP 3 — DEDUPED SESSIONS (shared)</div><div class="step-header__title">Walk parent_session_id chain, dedupe, top 3 unique</div></div>
-      <span class="label shared">SHARED</span>
+      <span class="mode-label shared">SHARED</span>
 <pre class="state shared">[
   {"session_id": "cron_6d05d247688f_20260501_160003"},  // 16:00 cron check-in
   {"session_id": "cron_d72ae255d692_20260501_233015"},  // 23:30 EOD wrap-up
@@ -369,7 +369,7 @@
 
       <div class="step-header"><div class="step-header__num">STEP 4F — FAST OUTPUT</div><div class="step-header__title">Wrap snippets + context with metadata, return JSON</div></div>
       <div class="meta-row">3,854 bytes (~963 tokens). No transcript fetch, no LLM, no truncation pass.</div>
-      <span class="label fast">FAST — full response (Result 1 of 3)</span>
+      <span class="mode-label fast">FAST — full response (Result 1 of 3)</span>
 <pre class="state fast">{
   "success": true,
   "mode": "fast",
@@ -411,7 +411,7 @@
 
       <div class="step-header"><div class="step-header__num">STEPS 4S–6S — FETCH, FORMAT, TRUNCATE, FAN OUT</div><div class="step-header__title">db.get_messages_as_conversation × 3, then 100K-cap truncate, then 3 parallel auxiliary LLM calls</div></div>
       <div class="meta-row">Per-session: ~25K input tokens fed to LLM with 30s timeout, 3 retries. The cost is here.</div>
-      <span class="label summary">SUMMARY — system_prompt sent to auxiliary LLM</span>
+      <span class="mode-label summary">SUMMARY — system_prompt sent to auxiliary LLM</span>
 <pre class="state summary">You are reviewing a past conversation transcript to help recall what happened.
 Summarize the conversation with a focus on the search topic. Include:
 1. What the user asked about or wanted to accomplish
@@ -422,7 +422,7 @@ Summarize the conversation with a focus on the search topic. Include:
 
 Be thorough but concise. Preserve specific details (commands, paths, error messages)
 that would be useful to recall. Write in past tense as a factual recap.</pre>
-      <span class="label summary">SUMMARY — user_prompt template (filled per session)</span>
+      <span class="mode-label summary">SUMMARY — user_prompt template (filled per session)</span>
 <pre class="state summary">Search topic: pii redaction multimodal
 Session source: cron
 Session date: May 01, 2026 at 04:00 PM
@@ -434,7 +434,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
 
       <div class="step-header"><div class="step-header__num">STEP 7S — SUMMARY OUTPUT</div><div class="step-header__title">Wrap LLM outputs with metadata, return JSON</div></div>
       <div class="meta-row">15,137 bytes (~3,784 tokens). 3.9× bigger than fast.</div>
-      <span class="label summary">SUMMARY — full response (Result 1 of 3)</span>
+      <span class="mode-label summary">SUMMARY — full response (Result 1 of 3)</span>
 <pre class="state summary">{
   "success": true,
   "mode": "summary",
@@ -466,7 +466,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
 
       <div class="step-header"><div class="step-header__num">STEP 4G — INPUT (composed: requires fast first)</div><div class="step-header__title">Agent reads top fast hit, calls back with session_id + match_message_id</div></div>
       <div class="meta-row">No FTS5 in this call (already paid for in the prior fast call), no auxiliary LLM, no truncation. Single <code>db.get_messages_around()</code> indexed range query.</div>
-      <span class="label spec">GUIDED — input arguments</span>
+      <span class="mode-label spec">GUIDED — input arguments</span>
 <pre class="state spec">{
   "mode": "guided",
   "session_id": "cron_6d05d247688f_20260501_160003",   // copied from fast result 1
@@ -476,7 +476,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
 
       <div class="step-header"><div class="step-header__num">STEP 5G — DB FETCH</div><div class="step-header__title">db.get_messages_around() — two indexed range queries</div></div>
       <div class="meta-row">SQL: <code>SELECT * FROM messages WHERE session_id=? AND id≤? ORDER BY id DESC LIMIT 6</code> (anchor + 5 before, reversed) UNION <code>SELECT … AND id&gt;? ORDER BY id ASC LIMIT 5</code> (5 after). Sorted ASC client-side. ~0.7 ms wall.</div>
-      <span class="label spec">GUIDED — full response (49,371 bytes)</span>
+      <span class="mode-label spec">GUIDED — full response (49,371 bytes)</span>
 <pre class="state spec">{
   "success": true,
   "mode": "guided",
