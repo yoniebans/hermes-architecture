@@ -200,9 +200,9 @@
             end
             subgraph s3["Stage 3 — auxiliary summarise"]
               fanout["asyncio.gather + Semaphore"]
-              aux["_summarize_session × N<br/><small>30s timeout, 3 retries"]
+              aux["_summarize_session × N<br/><small>30s timeout, 3 retries</small>"]
             end
-            ret["JSON response<br/><small>per-mode shape"]
+            ret["JSON response<br/><small>per-mode shape</small>"]
 
             entry --> sanitize --> cjk
             cjk -->|"no"| fts_uni
