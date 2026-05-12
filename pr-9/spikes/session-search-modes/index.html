@@ -13,14 +13,17 @@
   <script>mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { primaryColor: '#1e293b', primaryTextColor: '#e2e8f0', lineColor: '#475569', secondaryColor: '#0f172a', tertiaryColor: '#1e293b' }});</script>
   <script src="../../base/theme.js"></script>
   <style>
+    /* Code blocks: keep the dark IDE aesthetic in BOTH light and dark mode.
+       Earlier we used var(--surface-2) / var(--text) which collapsed to
+       dark-on-dark in light mode (--surface-2 unset, --text dark). */
     pre.state {
-      background: var(--surface-2, #0f172a);
-      border: 1px solid var(--border, #334155);
+      background: #0f172a;
+      border: 1px solid #334155;
       border-radius: 8px;
       padding: 16px; margin: 12px 0;
       font-family: 'Fira Code', monospace;
       font-size: 12px; line-height: 1.55;
-      color: var(--text, #cbd5e1);
+      color: #cbd5e1;
       white-space: pre-wrap; word-wrap: break-word;
       max-height: 480px; overflow-y: auto;
     }
@@ -197,9 +200,9 @@
             end
             subgraph s3["Stage 3 — auxiliary summarise"]
               fanout["asyncio.gather + Semaphore"]
-              aux["_summarize_session × N<br/><small>30s timeout, 3 retries"]
+              aux["_summarize_session × N<br/><small>30s timeout, 3 retries</small>"]
             end
-            ret["JSON response<br/><small>per-mode shape"]
+            ret["JSON response<br/><small>per-mode shape</small>"]
 
             entry --> sanitize --> cjk
             cjk -->|"no"| fts_uni
