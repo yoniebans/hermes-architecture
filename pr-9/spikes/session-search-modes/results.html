@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>session_search — results & value-prop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../base/styles.css">
+  <link rel="stylesheet" href="../../base/presentation.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { primaryColor: '#1e293b', primaryTextColor: '#e2e8f0', lineColor: '#475569', secondaryColor: '#0f172a', tertiaryColor: '#1e293b' }});</script>
+  <script src="../../base/theme.js"></script>
+  <style>
+    /* Page-local: timeline track visualisation for the three modes.
+       Bars are sized in % of a 90-second reference window. */
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 110px;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border, #1f2937);
+    }
+    .timeline-row:last-child { border-bottom: none; }
+    .timeline-mode {
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .timeline-mode .ms {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-dim, #94a3b8);
+      margin-top: 2px;
+    }
+    .timeline-track {
+      position: relative;
+      height: 36px;
+      background: rgba(148, 163, 184, 0.04);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .timeline-seg {
+      position: absolute;
+      top: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: #0f172a;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      border-right: 1px solid rgba(15, 23, 42, 0.3);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .timeline-seg.tool-fast       { background: #34d399; }
+    .timeline-seg.tool-summary    { background: #fda4af; }
+    .timeline-seg.tool-guided     { background: #93c5fd; }
+    .timeline-seg.tool-recent     { background: #c4b5fd; }
+    .timeline-seg.think           { background: rgba(148, 163, 184, 0.18); color: var(--text-dim, #94a3b8); }
+    .timeline-seg.aux             { background: #f87171; color: #0f172a; }
+    .timeline-cost {
+      text-align: right;
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .timeline-cost .cost-detail {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--text-dim, #94a3b8);
+      margin-top: 2px;
+    }
+    .timeline-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 11px;
+      color: var(--text-dim, #94a3b8);
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border, #1f2937);
+    }
+    .timeline-legend .item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .timeline-legend .swatch {
+      width: 12px; height: 12px;
+      border-radius: 2px;
+    }
+
+    /* Cost bar chart (horizontal stacked) */
+    .costbar-row {
+      display: grid;
+      grid-template-columns: 200px 1fr 90px;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border, #1f2937);
+    }
+    .costbar-row:last-child { border-bottom: none; }
+    .costbar-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .costbar-label .sub {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--text-dim, #94a3b8);
+      margin-top: 2px;
+    }
+    .costbar-track {
+      position: relative;
+      height: 28px;
+      background: rgba(148, 163, 184, 0.04);
+      border-radius: 3px;
+      overflow: hidden;
+      display: flex;
+    }
+    .costbar-seg {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .costbar-seg.main { background: #34d399; }
+    .costbar-seg.aux  { background: #f87171; }
+    .costbar-amount {
+      text-align: right;
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Question-shapes menu — 3-row comparison */
+    .shapes-row {
+      display: grid;
+      grid-template-columns: 1fr 130px 100px 110px;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border, #1f2937);
+    }
+    .shapes-row:last-child { border-bottom: none; }
+    .shapes-row:first-child {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim, #94a3b8);
+      padding-bottom: 8px;
+    }
+    .shapes-q {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .shapes-q em {
+      color: var(--text-dim, #94a3b8);
+      font-style: italic;
+      font-size: 12px;
+      display: block;
+      margin-top: 4px;
+    }
+    .shapes-mode {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .shapes-time, .shapes-cost {
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Failure-mode 2x2 quadrant */
+    .fidelity-grid {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      grid-template-rows: 40px 1fr 1fr;
+      gap: 0;
+      margin: 16px 0 4px 0;
+      border: 1px solid var(--border, #1f2937);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .fid-corner, .fid-col-h, .fid-row-h {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-dim, #94a3b8);
+      background: rgba(148, 163, 184, 0.06);
+      border-right: 1px solid var(--border, #1f2937);
+      border-bottom: 1px solid var(--border, #1f2937);
+    }
+    .fid-col-h.danger { color: #fca5a5; }
+    .fid-col-h.safe { color: #6ee7b7; }
+    .fid-cell {
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      border-right: 1px solid var(--border, #1f2937);
+      border-bottom: 1px solid var(--border, #1f2937);
+    }
+    .fid-cell strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .fid-cell.failure strong { color: #fca5a5; }
+    .fid-cell.success strong { color: #6ee7b7; }
+    .fid-cell.tradeoff strong { color: #fde68a; }
+
+    /* Real example excerpts — abstracted */
+    .example-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .example-box {
+      padding: 14px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .example-box.old {
+      background: rgba(248, 113, 113, 0.06);
+      border-left: 3px solid #f87171;
+    }
+    .example-box.new {
+      background: rgba(52, 211, 153, 0.06);
+      border-left: 3px solid #34d399;
+    }
+    .example-box .e-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .example-box.old .e-label { color: #fca5a5; }
+    .example-box.new .e-label { color: #6ee7b7; }
+    .example-box .e-prompt {
+      font-style: italic;
+      color: var(--text-dim, #94a3b8);
+      margin-bottom: 8px;
+    }
+    .example-box .e-answer {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    /* Bottom-line takeaway */
+    .takeaway {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.08), rgba(147, 197, 253, 0.08));
+      border-left: 4px solid #34d399;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .takeaway h3 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .takeaway ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .takeaway li {
+      padding: 8px 0;
+      font-size: 14px;
+      line-height: 1.55;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .takeaway li:last-child { border-bottom: none; }
+    .takeaway li strong { color: var(--emerald, #34d399); font-family: 'Fira Code', monospace; }
+
+    /* Footer pointer to deep-dive */
+    .deepdive-link {
+      margin-top: 32px;
+      padding: 18px 24px;
+      border: 1px dashed var(--border, #1f2937);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-dim, #94a3b8);
+      text-align: center;
+    }
+    .deepdive-link a {
+      color: var(--accent, #38bdf8);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .deepdive-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc" id="toc">
+    <a class="toc-back" href="../../">← back</a>
+    <div class="toc-page" data-page="results.html">
+      <a class="toc-page__title" href="#opener">session_search — results</a>
+      <div class="toc-page__sections">
+        <a href="#opener">Overview</a>
+        <a href="#timeline">1. The three modes, on one clock</a>
+        <a href="#shapes">2. What question pulls which mode</a>
+        <a href="#fidelity">3. Search fidelity — what "honest" means now</a>
+        <a href="#costs">4. The cost picture</a>
+        <a href="#bottom-line">5. Bottom line</a>
+      </div>
+    </div>
+    <div class="toc-page" data-page="index.html">
+      <a class="toc-page__title" href="index.html#overview">deep-dive: investigation</a>
+      <div class="toc-page__sections">
+        <a href="index.html#overview">Investigation record →</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <section id="opener">
+      <h1 class="anim" style="--i:0">session_search — results</h1>
+      <p class="subtitle anim" style="--i:1">value-prop and measured outcomes — Nous internal — May 2026</p>
+      <p class="lead anim" style="--i:2">
+        You used to have one way to ask the system about its memory: a 30–60 second LLM-narrated recap.
+        You now have three — a cheap snippet scan, a deep recap, and a raw-transcript drill-down — and
+        the agent picks the right one for the question.
+      </p>
+
+      <div class="kpi-row anim" style="--i:3">
+        <div class="kpi-card">
+          <div class="kpi-card__value" style="color:var(--emerald, #34d399)">14 / 14</div>
+          <div class="kpi-card__label">recall scenarios passed</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__value" style="color:var(--sky, #38bdf8)">~4–6×</div>
+          <div class="kpi-card__label">cheaper on discovery questions</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__value" style="color:var(--amber, #f59e0b)">0 / 14</div>
+          <div class="kpi-card__label">hallucinated answers</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__value" style="color:var(--rose, #f43f5e)">summary</div>
+          <div class="kpi-card__label">is now opt-in, not default</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="timeline">
+      <div class="sec-head anim" style="--i:0; color:var(--teal)">
+        <span class="dot" style="background:var(--teal)"></span> 1. THE THREE MODES, ON ONE CLOCK
+      </div>
+      <h2 class="anim" style="--i:1">What actually runs, when, for how long</h2>
+      <p class="section-desc anim" style="--i:2">
+        Same question, three modes, time flowing left-to-right. Each track shows where the wall-clock
+        seconds and dollars go — agent reasoning (grey), tool calls (coloured), aux LLM work (red).
+      </p>
+
+      <div class="ve-card c-teal anim" style="--i:3">
+        <div class="ve-card__label">Median wall time and total cost, by mode pattern</div>
+
+        <div class="timeline-row" style="margin-top:8px">
+          <div class="timeline-mode">recent only<span class="ms">no query</span></div>
+          <div class="timeline-track">
+            <!-- 11s in 90s reference = 12.2% -->
+            <div class="timeline-seg think" style="left:0%; width:11%;">think</div>
+            <div class="timeline-seg tool-recent" style="left:11%; width:1%;">·</div>
+          </div>
+          <div class="timeline-cost">$0.15<span class="cost-detail">~11s</span></div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-mode">fast only<span class="ms">discovery</span></div>
+          <div class="timeline-track">
+            <!-- 14s in 90s = 15.5% -->
+            <div class="timeline-seg think" style="left:0%; width:13%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:13%; width:2.5%;">fast</div>
+          </div>
+          <div class="timeline-cost">$0.17<span class="cost-detail">~14s</span></div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-mode">fast + guided<span class="ms">drill-down</span></div>
+          <div class="timeline-track">
+            <!-- 28s in 90s = 31% -->
+            <div class="timeline-seg think" style="left:0%; width:13%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:13%; width:2.5%;">fast</div>
+            <div class="timeline-seg think" style="left:15.5%; width:14%;">think</div>
+            <div class="timeline-seg tool-guided" style="left:29.5%; width:2%;">drill</div>
+          </div>
+          <div class="timeline-cost">$0.28<span class="cost-detail">~28s</span></div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-mode">fast×N + guided<span class="ms">active retrieval</span></div>
+          <div class="timeline-track">
+            <!-- 72s in 90s = 80% -->
+            <div class="timeline-seg think" style="left:0%; width:12%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:12%; width:2%;">f</div>
+            <div class="timeline-seg think" style="left:14%; width:10%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:24%; width:2%;">f</div>
+            <div class="timeline-seg think" style="left:26%; width:10%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:36%; width:2%;">f</div>
+            <div class="timeline-seg think" style="left:38%; width:12%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:50%; width:2%;">f</div>
+            <div class="timeline-seg think" style="left:52%; width:10%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:62%; width:2%;">f</div>
+            <div class="timeline-seg think" style="left:64%; width:8%;">think</div>
+            <div class="timeline-seg tool-guided" style="left:72%; width:2.5%;">g</div>
+            <div class="timeline-seg think" style="left:74.5%; width:5.5%;">think</div>
+          </div>
+          <div class="timeline-cost">$0.69<span class="cost-detail">~72s</span></div>
+        </div>
+
+        <div class="timeline-row">
+          <div class="timeline-mode">summary<span class="ms">synthesis</span></div>
+          <div class="timeline-track">
+            <!-- 60s in 90s = 66.7% — and the aux LLM dominates -->
+            <div class="timeline-seg think" style="left:0%; width:8%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:8%; width:1.5%;">f</div>
+            <div class="timeline-seg think" style="left:9.5%; width:6%;">think</div>
+            <div class="timeline-seg aux" style="left:15.5%; width:45%;">aux LLM (per-session summarisation)</div>
+            <div class="timeline-seg think" style="left:60.5%; width:6%;">think</div>
+          </div>
+          <div class="timeline-cost">$1.00<span class="cost-detail">~60s</span></div>
+        </div>
+
+        <div class="timeline-legend">
+          <span class="item"><span class="swatch" style="background:rgba(148,163,184,0.4)"></span> agent reasoning</span>
+          <span class="item"><span class="swatch" style="background:#34d399"></span> fast (snippets)</span>
+          <span class="item"><span class="swatch" style="background:#93c5fd"></span> guided (drill-down)</span>
+          <span class="item"><span class="swatch" style="background:#c4b5fd"></span> recent (browse)</span>
+          <span class="item"><span class="swatch" style="background:#f87171"></span> aux LLM (summary work)</span>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
+          The summary track is dominated by aux-LLM work, not tool latency — that's where the 30–60 second
+          and dollar-scale cost lives. Fast and guided are tool reads against SQLite; the time visible on
+          their tracks is mostly the agent thinking between calls, not waiting on the system.
+        </p>
+      </div>
+    </section>
+
+    <section id="shapes">
+      <div class="sec-head anim" style="--i:0; color:var(--sky)">
+        <span class="dot" style="background:var(--sky)"></span> 2. WHAT QUESTION PULLS WHICH MODE
+      </div>
+      <h2 class="anim" style="--i:1">Three shapes of question, three behaviours, no flags to juggle</h2>
+      <p class="section-desc anim" style="--i:2">
+        The agent reads the shape of your question and picks. You can override — name a mode in your
+        prompt and it'll be honoured — but for most usage the defaults land correctly.
+      </p>
+
+      <div class="ve-card c-sky anim" style="--i:3">
+        <div class="shapes-row">
+          <div>Question shape</div>
+          <div>Mode picked</div>
+          <div>Typical wall</div>
+          <div>Typical cost</div>
+        </div>
+
+        <div class="shapes-row">
+          <div class="shapes-q">
+            <strong>"find the session where we…"</strong>
+            <em>"which conversation discussed the dashboard cache-tokens fix?"</em>
+          </div>
+          <div class="shapes-mode" style="color:#34d399">fast</div>
+          <div class="shapes-time">~14s</div>
+          <div class="shapes-cost">~$0.17</div>
+        </div>
+
+        <div class="shapes-row">
+          <div class="shapes-q">
+            <strong>"show me what we actually said when…"</strong>
+            <em>"drill into the May 12 session where we pivoted the design"</em>
+          </div>
+          <div class="shapes-mode" style="color:#93c5fd">fast → guided</div>
+          <div class="shapes-time">~28s</div>
+          <div class="shapes-cost">~$0.28</div>
+        </div>
+
+        <div class="shapes-row">
+          <div class="shapes-q">
+            <strong>"what did we decide about…"</strong>
+            <em>"walk me through how the atlas-drift detector cron came together"</em>
+          </div>
+          <div class="shapes-mode" style="color:#fda4af">summary</div>
+          <div class="shapes-time">~45–60s</div>
+          <div class="shapes-cost">~$1.00</div>
+        </div>
+      </div>
+
+      <div class="callout anim" style="--i:4">
+        <strong>The lever a power user wants:</strong> set <code>tools.session_search.default_mode: fast</code>
+        in <code>~/.hermes/config.yaml</code>. The agent will start with cheap snippet scans on most questions
+        and only reach for synthesis when the question explicitly demands it.
+      </div>
+    </section>
+
+    <section id="fidelity">
+      <div class="sec-head anim" style="--i:0; color:var(--amber)">
+        <span class="dot" style="background:var(--amber)"></span> 3. SEARCH FIDELITY
+      </div>
+      <h2 class="anim" style="--i:1">What "honest" means now</h2>
+      <p class="section-desc anim" style="--i:2">
+        The biggest qualitative change isn't speed or cost — it's that the system stops papering over
+        weak retrieval with confident-sounding prose.
+      </p>
+
+      <div class="ve-card c-amber anim" style="--i:3">
+        <div class="ve-card__label">The failure mode the old version had</div>
+        <div class="fidelity-grid">
+          <div class="fid-corner"></div>
+          <div class="fid-col-h danger">weak retrieval</div>
+          <div class="fid-col-h safe">strong retrieval</div>
+
+          <div class="fid-row-h">confident<br>tone</div>
+          <div class="fid-cell failure">
+            <strong>Confident-stale (the old failure)</strong>
+            Summary mode laundering FTS5 misses into authoritative prose.
+            The reader can't tell the answer is fabricated.
+          </div>
+          <div class="fid-cell success">
+            <strong>Correct and confident</strong>
+            What you'd want every time. The old system could deliver this — when retrieval happened to work.
+          </div>
+
+          <div class="fid-row-h">hedged<br>tone</div>
+          <div class="fid-cell tradeoff">
+            <strong>Honest about gaps (the new default)</strong>
+            Fast surfaces what it found and flags what's thin. Agent can re-search with sharper phrasing before synthesising.
+          </div>
+          <div class="fid-cell tradeoff">
+            <strong>Over-cautious</strong>
+            Rare. The agent hedges even on strong retrieval — minor cost, easy to dial in via prompt.
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 14px 0 0; line-height:1.55">
+          The old default (summary-on-everything) sat on the dangerous diagonal: confident in tone, but only as honest as FTS5 happened to be on the day. The new defaults pull toward "honest about gaps" by surfacing raw snippets instead of synthesised prose by default — and giving the agent the toolkit to actively widen the search when fast results look thin.
+        </p>
+      </div>
+
+      <div class="ve-card c-amber anim" style="--i:4" style="margin-top:16px">
+        <div class="ve-card__label">A real example — same question, both modes</div>
+        <p style="font-size:13px; line-height:1.55; margin:8px 0 0">
+          From the smoke-test corpus. Question: <em>"what do we know about Telepath the AI startup?"</em>
+          (recent telegram-platform research, ~2 sessions in the DB).
+        </p>
+
+        <div class="example-pair">
+          <div class="example-box old">
+            <div class="e-label">old default (summary on everything)</div>
+            <div class="e-prompt">"what do we know about Telepath?"</div>
+            <div class="e-answer">
+              ~45–60s wait, ~$1.00.<br><br>
+              <strong>Risk:</strong> if FTS5 misses the right session (e.g. tokenisation footgun, title-at-position-0),
+              the aux LLM happily summarises whatever it found instead. Reader gets a coherent paragraph that
+              <em>sounds</em> right but is built from adjacent cron-summary noise. No signal that retrieval was weak.
+            </div>
+          </div>
+
+          <div class="example-box new">
+            <div class="e-label">new default (fast, with explicit drill if needed)</div>
+            <div class="e-prompt">"what do we know about Telepath?"</div>
+            <div class="e-answer">
+              ~22s, ~$0.23.<br><br>
+              Agent runs <code>fast(query="Telepath")</code>, surfaces 2 real telegram sessions with snippets,
+              calls <code>guided</code> on the most substantive one to pull the raw messages, and synthesises
+              from <em>actual</em> conversation: founders' names, the manifesto URL, the @telepathinc tease.
+              If retrieval had been thin, the agent would have widened the search before synthesising.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ve-card c-amber anim" style="--i:5" style="margin-top:16px">
+        <div class="ve-card__label">Tool priority — memory first, external sources second</div>
+        <p style="font-size:13px; line-height:1.55; margin:8px 0 0">
+          The agent now reaches for the session DB <strong>before</strong> calling <code>gh pr list</code>,
+          web search, or filesystem inspection on questions about prior work. The session DB carries what was
+          <em>discussed and decided</em>; external tools only show the current world state. Both matter — but
+          memory comes first, then verification.
+        </p>
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 12px 0 0; line-height:1.55">
+          A real case from the smoke test: asked about the status of a feature branch, the agent first
+          calls <code>session_search</code> to find the prior planning discussion, then verifies the branch
+          state with the filesystem. The old behaviour was to skip the DB entirely and answer with just
+          the external check — which produced a technically-correct but contextually-empty answer.
+        </p>
+      </div>
+    </section>
+
+    <section id="costs">
+      <div class="sec-head anim" style="--i:0; color:var(--rose)">
+        <span class="dot" style="background:var(--rose)"></span> 4. THE COST PICTURE
+      </div>
+      <h2 class="anim" style="--i:1">Where the dollars actually go</h2>
+      <p class="section-desc anim" style="--i:2">
+        Costs are split between the main agent loop (your conversation with Opus) and the auxiliary LLM
+        work that summary mode dispatches per matched session. Both are priced from the same rate card.
+      </p>
+
+      <div class="ve-card c-rose anim" style="--i:3">
+        <div class="ve-card__label">Median per-scenario cost, stacked by source</div>
+
+        <div class="costbar-row" style="margin-top:8px">
+          <div class="costbar-label">recent only<span class="sub">browse, no query</span></div>
+          <div class="costbar-track">
+            <div class="costbar-seg main" style="width:15%">$0.15</div>
+          </div>
+          <div class="costbar-amount">$0.15</div>
+        </div>
+
+        <div class="costbar-row">
+          <div class="costbar-label">fast only<span class="sub">discovery</span></div>
+          <div class="costbar-track">
+            <div class="costbar-seg main" style="width:17%">$0.17</div>
+          </div>
+          <div class="costbar-amount">$0.17</div>
+        </div>
+
+        <div class="costbar-row">
+          <div class="costbar-label">fast + guided<span class="sub">drill-down</span></div>
+          <div class="costbar-track">
+            <div class="costbar-seg main" style="width:28%">$0.28</div>
+          </div>
+          <div class="costbar-amount">$0.28</div>
+        </div>
+
+        <div class="costbar-row">
+          <div class="costbar-label">fast×N + guided<span class="sub">active retrieval (Run 3 stack)</span></div>
+          <div class="costbar-track">
+            <div class="costbar-seg main" style="width:69%">$0.69</div>
+          </div>
+          <div class="costbar-amount">$0.69</div>
+        </div>
+
+        <div class="costbar-row">
+          <div class="costbar-label">summary<span class="sub">aux LLM per matched session</span></div>
+          <div class="costbar-track">
+            <div class="costbar-seg main" style="width:49%">main $0.49</div>
+            <div class="costbar-seg aux" style="width:51%">aux LLM $0.52</div>
+          </div>
+          <div class="costbar-amount">$1.00</div>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
+          The costs above are medians from a 14-scenario smoke test against the user's real session DB
+          (~300 sessions, ~18k messages). Pricing is computed by hermes's own <code>agent/usage_pricing.py</code>
+          helper against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026). Both main-loop
+          and aux costs share the same rate card — no extractor-side hardcoding.
+        </p>
+      </div>
+
+      <div class="callout anim" style="--i:4">
+        <strong>The headline:</strong> summary is the only expensive mode, and the expense isn't latency,
+        it's the auxiliary LLM call dispatched <em>per matched session</em>. If you're querying a topic with
+        5 hits, summary mode runs Opus 5 times in parallel. Reserve it for questions that genuinely warrant
+        synthesis — for everything else, fast is 4–6× cheaper and 3× faster.
+      </div>
+    </section>
+
+    <section id="bottom-line">
+      <div class="sec-head anim" style="--i:0; color:var(--emerald)">
+        <span class="dot" style="background:var(--emerald)"></span> 5. BOTTOM LINE
+      </div>
+      <h2 class="anim" style="--i:1">Three takeaways, one config line</h2>
+
+      <div class="takeaway anim" style="--i:2">
+        <h3>What this means in practice</h3>
+        <ul>
+          <li><strong>Most questions:</strong> 4–6× cheaper, 3–4× faster than before. The system now matches mode to question shape instead of paying for synthesis on everything.</li>
+          <li><strong>Deep synthesis is still available</strong> — but as an opt-in for questions that demand it, not a default for questions that don't. The expensive thing is now a deliberate choice.</li>
+          <li><strong>Honesty improved more than cost.</strong> Zero hallucinations across the smoke-test set. The agent says "I see weak hits, want me to widen?" instead of papering over thin retrieval. That's a quality improvement that doesn't show up in dollar figures but materially changes whether you can trust the answer.</li>
+        </ul>
+      </div>
+
+      <div class="ve-card c-emerald anim" style="--i:3" style="margin-top:16px">
+        <div class="ve-card__label">How to try it</div>
+        <p style="font-size:13px; line-height:1.55; margin:8px 0 12px">
+          Two ways, depending on how much control you want.
+        </p>
+        <pre class="state shared" style="background:#0f172a; border:1px solid #334155; color:#cbd5e1; padding:14px; border-radius:6px; font-family:'Fira Code',monospace; font-size:12px; line-height:1.6; margin:0">
+# ~/.hermes/config.yaml — flip the default to fast
+tools:
+  session_search:
+    default_mode: fast    # or "summary"
+
+# Restart hermes, then use normally. The agent will start with fast on
+# most questions and only reach for synthesis when you explicitly ask.</pre>
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 14px 0 0; line-height:1.55">
+          Or force a mode per call by naming it in the prompt: <em>"use fast mode to find sessions about X"</em>,
+          <em>"summary only"</em>, <em>"drill into the most promising hit with guided"</em>. Explicit overrides
+          always win.
+        </p>
+      </div>
+
+      <div class="deepdive-link">
+        Want the full investigation — measurement methodology, design pivots, schema decisions, FTS5 corner cases?
+        <br>
+        <a href="index.html#overview">Read the deep-dive →</a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="../../base/mermaid-zoom.js" defer></script>
+<script src="../../base/page-nav.js" defer></script>
+<script src="../../base/scrollspy.js" defer></script>
+<script src="../../base/presentation.js" defer></script>
+</body>
+</html>
