@@ -330,7 +330,135 @@
     .takeaway li:last-child { border-bottom: none; }
     .takeaway li strong { color: var(--emerald, #34d399); font-family: 'Fira Code', monospace; }
 
-    /* Footer pointer to deep-dive */
+    /* === Section: introduction & mode interplay === */
+    .intro-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 20px;
+      margin-top: 12px;
+    }
+    @media (max-width: 920px) {
+      .intro-grid { grid-template-columns: 1fr; }
+    }
+    .intro-problem {
+      padding: 20px 22px;
+      border-radius: 6px;
+      border-left: 3px solid #94a3b8;
+      background: rgba(148, 163, 184, 0.06);
+    }
+    .intro-problem h3 {
+      font-size: 13px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #cbd5e1;
+      margin: 0 0 10px 0;
+    }
+    .intro-problem p {
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0 0 10px 0;
+    }
+    .intro-problem p:last-child { margin-bottom: 0; }
+    .intro-problem em {
+      color: #fca5a5;
+      font-style: normal;
+    }
+
+    .intro-modes h3 {
+      font-size: 13px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #cbd5e1;
+      margin: 0 0 12px 0;
+    }
+    .mode-intro-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .mode-intro-row:last-child { border-bottom: none; }
+    .mode-intro-tag {
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 3px;
+      text-align: center;
+    }
+    .mode-intro-tag.fast    { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+    .mode-intro-tag.summary { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+    .mode-intro-tag.guided  { background: rgba(147, 197, 253, 0.15); color: #93c5fd; }
+    .mode-intro-desc {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .mode-intro-desc .role {
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.5px;
+      color: var(--text-dim, #94a3b8);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    /* The interplay diagram — two starts + one follow-up */
+    .interplay {
+      margin-top: 18px;
+      padding: 16px 18px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 5px;
+    }
+    .interplay-label {
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-dim, #94a3b8);
+      margin-bottom: 12px;
+    }
+    .interplay-row {
+      display: grid;
+      grid-template-columns: 80px 28px 100px 28px 100px;
+      gap: 0;
+      align-items: center;
+    }
+    .interplay-step {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 3px;
+      text-align: center;
+    }
+    .interplay-step.user {
+      background: rgba(148, 163, 184, 0.12);
+      color: #cbd5e1;
+    }
+    .interplay-step.fast    { background: rgba(52, 211, 153, 0.18); color: #34d399; }
+    .interplay-step.summary { background: rgba(248, 113, 113, 0.18); color: #f87171; }
+    .interplay-step.guided  { background: rgba(147, 197, 253, 0.18); color: #93c5fd; }
+    .interplay-arrow {
+      text-align: center;
+      color: var(--text-dim, #94a3b8);
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+    }
+    .interplay-row:not(:last-child) {
+      margin-bottom: 6px;
+    }
+    .interplay-tail {
+      margin-top: 10px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-dim, #94a3b8);
+      font-style: italic;
+    }
+
     .deepdive-link {
       margin-top: 32px;
       padding: 18px 24px;
@@ -561,6 +689,7 @@
       <a class="toc-page__title" href="#opener">session_search — results</a>
       <div class="toc-page__sections">
         <a href="#opener">Overview</a>
+        <a href="#intro">The problem, and what we built</a>
         <a href="#timeline">1. The three modes, on one clock</a>
         <a href="#shapes">2. What question pulls which mode</a>
         <a href="#data-returned">3. What comes back, and how much</a>
@@ -604,6 +733,85 @@
         <div class="kpi-card">
           <div class="kpi-card__value" style="color:var(--rose, #f43f5e)">summary</div>
           <div class="kpi-card__label">is now opt-in, not default</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="intro">
+      <div class="sec-head anim" style="--i:0; color:var(--slate)">
+        <span class="dot" style="background:var(--slate, #94a3b8)"></span> THE PROBLEM, AND WHAT WE BUILT
+      </div>
+      <h2 class="anim" style="--i:1">One mode for everything → three modes the agent picks between</h2>
+
+      <div class="intro-grid anim" style="--i:2">
+        <div class="intro-problem">
+          <h3>The problem</h3>
+          <p>
+            <code>session_search</code> had one mode. Any question about your past conversations triggered the same routine: pull matches from FTS5, hand a window to an auxiliary LLM, return a narrated recap.
+          </p>
+          <p>
+            That worked when you wanted synthesis. It paid the synthesis cost — <em>~30–60 seconds, ~$1.00 per call</em> — on every other shape of question too. And when FTS5 retrieval was weak, the aux LLM still produced confident prose, laundering thin hits into authoritative-sounding answers.
+          </p>
+        </div>
+
+        <div class="intro-modes">
+          <h3>The three modes</h3>
+
+          <div class="mode-intro-row">
+            <span class="mode-intro-tag fast">fast</span>
+            <div class="mode-intro-desc">
+              <span class="role">starting move · discovery</span>
+              FTS5 snippets and metadata across N candidate sessions. No LLM. ~1 KB per session, ~14 seconds end-to-end.
+            </div>
+          </div>
+
+          <div class="mode-intro-row">
+            <span class="mode-intro-tag summary">summary</span>
+            <div class="mode-intro-desc">
+              <span class="role">starting move · synthesis</span>
+              An auxiliary LLM reads each matched session and writes a recap. ~4 KB per session, ~45–60 seconds. The previous default — now opt-in.
+            </div>
+          </div>
+
+          <div class="mode-intro-row">
+            <span class="mode-intro-tag guided">guided</span>
+            <div class="mode-intro-desc">
+              <span class="role">follow-up move · drill-down</span>
+              Raw messages around a chosen anchor. No LLM, no rewriting. Requires an anchor from a prior fast or summary call — cannot stand alone.
+            </div>
+          </div>
+
+          <div class="interplay">
+            <div class="interplay-label">How they connect</div>
+
+            <div class="interplay-row">
+              <div class="interplay-step user">question</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step fast">fast</div>
+              <div class="interplay-arrow"></div>
+              <div></div>
+            </div>
+
+            <div class="interplay-row">
+              <div class="interplay-step user">question</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step summary">summary</div>
+              <div class="interplay-arrow"></div>
+              <div></div>
+            </div>
+
+            <div class="interplay-row">
+              <div class="interplay-step user">question</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step fast">fast</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step guided">guided</div>
+            </div>
+
+            <p class="interplay-tail">
+              Two ways to start, one way to follow up. Guided is the deep-dive after fast or summary points to where to look.
+            </p>
+          </div>
         </div>
       </div>
     </section>
