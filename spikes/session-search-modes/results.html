@@ -346,6 +346,210 @@
       font-weight: 600;
     }
     .deepdive-link a:hover { text-decoration: underline; }
+
+    /* === Section 3: data-returned per mode === */
+    /* Payload comparison cards — show what's actually IN the response */
+    .payload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .payload-card {
+      padding: 16px;
+      border-radius: 6px;
+      border-left: 3px solid;
+      background: rgba(148, 163, 184, 0.04);
+      display: flex;
+      flex-direction: column;
+    }
+    .payload-card.fast { border-color: #34d399; }
+    .payload-card.summary { border-color: #f87171; }
+    .payload-card.guided { border-color: #93c5fd; }
+    .payload-mode {
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .payload-card.fast .payload-mode { color: #34d399; }
+    .payload-card.summary .payload-mode { color: #f87171; }
+    .payload-card.guided .payload-mode { color: #93c5fd; }
+    .payload-size {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--text-dim, #94a3b8);
+      margin-bottom: 12px;
+    }
+    .payload-shape {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      flex-grow: 1;
+    }
+    .payload-row {
+      padding: 4px 8px;
+      margin: 2px 0;
+      background: rgba(148, 163, 184, 0.08);
+      border-radius: 2px;
+      color: var(--text-dim, #94a3b8);
+    }
+    .payload-row.snippet {
+      background: rgba(52, 211, 153, 0.15);
+      color: #6ee7b7;
+      font-style: italic;
+    }
+    .payload-row.prose {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fca5a5;
+      font-style: italic;
+    }
+    .payload-row.raw {
+      background: rgba(147, 197, 253, 0.12);
+      color: #93c5fd;
+    }
+    .payload-row.raw.anchor {
+      background: rgba(147, 197, 253, 0.25);
+      color: #bfdbfe;
+      font-weight: 600;
+    }
+    .payload-divider {
+      height: 1px;
+      background: rgba(148, 163, 184, 0.2);
+      margin: 6px 0;
+    }
+    .payload-more {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-dim, #94a3b8);
+      font-style: italic;
+      padding: 6px 0;
+    }
+    .payload-note {
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text-dim, #94a3b8);
+      margin: 0;
+    }
+    .payload-note strong {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .payload-card.fast .payload-note strong { color: #34d399; }
+    .payload-card.summary .payload-note strong { color: #f87171; }
+    .payload-card.guided .payload-note strong { color: #93c5fd; }
+
+    /* Breadth ↔ depth axis */
+    .bd-axis {
+      display: grid;
+      grid-template-columns: 130px 1fr 130px;
+      gap: 18px;
+      align-items: center;
+      margin: 16px 0 4px;
+    }
+    .bd-axis-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+    }
+    .bd-axis-label.left { text-align: right; color: #34d399; }
+    .bd-axis-label.right { text-align: left; color: #93c5fd; }
+    .bd-axis-label .bd-detail {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--text-dim, #94a3b8);
+      margin-top: 4px;
+    }
+    .bd-axis-track {
+      position: relative;
+      height: 110px;
+      background: linear-gradient(to right, rgba(52, 211, 153, 0.10), rgba(147, 197, 253, 0.10));
+      border-radius: 4px;
+      border: 1px solid var(--border, #1f2937);
+    }
+    .bd-axis-track::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 8px;
+      right: 8px;
+      height: 1px;
+      background: rgba(148, 163, 184, 0.3);
+    }
+    .bd-dot {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 180px;
+    }
+    .bd-dot-marker {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(15, 23, 42, 1);
+    }
+    .bd-dot.fast    .bd-dot-marker { background: #34d399; }
+    .bd-dot.summary .bd-dot-marker { background: #f87171; }
+    .bd-dot.guided  .bd-dot-marker { background: #93c5fd; }
+    .bd-dot-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .bd-dot.fast    .bd-dot-label { color: #34d399; }
+    .bd-dot.summary .bd-dot-label { color: #f87171; }
+    .bd-dot.guided  .bd-dot-label { color: #93c5fd; }
+    .bd-dot-detail {
+      font-size: 10px;
+      color: var(--text-dim, #94a3b8);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* Levers / knobs the agent can tune */
+    .lever-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .lever {
+      display: grid;
+      grid-template-columns: 90px 100px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(148, 163, 184, 0.04);
+      border-radius: 4px;
+    }
+    .lever-param {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fde68a;
+    }
+    .lever-modes {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: var(--text-dim, #94a3b8);
+    }
+    .lever-desc {
+      font-size: 12px;
+      line-height: 1.45;
+    }
   </style>
 </head>
 <body>
@@ -359,9 +563,10 @@
         <a href="#opener">Overview</a>
         <a href="#timeline">1. The three modes, on one clock</a>
         <a href="#shapes">2. What question pulls which mode</a>
-        <a href="#fidelity">3. Search fidelity — what "honest" means now</a>
-        <a href="#costs">4. The cost picture</a>
-        <a href="#bottom-line">5. Bottom line</a>
+        <a href="#data-returned">3. What comes back, and how much</a>
+        <a href="#fidelity">4. Search fidelity — what "honest" means now</a>
+        <a href="#costs">5. The cost picture</a>
+        <a href="#bottom-line">6. Bottom line</a>
       </div>
     </div>
     <div class="toc-page" data-page="index.html">
@@ -566,9 +771,157 @@
       </div>
     </section>
 
+    <section id="data-returned">
+      <div class="sec-head anim" style="--i:0; color:var(--indigo)">
+        <span class="dot" style="background:var(--indigo)"></span> 3. WHAT COMES BACK, AND HOW MUCH
+      </div>
+      <h2 class="anim" style="--i:1">Three modes return three different shapes of data</h2>
+      <p class="section-desc anim" style="--i:2">
+        Same DB, same query, different artefacts handed to the calling agent. Wide-and-shallow snippets, narrative prose, or raw conversation windows.
+      </p>
+
+      <div class="ve-card c-indigo anim" style="--i:3">
+        <div class="ve-card__label">Per-call response anatomy (real bytes from the smoke test)</div>
+
+        <div class="payload-grid">
+          <div class="payload-card fast">
+            <div class="payload-mode">fast</div>
+            <div class="payload-size">~4 KB · 3 sessions</div>
+            <div class="payload-shape">
+              <div class="payload-row">session_id, title, timestamp</div>
+              <div class="payload-row snippet">"…dashboard <em>cache-tokens</em> fix landed in…"</div>
+              <div class="payload-row">match_message_id, source</div>
+              <div class="payload-divider"></div>
+              <div class="payload-row">session_id, title, timestamp</div>
+              <div class="payload-row snippet">"…investigated <em>cache-tokens</em> in May 1 cron…"</div>
+              <div class="payload-row">match_message_id, source</div>
+              <div class="payload-more">+ 1 more match</div>
+            </div>
+            <p class="payload-note">
+              <strong>SNIPPETS</strong>
+              FTS5 lifts a few sentences around each match. Just enough to recognise which session is the right one to drill into.
+            </p>
+          </div>
+
+          <div class="payload-card summary">
+            <div class="payload-mode">summary</div>
+            <div class="payload-size">~12 KB · 3 sessions</div>
+            <div class="payload-shape">
+              <div class="payload-row">session_id, title, timestamp</div>
+              <div class="payload-row prose">"The dashboard analytics fix involved patching the cache-tokens SQL query in <code>analytics.py</code>, adding a regression test, and merging via PR #20183. Key decisions: …"</div>
+              <div class="payload-divider"></div>
+              <div class="payload-row">session_id, title, timestamp</div>
+              <div class="payload-row prose">"The investigation traced back to a May 1 cron run where cache token attribution was lost in the rollup. The team isolated the bug to …"</div>
+              <div class="payload-more">+ 1 more, all LLM-generated</div>
+            </div>
+            <p class="payload-note">
+              <strong>NARRATIVE PROSE</strong>
+              Aux LLM reads each matched session top-to-bottom and writes a recap. Cost scales linearly per matched session.
+            </p>
+          </div>
+
+          <div class="payload-card guided">
+            <div class="payload-mode">guided</div>
+            <div class="payload-size">~12–130 KB · 1 anchor</div>
+            <div class="payload-shape">
+              <div class="payload-row">session_id, anchor_message_id</div>
+              <div class="payload-row raw">[user] "let's profile the FTS5 path…"</div>
+              <div class="payload-row raw">[assistant] tool_call: terminal(…)</div>
+              <div class="payload-row raw">[tool] output: 297 rows…</div>
+              <div class="payload-row raw anchor">⚓ [user] "but the truncation is dishonest"</div>
+              <div class="payload-row raw">[assistant] "you're right, I'll…"</div>
+              <div class="payload-row raw">[user] "option C — defer the default"</div>
+              <div class="payload-more">±N messages on each side</div>
+            </div>
+            <p class="payload-note">
+              <strong>RAW CONVERSATION</strong>
+              Verbatim messages around a chosen anchor. No LLM rewriting — what was actually said, in order.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ve-card c-indigo anim" style="--i:4" style="margin-top:16px">
+        <div class="ve-card__label">Where each mode sits on the breadth ↔ depth axis</div>
+
+        <div class="bd-axis">
+          <div class="bd-axis-label left">
+            BREADTH
+            <span class="bd-detail">many sessions, shallow context per session</span>
+          </div>
+          <div class="bd-axis-track">
+            <div class="bd-dot fast" style="left: 14%">
+              <div class="bd-dot-marker"></div>
+              <div class="bd-dot-label">fast</div>
+              <div class="bd-dot-detail">N sessions × snippet<br>~1 KB per session</div>
+            </div>
+            <div class="bd-dot summary" style="left: 50%">
+              <div class="bd-dot-marker"></div>
+              <div class="bd-dot-label">summary</div>
+              <div class="bd-dot-detail">N sessions × LLM recap<br>~4 KB per session</div>
+            </div>
+            <div class="bd-dot guided" style="left: 86%">
+              <div class="bd-dot-marker"></div>
+              <div class="bd-dot-label">guided</div>
+              <div class="bd-dot-detail">1 anchor × full window<br>up to ~130 KB</div>
+            </div>
+          </div>
+          <div class="bd-axis-label right">
+            DEPTH
+            <span class="bd-detail">one anchor, full surrounding context</span>
+          </div>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
+          Fast and summary are <em>horizontal</em> — they scan across sessions. Guided is <em>vertical</em> — it dives into one. The typical flow is fast (find the candidates) → guided (read what was actually said). Summary collapses both into a single LLM-narrated middle, at LLM-narrated cost.
+        </p>
+      </div>
+
+      <div class="ve-card c-indigo anim" style="--i:5" style="margin-top:16px">
+        <div class="ve-card__label">The agent's tunable parameters</div>
+
+        <div class="lever-grid">
+          <div class="lever">
+            <div class="lever-param">query</div>
+            <div class="lever-modes">fast, summary</div>
+            <div class="lever-desc">Keywords, phrases, boolean (OR/NOT), prefix wildcards. Omit to browse recent sessions.</div>
+          </div>
+          <div class="lever">
+            <div class="lever-param">limit</div>
+            <div class="lever-modes">fast, summary</div>
+            <div class="lever-desc">How many sessions to return. Default 3, max 10. Bump higher for wider breadth.</div>
+          </div>
+          <div class="lever">
+            <div class="lever-param">anchors</div>
+            <div class="lever-modes">guided</div>
+            <div class="lever-desc">One or more <code>(session_id, message_id)</code> pairs — typically picked from a prior fast call's results.</div>
+          </div>
+          <div class="lever">
+            <div class="lever-param">window</div>
+            <div class="lever-modes">guided</div>
+            <div class="lever-desc">Messages on each side of each anchor. Default 5, max 20. Larger = more context per drill.</div>
+          </div>
+          <div class="lever">
+            <div class="lever-param">role_filter</div>
+            <div class="lever-modes">fast, summary</div>
+            <div class="lever-desc">Restrict to specific roles (e.g. <code>user,assistant</code>) to skip tool output.</div>
+          </div>
+          <div class="lever">
+            <div class="lever-param">mode</div>
+            <div class="lever-modes">all</div>
+            <div class="lever-desc">Explicit override. Honored regardless of <code>default_mode</code> config.</div>
+          </div>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 16px 0 0; line-height:1.55">
+          The agent composes these knobs without you having to think about them. The shape of your question drives <code>mode</code>; the breadth of the topic drives <code>limit</code>; the depth of the drill drives <code>anchors</code> and <code>window</code>. Power users can pin any of them — the agent honours explicit overrides.
+        </p>
+      </div>
+    </section>
+
     <section id="fidelity">
       <div class="sec-head anim" style="--i:0; color:var(--amber)">
-        <span class="dot" style="background:var(--amber)"></span> 3. SEARCH FIDELITY
+        <span class="dot" style="background:var(--amber)"></span> 4. SEARCH FIDELITY
       </div>
       <h2 class="anim" style="--i:1">What "honest" means now</h2>
       <p class="section-desc anim" style="--i:2">
@@ -640,7 +993,7 @@
 
     <section id="costs">
       <div class="sec-head anim" style="--i:0; color:var(--rose)">
-        <span class="dot" style="background:var(--rose)"></span> 4. THE COST PICTURE
+        <span class="dot" style="background:var(--rose)"></span> 5. THE COST PICTURE
       </div>
       <h2 class="anim" style="--i:1">Where the dollars actually go</h2>
       <p class="section-desc anim" style="--i:2">
@@ -704,7 +1057,7 @@
 
     <section id="bottom-line">
       <div class="sec-head anim" style="--i:0; color:var(--emerald)">
-        <span class="dot" style="background:var(--emerald)"></span> 5. BOTTOM LINE
+        <span class="dot" style="background:var(--emerald)"></span> 6. BOTTOM LINE
       </div>
       <h2 class="anim" style="--i:1">Three takeaways, one config line</h2>
 
