@@ -213,18 +213,52 @@
     .fid-col-h.danger { color: #fca5a5; }
     .fid-col-h.safe { color: #6ee7b7; }
     .fid-cell {
-      padding: 14px 16px;
+      padding: 16px 18px;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.55;
       border-right: 1px solid var(--border, #1f2937);
       border-bottom: 1px solid var(--border, #1f2937);
+      position: relative;
     }
     .fid-cell strong {
       display: block;
       font-size: 13px;
       margin-bottom: 6px;
     }
+    /* "Old default lived here" — highlight the failure cell */
+    .fid-cell.failure {
+      background: rgba(248, 113, 113, 0.08);
+    }
+    .fid-cell.failure::before {
+      content: "⚠ OLD DEFAULT";
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #fca5a5;
+      opacity: 0.7;
+    }
     .fid-cell.failure strong { color: #fca5a5; }
+
+    /* "New default pulls here" */
+    .fid-cell.tradeoff.target {
+      background: rgba(52, 211, 153, 0.08);
+    }
+    .fid-cell.tradeoff.target::before {
+      content: "✓ NEW DEFAULT";
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #6ee7b7;
+      opacity: 0.8;
+    }
     .fid-cell.success strong { color: #6ee7b7; }
     .fid-cell.tradeoff strong { color: #fde68a; }
 
@@ -382,12 +416,16 @@
       <div class="ve-card c-teal anim" style="--i:3">
         <div class="ve-card__label">Median wall time and total cost, by mode pattern</div>
 
+        <!-- Reference clock: 80s. Each row's bar is sized so longest mode (summary, 60s)
+             reaches 75% of the track. That keeps segments visible on the short rows
+             without making them feel undersold relative to summary. -->
+
         <div class="timeline-row" style="margin-top:8px">
           <div class="timeline-mode">recent only<span class="ms">no query</span></div>
           <div class="timeline-track">
-            <!-- 11s in 90s reference = 12.2% -->
-            <div class="timeline-seg think" style="left:0%; width:11%;">think</div>
-            <div class="timeline-seg tool-recent" style="left:11%; width:1%;">·</div>
+            <!-- 11s of 80 = 13.75% -->
+            <div class="timeline-seg think" style="left:0%; width:12.5%;">think</div>
+            <div class="timeline-seg tool-recent" style="left:12.5%; width:1.25%;"></div>
           </div>
           <div class="timeline-cost">$0.15<span class="cost-detail">~11s</span></div>
         </div>
@@ -395,9 +433,9 @@
         <div class="timeline-row">
           <div class="timeline-mode">fast only<span class="ms">discovery</span></div>
           <div class="timeline-track">
-            <!-- 14s in 90s = 15.5% -->
-            <div class="timeline-seg think" style="left:0%; width:13%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:13%; width:2.5%;">fast</div>
+            <!-- 14s of 80 = 17.5% -->
+            <div class="timeline-seg think" style="left:0%; width:14%;">agent thinks</div>
+            <div class="timeline-seg tool-fast" style="left:14%; width:3.5%;">fast</div>
           </div>
           <div class="timeline-cost">$0.17<span class="cost-detail">~14s</span></div>
         </div>
@@ -405,11 +443,11 @@
         <div class="timeline-row">
           <div class="timeline-mode">fast + guided<span class="ms">drill-down</span></div>
           <div class="timeline-track">
-            <!-- 28s in 90s = 31% -->
-            <div class="timeline-seg think" style="left:0%; width:13%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:13%; width:2.5%;">fast</div>
-            <div class="timeline-seg think" style="left:15.5%; width:14%;">think</div>
-            <div class="timeline-seg tool-guided" style="left:29.5%; width:2%;">drill</div>
+            <!-- 28s of 80 = 35% -->
+            <div class="timeline-seg think" style="left:0%; width:14%;">agent thinks</div>
+            <div class="timeline-seg tool-fast" style="left:14%; width:3%;">fast</div>
+            <div class="timeline-seg think" style="left:17%; width:14%;">agent thinks</div>
+            <div class="timeline-seg tool-guided" style="left:31%; width:4%;">drill</div>
           </div>
           <div class="timeline-cost">$0.28<span class="cost-detail">~28s</span></div>
         </div>
@@ -417,20 +455,22 @@
         <div class="timeline-row">
           <div class="timeline-mode">fast×N + guided<span class="ms">active retrieval</span></div>
           <div class="timeline-track">
-            <!-- 72s in 90s = 80% -->
-            <div class="timeline-seg think" style="left:0%; width:12%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:12%; width:2%;">f</div>
-            <div class="timeline-seg think" style="left:14%; width:10%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:24%; width:2%;">f</div>
+            <!-- 72s of 80 = 90%. 6 fast searches + 2 guided drills + thinking. -->
+            <div class="timeline-seg think" style="left:0%; width:11%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:11%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:13.5%; width:10%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:23.5%; width:2.5%;">f</div>
             <div class="timeline-seg think" style="left:26%; width:10%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:36%; width:2%;">f</div>
-            <div class="timeline-seg think" style="left:38%; width:12%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:50%; width:2%;">f</div>
-            <div class="timeline-seg think" style="left:52%; width:10%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:62%; width:2%;">f</div>
-            <div class="timeline-seg think" style="left:64%; width:8%;">think</div>
-            <div class="timeline-seg tool-guided" style="left:72%; width:2.5%;">g</div>
-            <div class="timeline-seg think" style="left:74.5%; width:5.5%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:36%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:38.5%; width:11%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:49.5%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:52%; width:9%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:61%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:63.5%; width:8%;">think</div>
+            <div class="timeline-seg tool-guided" style="left:71.5%; width:3%;">drill</div>
+            <div class="timeline-seg think" style="left:74.5%; width:5%;">think</div>
+            <div class="timeline-seg tool-guided" style="left:79.5%; width:3%;">drill</div>
+            <div class="timeline-seg think" style="left:82.5%; width:7.5%;">think</div>
           </div>
           <div class="timeline-cost">$0.69<span class="cost-detail">~72s</span></div>
         </div>
@@ -438,12 +478,12 @@
         <div class="timeline-row">
           <div class="timeline-mode">summary<span class="ms">synthesis</span></div>
           <div class="timeline-track">
-            <!-- 60s in 90s = 66.7% — and the aux LLM dominates -->
+            <!-- 60s of 80 = 75%. Aux LLM dominates the visible bar. -->
             <div class="timeline-seg think" style="left:0%; width:8%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:8%; width:1.5%;">f</div>
-            <div class="timeline-seg think" style="left:9.5%; width:6%;">think</div>
-            <div class="timeline-seg aux" style="left:15.5%; width:45%;">aux LLM (per-session summarisation)</div>
-            <div class="timeline-seg think" style="left:60.5%; width:6%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:8%; width:2%;">f</div>
+            <div class="timeline-seg think" style="left:10%; width:6%;">think</div>
+            <div class="timeline-seg aux" style="left:16%; width:52%;">aux LLM — per-session summarisation (Opus, ~$0.50)</div>
+            <div class="timeline-seg think" style="left:68%; width:7%;">think</div>
           </div>
           <div class="timeline-cost">$1.00<span class="cost-detail">~60s</span></div>
         </div>
@@ -457,9 +497,7 @@
         </div>
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
-          The summary track is dominated by aux-LLM work, not tool latency — that's where the 30–60 second
-          and dollar-scale cost lives. Fast and guided are tool reads against SQLite; the time visible on
-          their tracks is mostly the agent thinking between calls, not waiting on the system.
+          The summary track is dominated by aux-LLM work — that's where the cost lives. Other modes are tool reads against SQLite; the visible time is mostly the agent reasoning between calls.
         </p>
       </div>
     </section>
@@ -549,7 +587,7 @@
           </div>
 
           <div class="fid-row-h">hedged<br>tone</div>
-          <div class="fid-cell tradeoff">
+          <div class="fid-cell tradeoff target">
             <strong>Honest about gaps (the new default)</strong>
             Fast surfaces what it found and flags what's thin. Agent can re-search with sharper phrasing before synthesising.
           </div>
@@ -559,56 +597,35 @@
           </div>
         </div>
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 14px 0 0; line-height:1.55">
-          The old default (summary-on-everything) sat on the dangerous diagonal: confident in tone, but only as honest as FTS5 happened to be on the day. The new defaults pull toward "honest about gaps" by surfacing raw snippets instead of synthesised prose by default — and giving the agent the toolkit to actively widen the search when fast results look thin.
+          The old default (summary-on-everything) sat on the dangerous diagonal. The new defaults pull toward "honest about gaps" by surfacing raw snippets first — and let the agent widen the search when results look thin.
         </p>
       </div>
 
       <div class="ve-card c-amber anim" style="--i:4" style="margin-top:16px">
         <div class="ve-card__label">A real example — same question, both modes</div>
-        <p style="font-size:13px; line-height:1.55; margin:8px 0 0">
-          From the smoke-test corpus. Question: <em>"what do we know about Telepath the AI startup?"</em>
-          (recent telegram-platform research, ~2 sessions in the DB).
-        </p>
 
         <div class="example-pair">
           <div class="example-box old">
-            <div class="e-label">old default (summary on everything)</div>
+            <div class="e-label">old default — summary on everything</div>
             <div class="e-prompt">"what do we know about Telepath?"</div>
             <div class="e-answer">
-              ~45–60s wait, ~$1.00.<br><br>
-              <strong>Risk:</strong> if FTS5 misses the right session (e.g. tokenisation footgun, title-at-position-0),
-              the aux LLM happily summarises whatever it found instead. Reader gets a coherent paragraph that
-              <em>sounds</em> right but is built from adjacent cron-summary noise. No signal that retrieval was weak.
+              ~45–60s, ~$1.00.<br><br>
+              Aux LLM summarises whatever FTS5 found. If retrieval missed the right session, the reader gets a confident paragraph built from adjacent noise. No signal that retrieval was thin.
             </div>
           </div>
 
           <div class="example-box new">
-            <div class="e-label">new default (fast, with explicit drill if needed)</div>
+            <div class="e-label">new default — fast, drill if needed</div>
             <div class="e-prompt">"what do we know about Telepath?"</div>
             <div class="e-answer">
               ~22s, ~$0.23.<br><br>
-              Agent runs <code>fast(query="Telepath")</code>, surfaces 2 real telegram sessions with snippets,
-              calls <code>guided</code> on the most substantive one to pull the raw messages, and synthesises
-              from <em>actual</em> conversation: founders' names, the manifesto URL, the @telepathinc tease.
-              If retrieval had been thin, the agent would have widened the search before synthesising.
+              Agent runs fast, surfaces 2 telegram sessions with snippets, calls guided on the most substantive one for raw messages. Synthesises from <em>actual</em> conversation: founders, manifesto URL, the @telepathinc tease.
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="ve-card c-amber anim" style="--i:5" style="margin-top:16px">
-        <div class="ve-card__label">Tool priority — memory first, external sources second</div>
-        <p style="font-size:13px; line-height:1.55; margin:8px 0 0">
-          The agent now reaches for the session DB <strong>before</strong> calling <code>gh pr list</code>,
-          web search, or filesystem inspection on questions about prior work. The session DB carries what was
-          <em>discussed and decided</em>; external tools only show the current world state. Both matter — but
-          memory comes first, then verification.
-        </p>
-        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 12px 0 0; line-height:1.55">
-          A real case from the smoke test: asked about the status of a feature branch, the agent first
-          calls <code>session_search</code> to find the prior planning discussion, then verifies the branch
-          state with the filesystem. The old behaviour was to skip the DB entirely and answer with just
-          the external check — which produced a technically-correct but contextually-empty answer.
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 16px 0 0; line-height:1.55">
+          Bonus on prior-work questions: the agent now reaches for the session DB <em>before</em> <code>gh pr list</code> / web / filesystem. Memory first, external sources second.
         </p>
       </div>
     </section>
@@ -668,18 +685,12 @@
         </div>
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
-          The costs above are medians from a 14-scenario smoke test against the user's real session DB
-          (~300 sessions, ~18k messages). Pricing is computed by hermes's own <code>agent/usage_pricing.py</code>
-          helper against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026). Both main-loop
-          and aux costs share the same rate card — no extractor-side hardcoding.
+          Medians from a 14-scenario smoke test against the user's real session DB. Pricing computed by hermes's own <code>agent/usage_pricing.py</code> against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026) — same rate card for both main and aux costs.
         </p>
       </div>
 
       <div class="callout anim" style="--i:4">
-        <strong>The headline:</strong> summary is the only expensive mode, and the expense isn't latency,
-        it's the auxiliary LLM call dispatched <em>per matched session</em>. If you're querying a topic with
-        5 hits, summary mode runs Opus 5 times in parallel. Reserve it for questions that genuinely warrant
-        synthesis — for everything else, fast is 4–6× cheaper and 3× faster.
+        <strong>The headline:</strong> summary is the only expensive mode, and the expense is the aux LLM call dispatched <em>per matched session</em>. Reserve it for synthesis questions — for everything else, fast is 4–6× cheaper and 3× faster.
       </div>
     </section>
 
