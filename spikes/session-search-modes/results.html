@@ -833,13 +833,13 @@
       <a class="toc-page__title" href="#opener">session_search — results</a>
       <div class="toc-page__sections">
         <a href="#opener">Overview</a>
-        <a href="#intro">The problem, and what we built</a>
-        <a href="#timeline">1. The three modes, on one clock</a>
-        <a href="#shapes">2. What question pulls which mode</a>
-        <a href="#data-returned">3. What comes back, and how much</a>
-        <a href="#fidelity">4. Search fidelity — what "honest" means now</a>
-        <a href="#costs">5. The cost picture</a>
-        <a href="#bottom-line">6. Bottom line</a>
+        <a href="#intro">The problem</a>
+        <a href="#timeline">On one clock</a>
+        <a href="#shapes">Question → mode</a>
+        <a href="#data-returned">What comes back</a>
+        <a href="#fidelity">Search fidelity</a>
+        <a href="#costs">Costs</a>
+        <a href="#bottom-line">Bottom line</a>
       </div>
     </div>
     <div class="toc-page" data-page="index.html">
@@ -854,7 +854,7 @@
 
     <section id="opener">
       <h1 class="anim" style="--i:0">session_search — results</h1>
-      <p class="subtitle anim" style="--i:1">value-prop and measured outcomes — Nous internal — May 2026</p>
+      <p class="subtitle anim" style="--i:1">value-prop and measured outcomes — May 2026</p>
       <p class="lead anim" style="--i:2">
         You used to have one way to ask the system about its memory: a 30–60 second LLM-narrated recap.
         You now have three — a cheap snippet scan, a deep recap, and a raw-transcript drill-down — and
@@ -883,168 +883,166 @@
 
     <section id="intro">
       <div class="sec-head anim" style="--i:0; color:var(--slate)">
-        <span class="dot" style="background:var(--slate, #94a3b8)"></span> THE PROBLEM, AND WHAT WE BUILT
+        <span class="dot" style="background:var(--slate, #94a3b8)"></span> THE PROBLEM
       </div>
       <h2 class="anim" style="--i:1">One mode for everything → three modes the agent picks between</h2>
 
-      <div class="intro-grid anim" style="--i:2">
-        <div class="intro-problem">
-          <h3>The problem</h3>
-          <p>
-            <code>session_search</code> had one mode. Every question — discovery, drill-down, synthesis — paid the same <em>~30–60s, ~$1.00</em> for an LLM-narrated recap.
-          </p>
-          <p>
-            Worse: when FTS5 retrieval was weak, the aux LLM still produced confident prose. <strong>Thin hits got laundered into authoritative-sounding answers.</strong>
-          </p>
+      <p class="section-desc anim" style="--i:2" style="max-width:880px">
+        <code>session_search</code> had one mode. Every question — discovery, drill-down, synthesis — paid the same <em style="color:#fca5a5; font-style:normal">~30–60s, ~$1.00</em> for an LLM-narrated recap. Worse: when retrieval was weak, the aux LLM still produced confident prose. <strong style="color:#fca5a5">Thin hits got laundered into authoritative-sounding answers.</strong>
+      </p>
+
+      <div class="ve-card c-indigo anim" style="--i:3; margin-top: 18px">
+        <div class="ve-card__label">The three modes</div>
+
+        <div class="mode-intro-row">
+          <span class="mode-intro-tag fast">fast</span>
+          <div class="mode-intro-desc">
+            <span class="role">starting move · discovery</span>
+            FTS5 snippets and metadata across N candidate sessions. No LLM. ~1 KB per session, ~14 seconds end-to-end.
+          </div>
         </div>
 
-        <div class="intro-modes">
-          <h3>The three modes</h3>
+        <div class="mode-intro-row">
+          <span class="mode-intro-tag summary">summary</span>
+          <div class="mode-intro-desc">
+            <span class="role">starting move · synthesis</span>
+            An auxiliary LLM reads each matched session and writes a recap. ~4 KB per session, ~45–60 seconds. The previous default — now opt-in.
+          </div>
+        </div>
 
-          <div class="mode-intro-row">
-            <span class="mode-intro-tag fast">fast</span>
-            <div class="mode-intro-desc">
-              <span class="role">starting move · discovery</span>
-              FTS5 snippets and metadata across N candidate sessions. No LLM. ~1 KB per session, ~14 seconds end-to-end.
+        <div class="mode-intro-row">
+          <span class="mode-intro-tag guided">guided</span>
+          <div class="mode-intro-desc">
+            <span class="role">follow-up move · drill-down</span>
+            Raw messages around a chosen anchor, plus the first/last few user/assistant messages as bookends. No LLM, no rewriting. Requires an anchor from a prior fast or summary call.
+          </div>
+        </div>
+      </div>
+
+      <div class="ve-card c-indigo anim" style="--i:4; margin-top: 16px">
+        <div class="ve-card__label">What each mode actually does</div>
+
+        <div class="mechanism-grid">
+          <div class="mechanism-col">
+            <div class="mechanism-mode fast">fast</div>
+            <div class="mech-step fts">
+              <strong>STEP 1 · FTS5</strong>
+              Query the full-text index for matches (user + assistant roles by default; tool noise filtered)
+            </div>
+            <div class="mech-step skip">
+              <strong>skipped</strong>
+              <span class="skip-divider">·</span>
+              <span>no message fetching</span>
+            </div>
+            <div class="mech-step skip">
+              <strong>skipped</strong>
+              <span class="skip-divider">·</span>
+              <span>no LLM summarisation</span>
+            </div>
+            <div class="mech-step return">
+              <strong>RETURN</strong>
+              Snippets + metadata for each match
+            </div>
+            <div class="mech-cost">cost: index read only</div>
+          </div>
+
+          <div class="mechanism-col">
+            <div class="mechanism-mode summary">summary</div>
+            <div class="mech-step fts">
+              <strong>STEP 1 · FTS5</strong>
+              Same query against the index
+            </div>
+            <div class="mech-step fetch">
+              <strong>STEP 2 · FETCH</strong>
+              Pull <em>all messages</em> from <em>every</em> matched session
+            </div>
+            <div class="mech-step aux">
+              <strong>STEP 3 · AUX LLM</strong>
+              Summarise each session's transcript with Opus, in parallel
+            </div>
+            <div class="mech-step return">
+              <strong>RETURN</strong>
+              One LLM-written recap per matched session
+            </div>
+            <div class="mech-cost">cost: <span class="accent">1 aux LLM call per matched session</span></div>
+          </div>
+
+          <div class="mechanism-col">
+            <div class="mechanism-mode guided">guided</div>
+            <div class="mech-step skip">
+              <strong>skipped</strong>
+              <span class="skip-divider">·</span>
+              <span>no FTS5 query (anchors come from caller)</span>
+            </div>
+            <div class="mech-step fetch">
+              <strong>STEP 1 · FETCH</strong>
+              For each anchor, pull <em>±N messages around it</em> (tool noise filtered)
+            </div>
+            <div class="mech-step fetch">
+              <strong>STEP 2 · BOOKENDS</strong>
+              Also pull the first &amp; last few user/assistant messages of the session for framing
+            </div>
+            <div class="mech-step skip">
+              <strong>skipped</strong>
+              <span class="skip-divider">·</span>
+              <span>no LLM rewriting</span>
+            </div>
+            <div class="mech-step return">
+              <strong>RETURN</strong>
+              Raw conversation window + bookends per anchor
+            </div>
+            <div class="mech-cost">cost: targeted DB read only</div>
+          </div>
+        </div>
+
+        <div class="mech-punchline">
+          <strong>The cost gap isn't about the search.</strong>
+          Fast and summary run the same FTS5 query. The gap is what happens <em>after</em>: summary fetches every message from every match and runs an aux LLM over each one. Fast skips both. Guided skips the search entirely and just reads a window around a known point, plus the session's framing bookends.
+        </div>
+      </div>
+
+      <div class="ve-card c-indigo anim" style="--i:5; margin-top: 16px">
+        <div class="ve-card__label">How they connect</div>
+
+        <div class="interplay" style="margin-top:0; background:transparent; padding:0">
+          <div class="interplay-group">
+            <div class="interplay-group-label">two starting moves</div>
+            <div class="interplay-flow">
+              <div class="interplay-step user">question</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step fast">fast</div>
+            </div>
+            <div class="interplay-flow">
+              <div class="interplay-step user">question</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step summary">summary</div>
             </div>
           </div>
 
-          <div class="mode-intro-row">
-            <span class="mode-intro-tag summary">summary</span>
-            <div class="mode-intro-desc">
-              <span class="role">starting move · synthesis</span>
-              An auxiliary LLM reads each matched session and writes a recap. ~4 KB per session, ~45–60 seconds. The previous default — now opt-in.
+          <div class="interplay-group followup">
+            <div class="interplay-group-label">one follow-up move</div>
+            <div class="interplay-flow">
+              <div class="interplay-step fast">fast</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step guided">guided</div>
+            </div>
+            <div class="interplay-flow">
+              <div class="interplay-step summary">summary</div>
+              <div class="interplay-arrow">→</div>
+              <div class="interplay-step guided">guided</div>
             </div>
           </div>
 
-          <div class="mode-intro-row">
-            <span class="mode-intro-tag guided">guided</span>
-            <div class="mode-intro-desc">
-              <span class="role">follow-up move · drill-down</span>
-              Raw messages around a chosen anchor. No LLM, no rewriting. Requires an anchor from a prior fast or summary call — cannot stand alone.
-            </div>
-          </div>
-
-          <div class="mechanism">
-            <div class="mechanism-label">What each mode actually does</div>
-
-            <div class="mechanism-grid">
-              <div class="mechanism-col">
-                <div class="mechanism-mode fast">fast</div>
-                <div class="mech-step fts">
-                  <strong>STEP 1 · FTS5</strong>
-                  Query the full-text index for matches
-                </div>
-                <div class="mech-step skip">
-                  <strong>skipped</strong>
-                  <span class="skip-divider">·</span>
-                  <span>no message fetching</span>
-                </div>
-                <div class="mech-step skip">
-                  <strong>skipped</strong>
-                  <span class="skip-divider">·</span>
-                  <span>no LLM summarisation</span>
-                </div>
-                <div class="mech-step return">
-                  <strong>RETURN</strong>
-                  Snippets + metadata for each match
-                </div>
-                <div class="mech-cost">cost: index read only</div>
-              </div>
-
-              <div class="mechanism-col">
-                <div class="mechanism-mode summary">summary</div>
-                <div class="mech-step fts">
-                  <strong>STEP 1 · FTS5</strong>
-                  Same query against the index
-                </div>
-                <div class="mech-step fetch">
-                  <strong>STEP 2 · FETCH</strong>
-                  Pull <em>all messages</em> from <em>every</em> matched session
-                </div>
-                <div class="mech-step aux">
-                  <strong>STEP 3 · AUX LLM</strong>
-                  Summarise each session's transcript with Opus, in parallel
-                </div>
-                <div class="mech-step return">
-                  <strong>RETURN</strong>
-                  One LLM-written recap per matched session
-                </div>
-                <div class="mech-cost">cost: <span class="accent">1 aux LLM call per matched session</span></div>
-              </div>
-
-              <div class="mechanism-col">
-                <div class="mechanism-mode guided">guided</div>
-                <div class="mech-step skip">
-                  <strong>skipped</strong>
-                  <span class="skip-divider">·</span>
-                  <span>no FTS5 query (anchors come from caller)</span>
-                </div>
-                <div class="mech-step fetch">
-                  <strong>STEP 1 · FETCH</strong>
-                  For each anchor, pull <em>only the ±N messages around it</em>
-                </div>
-                <div class="mech-step skip">
-                  <strong>skipped</strong>
-                  <span class="skip-divider">·</span>
-                  <span>no LLM rewriting</span>
-                </div>
-                <div class="mech-step return">
-                  <strong>RETURN</strong>
-                  Raw conversation window per anchor
-                </div>
-                <div class="mech-cost">cost: targeted DB read only</div>
-              </div>
-            </div>
-
-            <div class="mech-punchline">
-              <strong>The cost gap isn't about the search.</strong>
-              Fast and summary run the same FTS5 query. The gap is what happens <em>after</em>: summary fetches every message from every match and runs an aux LLM over each one. Fast skips both. Guided skips the search entirely and just reads a window around a known point.
-            </div>
-          </div>
-
-          <div class="interplay">
-            <div class="interplay-label">How they connect</div>
-
-            <div class="interplay-group">
-              <div class="interplay-group-label">two starting moves</div>
-              <div class="interplay-flow">
-                <div class="interplay-step user">question</div>
-                <div class="interplay-arrow">→</div>
-                <div class="interplay-step fast">fast</div>
-              </div>
-              <div class="interplay-flow">
-                <div class="interplay-step user">question</div>
-                <div class="interplay-arrow">→</div>
-                <div class="interplay-step summary">summary</div>
-              </div>
-            </div>
-
-            <div class="interplay-group followup">
-              <div class="interplay-group-label">one follow-up move</div>
-              <div class="interplay-flow">
-                <div class="interplay-step fast">fast</div>
-                <div class="interplay-arrow">→</div>
-                <div class="interplay-step guided">guided</div>
-              </div>
-              <div class="interplay-flow">
-                <div class="interplay-step summary">summary</div>
-                <div class="interplay-arrow">→</div>
-                <div class="interplay-step guided">guided</div>
-              </div>
-            </div>
-
-            <p class="interplay-tail">
-              Guided is the deep-dive after fast or summary has surfaced where to look.
-            </p>
-          </div>
+          <p class="interplay-tail">
+            Guided is the deep-dive after fast or summary has surfaced where to look.
+          </p>
         </div>
       </div>
     </section>
 
     <section id="timeline">
       <div class="sec-head anim" style="--i:0; color:var(--teal)">
-        <span class="dot" style="background:var(--teal)"></span> 1. THE THREE MODES, ON ONE CLOCK
+        <span class="dot" style="background:var(--teal)"></span> ON ONE CLOCK
       </div>
       <h2 class="anim" style="--i:1">What actually runs, when, for how long</h2>
       <p class="section-desc anim" style="--i:2">
@@ -1151,7 +1149,7 @@
 
     <section id="shapes">
       <div class="sec-head anim" style="--i:0; color:var(--sky)">
-        <span class="dot" style="background:var(--sky)"></span> 2. WHAT QUESTION PULLS WHICH MODE
+        <span class="dot" style="background:var(--sky)"></span> QUESTION → MODE
       </div>
       <h2 class="anim" style="--i:1">Three shapes of question, three behaviours, no flags to juggle</h2>
       <p class="section-desc anim" style="--i:2">
@@ -1207,7 +1205,7 @@
 
     <section id="data-returned">
       <div class="sec-head anim" style="--i:0; color:var(--indigo)">
-        <span class="dot" style="background:var(--indigo)"></span> 3. WHAT COMES BACK, AND HOW MUCH
+        <span class="dot" style="background:var(--indigo)"></span> WHAT COMES BACK
       </div>
       <h2 class="anim" style="--i:1">Three modes return three different shapes of data</h2>
       <p class="section-desc anim" style="--i:2">
@@ -1259,17 +1257,20 @@
             <div class="payload-size">~12–130 KB · 1 anchor</div>
             <div class="payload-shape">
               <div class="payload-row">session_id, anchor_message_id</div>
-              <div class="payload-row raw">[user] "let's profile the FTS5 path…"</div>
-              <div class="payload-row raw">[assistant] tool_call: terminal(…)</div>
-              <div class="payload-row raw">[tool] output: 297 rows…</div>
+              <div class="payload-row raw" style="opacity:0.6">bookend_start  ← session opener</div>
+              <div class="payload-row raw" style="opacity:0.6">[user] "let's profile the FTS5 path…"</div>
+              <div class="payload-divider"></div>
+              <div class="payload-row raw">[assistant] "let me check the schema…"</div>
               <div class="payload-row raw anchor">⚓ [user] "but the truncation is dishonest"</div>
               <div class="payload-row raw">[assistant] "you're right, I'll…"</div>
-              <div class="payload-row raw">[user] "option C — defer the default"</div>
-              <div class="payload-more">±N messages on each side</div>
+              <div class="payload-divider"></div>
+              <div class="payload-row raw" style="opacity:0.6">bookend_end  ← session closer</div>
+              <div class="payload-row raw" style="opacity:0.6">[assistant] "shipped 76f40e644 — ready"</div>
+              <div class="payload-more">tool noise filtered out</div>
             </div>
             <p class="payload-note">
-              <strong>RAW CONVERSATION</strong>
-              Verbatim messages around a chosen anchor. No LLM rewriting — what was actually said, in order.
+              <strong>RAW CONVERSATION + BOOKENDS</strong>
+              Verbatim messages around the anchor, plus the first/last few user+assistant turns so you get the session's framing. Tool messages dropped except the anchor itself. No LLM rewriting.
             </p>
           </div>
         </div>
@@ -1338,7 +1339,7 @@
           <div class="lever">
             <div class="lever-param">role_filter</div>
             <div class="lever-modes">fast, summary</div>
-            <div class="lever-desc">Restrict to specific roles (e.g. <code>user,assistant</code>) to skip tool output.</div>
+            <div class="lever-desc">Restrict to specific roles. Defaults to <code>user,assistant</code> (tool noise filtered). Set to <code>user,assistant,tool</code> to include tool output.</div>
           </div>
           <div class="lever">
             <div class="lever-param">mode</div>
@@ -1355,7 +1356,7 @@
 
     <section id="fidelity">
       <div class="sec-head anim" style="--i:0; color:var(--amber)">
-        <span class="dot" style="background:var(--amber)"></span> 4. SEARCH FIDELITY
+        <span class="dot" style="background:var(--amber)"></span> SEARCH FIDELITY
       </div>
       <h2 class="anim" style="--i:1">What "honest" means now</h2>
       <p class="section-desc anim" style="--i:2">
@@ -1427,7 +1428,7 @@
 
     <section id="costs">
       <div class="sec-head anim" style="--i:0; color:var(--rose)">
-        <span class="dot" style="background:var(--rose)"></span> 5. THE COST PICTURE
+        <span class="dot" style="background:var(--rose)"></span> COSTS
       </div>
       <h2 class="anim" style="--i:1">Where the dollars actually go</h2>
       <p class="section-desc anim" style="--i:2">
@@ -1491,16 +1492,17 @@
 
     <section id="bottom-line">
       <div class="sec-head anim" style="--i:0; color:var(--emerald)">
-        <span class="dot" style="background:var(--emerald)"></span> 6. BOTTOM LINE
+        <span class="dot" style="background:var(--emerald)"></span> BOTTOM LINE
       </div>
       <h2 class="anim" style="--i:1">Three takeaways, one config line</h2>
 
       <div class="takeaway anim" style="--i:2">
         <h3>What this means in practice</h3>
         <ul>
-          <li><strong>Most questions:</strong> 4–6× cheaper, 3–4× faster than before. The system now matches mode to question shape instead of paying for synthesis on everything.</li>
-          <li><strong>Deep synthesis is still available</strong> — but as an opt-in for questions that demand it, not a default for questions that don't. The expensive thing is now a deliberate choice.</li>
-          <li><strong>Honesty improved more than cost.</strong> Zero hallucinations across the smoke-test set. The agent says "I see weak hits, want me to widen?" instead of papering over thin retrieval. That's a quality improvement that doesn't show up in dollar figures but materially changes whether you can trust the answer.</li>
+          <li><strong>The default is now fast.</strong> Schema reframed so "catch me up on X" routes through <code>fast → guided</code> instead of reflexively burning a summary call. Same DB, same retrieval, but recall now starts cheap.</li>
+          <li><strong>Guided is the recall workhorse.</strong> Returns raw messages around your anchor <em>plus</em> the session's opening and closing turns as bookends — so you get framing for free, without an aux LLM. Tool output is filtered out by default.</li>
+          <li><strong>Summary is opt-in for genuine synthesis.</strong> When you actually want a recap across N sessions, it's still there — but it's a deliberate choice now, not the default for every question that mentions the past.</li>
+          <li><strong>Honesty improved more than cost.</strong> Zero hallucinations across the smoke-test set. Thin retrieval shows up as thin output instead of confident-but-wrong prose.</li>
         </ul>
       </div>
 
