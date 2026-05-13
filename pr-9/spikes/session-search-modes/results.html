@@ -465,25 +465,33 @@
     .mech-step.aux    { border-color: rgba(248, 113, 113, 0.6); background: rgba(248, 113, 113, 0.08); }
     .mech-step.return { border-color: rgba(148, 163, 184, 0.4); background: rgba(148, 163, 184, 0.10); }
     .mech-step.skip {
-      opacity: 0.32;
+      padding: 4px 10px;
+      background: transparent;
+      border-left: 2px dashed rgba(148, 163, 184, 0.25);
+      color: rgba(148, 163, 184, 0.55);
+      font-size: 10px;
+      line-height: 1.3;
       font-style: italic;
-      background: rgba(148, 163, 184, 0.03);
-      border-left-color: rgba(148, 163, 184, 0.2);
-      border-left-style: dashed;
-      color: var(--text-dim, #94a3b8);
-      text-decoration: line-through;
-      text-decoration-color: rgba(148, 163, 184, 0.4);
-      text-decoration-thickness: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 0;
     }
     .mech-step.skip strong {
       text-decoration: none;
-      color: rgba(148, 163, 184, 0.5);
+      color: rgba(148, 163, 184, 0.4);
+      font-size: 9px;
+      margin-bottom: 0;
+      letter-spacing: 0.4px;
+      display: inline;
+      white-space: nowrap;
     }
     .mech-step.skip::before {
-      content: "✗  ";
-      color: rgba(148, 163, 184, 0.5);
-      text-decoration: none;
-      font-style: normal;
+      content: "";
+    }
+    .mech-step.skip-divider {
+      flex: 0 0 auto;
+      color: rgba(148, 163, 184, 0.3);
     }
     .mech-cost {
       margin-top: 4px;
@@ -927,12 +935,14 @@
                   Query the full-text index for matches
                 </div>
                 <div class="mech-step skip">
-                  <strong>SKIPPED</strong>
-                  No message fetching
+                  <strong>skipped</strong>
+                  <span class="skip-divider">·</span>
+                  <span>no message fetching</span>
                 </div>
                 <div class="mech-step skip">
-                  <strong>SKIPPED</strong>
-                  No LLM summarisation
+                  <strong>skipped</strong>
+                  <span class="skip-divider">·</span>
+                  <span>no LLM summarisation</span>
                 </div>
                 <div class="mech-step return">
                   <strong>RETURN</strong>
@@ -965,16 +975,18 @@
               <div class="mechanism-col">
                 <div class="mechanism-mode guided">guided</div>
                 <div class="mech-step skip">
-                  <strong>SKIPPED</strong>
-                  No FTS5 query (anchors come from the caller)
+                  <strong>skipped</strong>
+                  <span class="skip-divider">·</span>
+                  <span>no FTS5 query (anchors come from caller)</span>
                 </div>
                 <div class="mech-step fetch">
                   <strong>STEP 1 · FETCH</strong>
                   For each anchor, pull <em>only the ±N messages around it</em>
                 </div>
                 <div class="mech-step skip">
-                  <strong>SKIPPED</strong>
-                  No LLM rewriting
+                  <strong>skipped</strong>
+                  <span class="skip-divider">·</span>
+                  <span>no LLM rewriting</span>
                 </div>
                 <div class="mech-step return">
                   <strong>RETURN</strong>
