@@ -136,8 +136,11 @@
       font-size: 10px;
       color: #0f172a;
       font-weight: 600;
+      /* Reset Atlas-global .main padding-bottom that collides with our .main modifier */
+      padding: 0;
+      min-width: 0;
     }
-    .costbar-seg.main { background: #34d399; }
+    .costbar-seg.main-cost { background: #34d399; }
     .costbar-seg.aux  { background: #f87171; }
     .costbar-amount {
       text-align: right;
@@ -1077,7 +1080,7 @@
           <div class="timeline-track">
             <!-- 14s of 80 = 17.5% -->
             <div class="timeline-seg think" style="left:0%; width:4%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:4%; width:3.5%;">fast</div>
+            <div class="timeline-seg tool-fast" style="left:4%; width:3.5%;"></div>
             <div class="timeline-seg think" style="left:7.5%; width:10%;">agent replies</div>
           </div>
           <div class="timeline-cost">$0.17<span class="cost-detail">~14s</span></div>
@@ -1088,9 +1091,9 @@
           <div class="timeline-track">
             <!-- 28s of 80 = 35% -->
             <div class="timeline-seg think" style="left:0%; width:5%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:5%; width:3%;">fast</div>
+            <div class="timeline-seg tool-fast" style="left:5%; width:3%;"></div>
             <div class="timeline-seg think" style="left:8%; width:9%;">picks anchor</div>
-            <div class="timeline-seg tool-guided" style="left:17%; width:4%;">drill</div>
+            <div class="timeline-seg tool-guided" style="left:17%; width:4%;"></div>
             <div class="timeline-seg think" style="left:21%; width:14%;">agent replies</div>
           </div>
           <div class="timeline-cost">$0.28<span class="cost-detail">~28s</span></div>
@@ -1101,21 +1104,21 @@
           <div class="timeline-track">
             <!-- 72s of 80 = 90%. 6 fast searches + 2 guided drills + thinking. -->
             <div class="timeline-seg think" style="left:0%; width:5%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:5%; width:2.5%;">f</div>
+            <div class="timeline-seg tool-fast" style="left:5%; width:2.5%;"></div>
             <div class="timeline-seg think" style="left:7.5%; width:7%;">sharpen</div>
-            <div class="timeline-seg tool-fast" style="left:14.5%; width:2.5%;">f</div>
+            <div class="timeline-seg tool-fast" style="left:14.5%; width:2.5%;"></div>
             <div class="timeline-seg think" style="left:17%; width:7%;">sharpen</div>
-            <div class="timeline-seg tool-fast" style="left:24%; width:2.5%;">f</div>
+            <div class="timeline-seg tool-fast" style="left:24%; width:2.5%;"></div>
             <div class="timeline-seg think" style="left:26.5%; width:7%;">sharpen</div>
-            <div class="timeline-seg tool-fast" style="left:33.5%; width:2.5%;">f</div>
+            <div class="timeline-seg tool-fast" style="left:33.5%; width:2.5%;"></div>
             <div class="timeline-seg think" style="left:36%; width:7%;">sharpen</div>
-            <div class="timeline-seg tool-fast" style="left:43%; width:2.5%;">f</div>
+            <div class="timeline-seg tool-fast" style="left:43%; width:2.5%;"></div>
             <div class="timeline-seg think" style="left:45.5%; width:7%;">sharpen</div>
-            <div class="timeline-seg tool-fast" style="left:52.5%; width:2.5%;">f</div>
+            <div class="timeline-seg tool-fast" style="left:52.5%; width:2.5%;"></div>
             <div class="timeline-seg think" style="left:55%; width:6%;">picks anchors</div>
-            <div class="timeline-seg tool-guided" style="left:61%; width:3%;">drill</div>
+            <div class="timeline-seg tool-guided" style="left:61%; width:3%;"></div>
             <div class="timeline-seg think" style="left:64%; width:4%;">·</div>
-            <div class="timeline-seg tool-guided" style="left:68%; width:3%;">drill</div>
+            <div class="timeline-seg tool-guided" style="left:68%; width:3%;"></div>
             <div class="timeline-seg think" style="left:71%; width:19%;">agent replies (briefing)</div>
           </div>
           <div class="timeline-cost">$0.69<span class="cost-detail">~72s</span></div>
@@ -1126,8 +1129,8 @@
           <div class="timeline-track">
             <!-- 60s of 80 = 75%. Aux LLM dominates the visible bar. -->
             <div class="timeline-seg think" style="left:0%; width:4%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:4%; width:2%;">f</div>
-            <div class="timeline-seg aux" style="left:6%; width:54%;">aux LLM — per-session summarisation (Opus, ~$0.50)</div>
+            <div class="timeline-seg tool-fast" style="left:4%; width:2%;"></div>
+            <div class="timeline-seg aux" style="left:6%; width:54%;"></div>
             <div class="timeline-seg think" style="left:60%; width:15%;">agent replies</div>
           </div>
           <div class="timeline-cost">$1.00<span class="cost-detail">~60s</span></div>
@@ -1442,7 +1445,7 @@
         <div class="costbar-row" style="margin-top:8px">
           <div class="costbar-label">browse<span class="sub">no query</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main" style="width:15%">$0.15</div>
+            <div class="costbar-seg main-cost" style="width:15%">$0.15</div>
           </div>
           <div class="costbar-amount">$0.15</div>
         </div>
@@ -1450,7 +1453,7 @@
         <div class="costbar-row">
           <div class="costbar-label">fast only<span class="sub">discovery</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main" style="width:17%">$0.17</div>
+            <div class="costbar-seg main-cost" style="width:17%">$0.17</div>
           </div>
           <div class="costbar-amount">$0.17</div>
         </div>
@@ -1458,7 +1461,7 @@
         <div class="costbar-row">
           <div class="costbar-label">fast + guided<span class="sub">drill-down</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main" style="width:28%">$0.28</div>
+            <div class="costbar-seg main-cost" style="width:28%">$0.28</div>
           </div>
           <div class="costbar-amount">$0.28</div>
         </div>
@@ -1466,7 +1469,7 @@
         <div class="costbar-row">
           <div class="costbar-label">fast×N + guided<span class="sub">active retrieval (Run 3 stack)</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main" style="width:69%">$0.69</div>
+            <div class="costbar-seg main-cost" style="width:69%">$0.69</div>
           </div>
           <div class="costbar-amount">$0.69</div>
         </div>
@@ -1474,7 +1477,7 @@
         <div class="costbar-row">
           <div class="costbar-label">summary<span class="sub">aux LLM per matched session</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main" style="width:49%">main $0.49</div>
+            <div class="costbar-seg main-cost" style="width:49%">main $0.49</div>
             <div class="costbar-seg aux" style="width:51%">aux LLM $0.52</div>
           </div>
           <div class="costbar-amount">$1.00</div>
