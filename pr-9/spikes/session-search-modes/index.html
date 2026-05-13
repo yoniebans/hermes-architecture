@@ -917,26 +917,43 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
       </p>
 
       <div class="ve-card c-indigo anim" style="--i:26e">
-        <div class="ve-card__label">Activation surface — one tool, one <code>mode</code> argument</div>
+        <div class="ve-card__label">Two starting moves + one follow-up move</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 12px">
-          There is exactly one registered tool: <code>session_search</code>. Mode is just
-          a string argument the LLM passes. Activation is "emit the right
-          <code>tool_call</code> arguments." No router, no separate tools, no special
-          state machine.
+          The "three modes" framing is technically right but misleading — it makes
+          the modes sound like peers when they aren't. The honest shape is
+          <strong>two starting moves and one follow-up move</strong>. Guided literally
+          cannot be a default — the tool rejects <code>tools.session_search.default_mode: guided</code>
+          and forces it to <code>summary</code>, because guided needs anchors and
+          anchors come from a prior fast/summary call.
         </p>
         <table class="schema-table">
-          <thead><tr><th>What the agent emits</th><th>What runs</th></tr></thead>
+          <thead><tr><th>Move</th><th>What the agent emits</th><th>What runs</th></tr></thead>
           <tbody>
-            <tr><td><code>session_search()</code> (no args)</td><td>Recent sessions — DB browse, no FTS5, no LLM</td></tr>
-            <tr><td><code>session_search(query="X")</code></td><td><strong>mode=summary (default)</strong> — FTS5 + auxiliary LLM recap</td></tr>
-            <tr><td><code>session_search(query="X", mode="fast")</code></td><td>FTS5 snippets only, no LLM</td></tr>
-            <tr><td><code>session_search(query="X", mode="summary")</code></td><td>Same as the default</td></tr>
-            <tr><td><code>session_search(mode="guided", session_id=..., around_message_id=...)</code></td><td>Single-anchor drill — DB-only, returns window of messages</td></tr>
-            <tr><td><code>session_search(mode="guided", anchors=[{session_id, around_message_id}, ...])</code></td><td>Multi-anchor drill — one window per anchor, in one call</td></tr>
+            <tr><td><strong>Browse</strong></td><td><code>session_search()</code> (no args)</td><td>Recent sessions — DB browse, no FTS5, no LLM</td></tr>
+            <tr><td><strong>Start (default)</strong></td><td><code>session_search(query="X")</code></td><td>mode=summary — FTS5 + auxiliary LLM recap</td></tr>
+            <tr><td><strong>Start (cheap)</strong></td><td><code>session_search(query="X", mode="fast")</code></td><td>FTS5 snippets only, no LLM</td></tr>
+            <tr><td><strong>Follow-up</strong></td><td><code>session_search(mode="guided", anchors=[{session_id, around_message_id}, …])</code></td><td>DB-only — returns one window of messages per anchor</td></tr>
           </tbody>
         </table>
         <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
-          The default lives in two places: <code>SESSION_SEARCH_SCHEMA["parameters"]["properties"]["mode"]["default"] = "summary"</code> tells the LLM what to assume, and <code>mode = (mode or "summary")</code> inside <code>session_search()</code> normalises it server-side. Both are needed (defaults aren't always honoured by every provider).
+          <strong>The default lives in three places, in this order:</strong>
+          <code>tools.session_search.default_mode</code> in <code>~/.hermes/config.yaml</code>
+          (user override, accepts <code>fast</code> or <code>summary</code> only),
+          then <code>SESSION_SEARCH_SCHEMA["parameters"]["properties"]["mode"]["default"] = "summary"</code>
+          (LLM-facing schema default), then <code>"summary"</code> as the server-side
+          fallback if everything else is unset or invalid. The user-config override
+          lets a power user live with fast-as-default for a few days without
+          touching the schema.
+        </p>
+        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
+          <strong>Single-anchor guided was a transient shape — now removed from the
+          schema.</strong> Earlier commits exposed <code>session_id</code> and
+          <code>around_message_id</code> as top-level parameters for the single-anchor
+          case. After multi-anchor shipped, those became redundant: <code>anchors=[{...}]</code>
+          handles one anchor just as cleanly as N. The single-anchor params are
+          gone from the LLM-facing schema; the Python function still accepts them
+          as kwargs for direct callers / tests. Schema surface dropped from 5 knobs
+          to 3 (query, role_filter, limit) + mode + anchors + window.
         </p>
       </div>
 
@@ -1151,25 +1168,31 @@ TURN 4 — agent reads windows, composes final user-facing answer
       </p>
 
       <div class="ve-card c-amber anim" style="--i:30">
-        <div class="ve-card__label">Surface area</div>
+        <div class="ve-card__label">Surface area (current — LLM-facing schema)</div>
         <p style="font-size:13px;color:var(--text-dim);margin-bottom:8px">
           Same tool, additional parameters. Schema description guides the LLM through the
-          three-mode flow.
+          two-starts-plus-follow-up flow (see §6.7).
         </p>
 <pre class="state spec">session_search(
     query: str = "",
     role_filter: str = None,
-    limit: int = 3,
+    limit: int = 3,                         # 1..10
     mode: "fast" | "summary" | "guided" = "summary",
 
-    # Guided-mode-only parameters
-    session_id: str | None = None,         # required for guided
-    around_message_id: int | None = None,  # required for guided
-    window: int = 5,                       # clamped [1, 20]; messages before AND after anchor
-
-    db = None,
-    current_session_id: str = None,
+    # Guided-mode parameters
+    anchors: list[{session_id, around_message_id}] | None = None,
+    window: int = 5,                        # clamped [1, 20]; messages each side of anchor
 )</pre>
+        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
+          <strong>Evolution note:</strong> earlier commits exposed
+          <code>session_id</code> and <code>around_message_id</code> as top-level
+          single-anchor parameters alongside the multi-anchor <code>anchors=[…]</code>.
+          After multi-anchor shipped and stabilised, single-anchor became redundant —
+          one-element <code>anchors=[{…}]</code> handles the single case. They were
+          removed from the LLM-facing schema. The Python <code>session_search()</code>
+          function still accepts <code>session_id</code> / <code>around_message_id</code>
+          kwargs for direct callers and test fixtures.
+        </p>
       </div>
 
       <div class="ve-card c-amber anim" style="--i:31; margin-top:16px">
