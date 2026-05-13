@@ -1034,6 +1034,49 @@ TURN 4 — agent reads windows, composes final user-facing answer
         </p>
       </div>
 
+      <div class="ve-card c-rose anim" style="--i:26h2; margin-top:16px">
+        <div class="ve-card__label">Where the synthesis work lands — and how guided's prose feel differs</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
+          Live-test observation (May 12): guided output reads as <em>transactional</em>
+          and narrow compared to summary's user-friendly recap. That's a real ergonomic
+          difference between the modes, and it's worth naming honestly.
+        </p>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
+          <strong>It's not intrinsic to the mode — it's about where the synthesis happens.</strong>
+          Summary pre-digests through the auxiliary LLM, so by the time the main agent
+          sees the tool result it's already prose with headings and conclusions. The
+          agent passes that through almost verbatim. Guided returns <em>raw messages</em>,
+          so the main agent does the synthesis from scratch — and apparently reaches for
+          a "here's msg X, then msg Y" walk-through structure when handed transcript
+          bullets, unless you tell it otherwise.
+        </p>
+        <table class="schema-table" style="margin:8px 0">
+          <thead><tr><th>Mode</th><th>Who synthesises</th><th>Default feel</th><th>Fixable by prompt?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>summary</strong></td><td>Auxiliary LLM (server-side)</td><td>Briefing prose, headings, conclusions</td><td>n/a — built in</td></tr>
+            <tr><td><strong>fast</strong></td><td>Main agent, from snippets</td><td>Short list of session pointers</td><td>Limited — there's little to synthesise from</td></tr>
+            <tr><td><strong>guided</strong></td><td>Main agent, from raw messages</td><td>Transcript-walk: "msg X says…, then msg Y…"</td><td><strong>Yes</strong> — ask for briefing prose explicitly</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
+          <strong>The fix is one sentence in the user prompt.</strong> Compare the two
+          phrasings:
+        </p>
+        <ul class="node-list">
+          <li><strong>Transactional default:</strong> <em>"drill into #1 and #3 with multi-anchor guided"</em> → agent walks the transcript message by message.</li>
+          <li><strong>Briefing posture:</strong> <em>"drill into #1 and #3 with multi-anchor guided and give me a briefing-style recap, not a transcript walk"</em> → agent absorbs the raw windows and writes prose at summary's reading level, while keeping guided's precision (no aux-LLM telephone, exact messages, anchor flagged).</li>
+        </ul>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
+          <strong>The real tradeoff isn't speed or precision — it's whose job synthesis is.</strong>
+          Summary buys you done-for-you prose at the cost of a ~30–60 s aux-LLM round-trip
+          and the laundering risk (summary makes confident claims from incomplete recall;
+          the consumer replay in §6.5 shows this). Guided gives you raw exactness, but the
+          format is whatever the main agent decides to do with raw messages —
+          and the default is transactional. Both modes can land at "briefing prose";
+          guided just makes you ask for it.
+        </p>
+      </div>
+
       <div class="ve-card c-amber anim" style="--i:26i; margin-top:16px">
         <div class="ve-card__label">What governs the loop: schema description + model judgement</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
@@ -1045,6 +1088,7 @@ TURN 4 — agent reads windows, composes final user-facing answer
           <li>"find the latest session about Y" → fast (one call, cheap discovery)</li>
           <li>"I see the fast hit but want the actual back-and-forth" → guided (with anchor from fast)</li>
           <li><code>limit</code> defaults to 3; bump to 5–10 when the user wants to be in the retrieval loop</li>
+          <li>Guided output defaults to a transcript-walk style — ask for "briefing-style recap" or "give me prose, not a transcript" when you want summary's reading feel without summary's aux-LLM round-trip (see card above)</li>
         </ul>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
           That's the only "loop logic" in the system. Everything else is the model
