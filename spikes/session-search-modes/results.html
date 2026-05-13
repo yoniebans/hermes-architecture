@@ -406,7 +406,86 @@
       margin-bottom: 3px;
     }
 
-    /* The interplay diagram — two starts + one follow-up */
+    /* Mechanism diagram — what each mode actually does step-by-step */
+    .mechanism {
+      margin-top: 18px;
+      padding: 16px 18px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 5px;
+    }
+    .mechanism-label {
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-dim, #94a3b8);
+      margin-bottom: 14px;
+    }
+    .mechanism-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .mechanism-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mechanism-mode {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 3px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .mechanism-mode.fast    { background: rgba(52, 211, 153, 0.18); color: #34d399; }
+    .mechanism-mode.summary { background: rgba(248, 113, 113, 0.18); color: #f87171; }
+    .mechanism-mode.guided  { background: rgba(147, 197, 253, 0.18); color: #93c5fd; }
+    .mech-step {
+      padding: 8px 10px;
+      border-radius: 3px;
+      font-size: 11px;
+      line-height: 1.45;
+      background: rgba(148, 163, 184, 0.06);
+      border-left: 2px solid rgba(148, 163, 184, 0.3);
+    }
+    .mech-step strong {
+      display: block;
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-dim, #94a3b8);
+      margin-bottom: 3px;
+    }
+    .mech-step.fts    { border-color: rgba(52, 211, 153, 0.5); }
+    .mech-step.fetch  { border-color: rgba(245, 158, 11, 0.5); }
+    .mech-step.aux    { border-color: rgba(248, 113, 113, 0.6); background: rgba(248, 113, 113, 0.08); }
+    .mech-step.return { border-color: rgba(148, 163, 184, 0.4); background: rgba(148, 163, 184, 0.10); }
+    .mech-step.skip {
+      opacity: 0.35;
+      font-style: italic;
+    }
+    .mech-step.skip::before {
+      content: "—  ";
+      color: var(--text-dim, #94a3b8);
+    }
+    .mech-cost {
+      margin-top: 4px;
+      padding: 6px 10px;
+      border-radius: 3px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text-dim, #94a3b8);
+    }
+    .mech-cost .accent { color: #fde68a; }
+
+
     .interplay {
       margin-top: 18px;
       padding: 16px 18px;
@@ -798,6 +877,79 @@
               <span class="role">follow-up move · drill-down</span>
               Raw messages around a chosen anchor. No LLM, no rewriting. Requires an anchor from a prior fast or summary call — cannot stand alone.
             </div>
+          </div>
+
+          <div class="mechanism">
+            <div class="mechanism-label">What each mode actually does</div>
+
+            <div class="mechanism-grid">
+              <div class="mechanism-col">
+                <div class="mechanism-mode fast">fast</div>
+                <div class="mech-step fts">
+                  <strong>STEP 1 · FTS5</strong>
+                  Query the full-text index for matches
+                </div>
+                <div class="mech-step skip">
+                  <strong>SKIPPED</strong>
+                  No message fetching
+                </div>
+                <div class="mech-step skip">
+                  <strong>SKIPPED</strong>
+                  No LLM summarisation
+                </div>
+                <div class="mech-step return">
+                  <strong>RETURN</strong>
+                  Snippets + metadata for each match
+                </div>
+                <div class="mech-cost">cost: index read only</div>
+              </div>
+
+              <div class="mechanism-col">
+                <div class="mechanism-mode summary">summary</div>
+                <div class="mech-step fts">
+                  <strong>STEP 1 · FTS5</strong>
+                  Same query against the index
+                </div>
+                <div class="mech-step fetch">
+                  <strong>STEP 2 · FETCH</strong>
+                  Pull <em>all messages</em> from <em>every</em> matched session
+                </div>
+                <div class="mech-step aux">
+                  <strong>STEP 3 · AUX LLM</strong>
+                  Summarise each session's transcript with Opus, in parallel
+                </div>
+                <div class="mech-step return">
+                  <strong>RETURN</strong>
+                  One LLM-written recap per matched session
+                </div>
+                <div class="mech-cost">cost: <span class="accent">1 aux LLM call per matched session</span></div>
+              </div>
+
+              <div class="mechanism-col">
+                <div class="mechanism-mode guided">guided</div>
+                <div class="mech-step skip">
+                  <strong>SKIPPED</strong>
+                  No FTS5 query (anchors come from the caller)
+                </div>
+                <div class="mech-step fetch">
+                  <strong>STEP 1 · FETCH</strong>
+                  For each anchor, pull <em>only the ±N messages around it</em>
+                </div>
+                <div class="mech-step skip">
+                  <strong>SKIPPED</strong>
+                  No LLM rewriting
+                </div>
+                <div class="mech-step return">
+                  <strong>RETURN</strong>
+                  Raw conversation window per anchor
+                </div>
+                <div class="mech-cost">cost: targeted DB read only</div>
+              </div>
+            </div>
+
+            <p style="font-size:11px; color:var(--text-dim, #94a3b8); margin: 14px 0 0; line-height:1.55; font-style:italic">
+              The cost gap isn't about the search — fast and summary run the same FTS5 query. The gap is what happens <em>after</em>: summary fetches every message from every match and runs an aux LLM over each one. Fast skips both. Guided skips the search entirely and just reads a window of messages around a known point.
+            </p>
           </div>
 
           <div class="interplay">
