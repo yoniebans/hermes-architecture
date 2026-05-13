@@ -1035,45 +1035,55 @@ TURN 4 — agent reads windows, composes final user-facing answer
       </div>
 
       <div class="ve-card c-rose anim" style="--i:26h2; margin-top:16px">
-        <div class="ve-card__label">Where the synthesis work lands — and how guided's prose feel differs</div>
+        <div class="ve-card__label">How much shape you give the agent governs guided's synthesis</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          Live-test observation (May 12): guided output reads as <em>transactional</em>
-          and narrow compared to summary's user-friendly recap. That's a real ergonomic
-          difference between the modes, and it's worth naming honestly.
+          Earlier framing on this page claimed guided defaulted to a transactional
+          transcript-walk style and that asking for "briefing-style recap" would fix it.
+          <strong>That claim was partially wrong</strong> and a live A/B run (May 13,
+          same query, two prompts) tells a more honest story. Recording the actual
+          finding rather than the original prediction.
         </p>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          <strong>It's not intrinsic to the mode — it's about where the synthesis happens.</strong>
-          Summary pre-digests through the auxiliary LLM, so by the time the main agent
-          sees the tool result it's already prose with headings and conclusions. The
-          agent passes that through almost verbatim. Guided returns <em>raw messages</em>,
-          so the main agent does the synthesis from scratch — and apparently reaches for
-          a "here's msg X, then msg Y" walk-through structure when handed transcript
-          bullets, unless you tell it otherwise.
+          <strong>Where the synthesis work lands is still real</strong> — summary
+          pre-digests through the auxiliary LLM (server-side, briefing prose by
+          construction), guided returns raw messages and the main agent does the
+          synthesis from scratch. That part of the diagnosis stands. What was wrong
+          was assuming guided's default would land at "transcript walk." On Opus, with
+          three multi-anchor windows of mixed message types, both prompts produced
+          briefing prose. The difference between them was finer than transcript-vs-prose.
         </p>
         <table class="schema-table" style="margin:8px 0">
-          <thead><tr><th>Mode</th><th>Who synthesises</th><th>Default feel</th><th>Fixable by prompt?</th></tr></thead>
+          <thead><tr><th>Mode</th><th>Who synthesises</th><th>What you can tune from user prompt</th></tr></thead>
           <tbody>
-            <tr><td><strong>summary</strong></td><td>Auxiliary LLM (server-side)</td><td>Briefing prose, headings, conclusions</td><td>n/a — built in</td></tr>
-            <tr><td><strong>fast</strong></td><td>Main agent, from snippets</td><td>Short list of session pointers</td><td>Limited — there's little to synthesise from</td></tr>
-            <tr><td><strong>guided</strong></td><td>Main agent, from raw messages</td><td>Transcript-walk: "msg X says…, then msg Y…"</td><td><strong>Yes</strong> — ask for briefing prose explicitly</td></tr>
+            <tr><td><strong>summary</strong></td><td>Auxiliary LLM (server-side)</td><td>Limited — the aux-prompt is fixed, your phrasing affects retrieval not synthesis</td></tr>
+            <tr><td><strong>fast</strong></td><td>Main agent, from snippets</td><td>Limited — there's little synthesisable material; the prompt mostly shapes how the agent navigates from there</td></tr>
+            <tr><td><strong>guided</strong></td><td>Main agent, from raw messages</td><td><strong>High</strong> — synthesis structure is entirely the main agent's choice, so user prompt shapes it directly</td></tr>
           </tbody>
         </table>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
-          <strong>The fix is one sentence in the user prompt.</strong> Compare the two
-          phrasings:
+          <strong>What the A/B actually surfaced (May 13, Opus, same multi-anchor drill):</strong>
         </p>
         <ul class="node-list">
-          <li><strong>Transactional default:</strong> <em>"drill into #1 and #3 with multi-anchor guided"</em> → agent walks the transcript message by message.</li>
-          <li><strong>Briefing posture:</strong> <em>"drill into #1 and #3 with multi-anchor guided and give me a briefing-style recap, not a transcript walk"</em> → agent absorbs the raw windows and writes prose at summary's reading level, while keeping guided's precision (no aux-LLM telephone, exact messages, anchor flagged).</li>
+          <li><strong>Prompt 1</strong> — <em>"drill into the most promising ones with multi-anchor guided"</em> → chronological state-walk with named stages, analyst-notes feel, action items surfaced ("§6 drift, §6.7 addendum pending, PR #20238 status"), some confabulation about PR state.</li>
+          <li><strong>Prompt 2</strong> — <em>"…give me a briefing-style recap, not a transcript walk"</em> → polished narrative arc with phase headings, story-shape closer ("where it stands going into today"), <strong>verbatim quote pulling</strong> from past sessions, fewer action items.</li>
+          <li>Both outputs were prose. Neither was the transcript-walk the original card predicted. The strong-form "guided defaults to transactional" claim is falsified for this setup.</li>
         </ul>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
-          <strong>The real tradeoff isn't speed or precision — it's whose job synthesis is.</strong>
-          Summary buys you done-for-you prose at the cost of a ~30–60 s aux-LLM round-trip
-          and the laundering risk (summary makes confident claims from incomplete recall;
-          the consumer replay in §6.5 shows this). Guided gives you raw exactness, but the
-          format is whatever the main agent decides to do with raw messages —
-          and the default is transactional. Both modes can land at "briefing prose";
-          guided just makes you ask for it.
+          <strong>Refined finding: the lever isn't transcript-vs-prose, it's how much
+          structural opinion the agent invents vs how much you specify.</strong>
+          Default = analyst notes with action items; explicit-briefing = curated
+          executive narrative with quoted sources. Both have value, in different
+          situations. There's no "right" default — but there IS real per-prompt
+          steering room on guided that you don't have on summary.
+        </p>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
+          <strong>Schema-tuning candidates worth A/B'ing next:</strong> verbatim
+          quote-pulling cue (does asking reinforce it or backfire?), action-item
+          surfacing under briefing posture (Prompt 2 lost that — can a single
+          additional line restore it without breaking the narrative shape?), and
+          honest-about-gaps cue ("flag explicitly when fewer than N sessions found,
+          or when retrieval feels meta-only"). None of these need code changes; they
+          need iterating on user-prompt phrasing and observing what comes back.
         </p>
       </div>
 
@@ -1088,7 +1098,7 @@ TURN 4 — agent reads windows, composes final user-facing answer
           <li>"find the latest session about Y" → fast (one call, cheap discovery)</li>
           <li>"I see the fast hit but want the actual back-and-forth" → guided (with anchor from fast)</li>
           <li><code>limit</code> defaults to 3; bump to 5–10 when the user wants to be in the retrieval loop</li>
-          <li>Guided output defaults to a transcript-walk style — ask for "briefing-style recap" or "give me prose, not a transcript" when you want summary's reading feel without summary's aux-LLM round-trip (see card above)</li>
+          <li>Guided synthesis is the most prompt-steerable mode — the main agent shapes it from raw messages, so user-prompt cues like "briefing-style recap" or "include verbatim quotes" land directly. Default lands at analyst-notes feel; explicit shape requests get an executive-briefing feel. See card above for the A/B that established this.</li>
         </ul>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
           That's the only "loop logic" in the system. Everything else is the model
