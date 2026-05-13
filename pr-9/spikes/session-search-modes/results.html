@@ -421,17 +421,39 @@
       color: var(--text-dim, #94a3b8);
       margin-bottom: 12px;
     }
-    .interplay-row {
+    .interplay-group {
+      padding: 10px 12px;
+      border-radius: 4px;
+      background: rgba(148, 163, 184, 0.04);
+      margin-bottom: 8px;
+    }
+    .interplay-group.followup {
+      background: rgba(147, 197, 253, 0.06);
+      border-left: 2px solid rgba(147, 197, 253, 0.4);
+    }
+    .interplay-group-label {
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-dim, #94a3b8);
+      margin-bottom: 8px;
+    }
+    .interplay-group.followup .interplay-group-label {
+      color: #93c5fd;
+    }
+    .interplay-flow {
       display: grid;
-      grid-template-columns: 80px 28px 100px 28px 100px;
+      grid-template-columns: 90px 24px 100px;
       gap: 0;
       align-items: center;
+      margin: 5px 0;
     }
     .interplay-step {
       font-family: 'Fira Code', monospace;
       font-size: 11px;
       font-weight: 600;
-      padding: 8px 12px;
+      padding: 7px 10px;
       border-radius: 3px;
       text-align: center;
     }
@@ -447,9 +469,6 @@
       color: var(--text-dim, #94a3b8);
       font-family: 'Fira Code', monospace;
       font-size: 14px;
-    }
-    .interplay-row:not(:last-child) {
-      margin-bottom: 6px;
     }
     .interplay-tail {
       margin-top: 10px;
@@ -747,10 +766,10 @@
         <div class="intro-problem">
           <h3>The problem</h3>
           <p>
-            <code>session_search</code> had one mode. Any question about your past conversations triggered the same routine: pull matches from FTS5, hand a window to an auxiliary LLM, return a narrated recap.
+            <code>session_search</code> had one mode. Every question — discovery, drill-down, synthesis — paid the same <em>~30–60s, ~$1.00</em> for an LLM-narrated recap.
           </p>
           <p>
-            That worked when you wanted synthesis. It paid the synthesis cost — <em>~30–60 seconds, ~$1.00 per call</em> — on every other shape of question too. And when FTS5 retrieval was weak, the aux LLM still produced confident prose, laundering thin hits into authoritative-sounding answers.
+            Worse: when FTS5 retrieval was weak, the aux LLM still produced confident prose. <strong>Thin hits got laundered into authoritative-sounding answers.</strong>
           </p>
         </div>
 
@@ -784,32 +803,36 @@
           <div class="interplay">
             <div class="interplay-label">How they connect</div>
 
-            <div class="interplay-row">
-              <div class="interplay-step user">question</div>
-              <div class="interplay-arrow">→</div>
-              <div class="interplay-step fast">fast</div>
-              <div class="interplay-arrow"></div>
-              <div></div>
+            <div class="interplay-group">
+              <div class="interplay-group-label">two starting moves</div>
+              <div class="interplay-flow">
+                <div class="interplay-step user">question</div>
+                <div class="interplay-arrow">→</div>
+                <div class="interplay-step fast">fast</div>
+              </div>
+              <div class="interplay-flow">
+                <div class="interplay-step user">question</div>
+                <div class="interplay-arrow">→</div>
+                <div class="interplay-step summary">summary</div>
+              </div>
             </div>
 
-            <div class="interplay-row">
-              <div class="interplay-step user">question</div>
-              <div class="interplay-arrow">→</div>
-              <div class="interplay-step summary">summary</div>
-              <div class="interplay-arrow"></div>
-              <div></div>
-            </div>
-
-            <div class="interplay-row">
-              <div class="interplay-step user">question</div>
-              <div class="interplay-arrow">→</div>
-              <div class="interplay-step fast">fast</div>
-              <div class="interplay-arrow">→</div>
-              <div class="interplay-step guided">guided</div>
+            <div class="interplay-group followup">
+              <div class="interplay-group-label">one follow-up move</div>
+              <div class="interplay-flow">
+                <div class="interplay-step fast">fast</div>
+                <div class="interplay-arrow">→</div>
+                <div class="interplay-step guided">guided</div>
+              </div>
+              <div class="interplay-flow">
+                <div class="interplay-step summary">summary</div>
+                <div class="interplay-arrow">→</div>
+                <div class="interplay-step guided">guided</div>
+              </div>
             </div>
 
             <p class="interplay-tail">
-              Two ways to start, one way to follow up. Guided is the deep-dive after fast or summary points to where to look.
+              Guided is the deep-dive after fast or summary has surfaced where to look.
             </p>
           </div>
         </div>
