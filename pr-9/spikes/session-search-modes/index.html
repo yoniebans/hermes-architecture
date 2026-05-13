@@ -928,7 +928,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           The "three modes" framing is technically right but misleading — it makes
           the modes sound like peers when they aren't. The honest shape is
           <strong>two starting moves and one follow-up move</strong>. Guided literally
-          cannot be a default — the tool rejects <code>tools.session_search.default_mode: guided</code>
+          cannot be a default — the tool rejects <code>auxiliary.session_search.default_mode: guided</code>
           and forces it to <code>summary</code>, because guided needs anchors and
           anchors come from a prior fast/summary call.
         </p>
@@ -943,7 +943,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         </table>
         <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
           <strong>The default lives in three places, in this order:</strong>
-          <code>tools.session_search.default_mode</code> in <code>~/.hermes/config.yaml</code>
+          <code>auxiliary.session_search.default_mode</code> in <code>~/.hermes/config.yaml</code>
           (user override, accepts <code>fast</code> or <code>summary</code> only),
           then <code>SESSION_SEARCH_SCHEMA["parameters"]["properties"]["mode"]["default"] = "summary"</code>
           (LLM-facing schema default), then <code>"summary"</code> as the server-side
