@@ -1035,55 +1035,84 @@ TURN 4 — agent reads windows, composes final user-facing answer
       </div>
 
       <div class="ve-card c-rose anim" style="--i:26h2; margin-top:16px">
-        <div class="ve-card__label">How much shape you give the agent governs guided's synthesis</div>
+        <div class="ve-card__label">Three-run prompt-tuning arc — what we learned about guided's synthesis</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          Earlier framing on this page claimed guided defaulted to a transactional
-          transcript-walk style and that asking for "briefing-style recap" would fix it.
-          <strong>That claim was partially wrong</strong> and a live A/B run (May 13,
-          same query, two prompts) tells a more honest story. Recording the actual
-          finding rather than the original prediction.
+          We ran the same multi-anchor drill three times with progressively richer
+          prompts, observing what changed each time. Recording this as evidence
+          rather than speculation — partial falsification is real data, and the
+          third run is the version worth promoting. All three on Opus, same DB,
+          same query (<code>session-search-investigation</code>).
         </p>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          <strong>Where the synthesis work lands is still real</strong> — summary
-          pre-digests through the auxiliary LLM (server-side, briefing prose by
-          construction), guided returns raw messages and the main agent does the
-          synthesis from scratch. That part of the diagnosis stands. What was wrong
-          was assuming guided's default would land at "transcript walk." On Opus, with
-          three multi-anchor windows of mixed message types, both prompts produced
-          briefing prose. The difference between them was finer than transcript-vs-prose.
+          <strong>The underlying mechanism (still real):</strong> where synthesis
+          happens differs by mode. Summary pre-digests through the auxiliary LLM
+          server-side (briefing prose is built in). Guided returns raw messages
+          and the main agent does the synthesis from scratch — so the main agent's
+          structural choices are entirely shaped by the user prompt. That's why
+          guided is the most tunable mode.
         </p>
         <table class="schema-table" style="margin:8px 0">
-          <thead><tr><th>Mode</th><th>Who synthesises</th><th>What you can tune from user prompt</th></tr></thead>
+          <thead><tr><th>Mode</th><th>Who synthesises</th><th>What the user prompt can shape</th></tr></thead>
           <tbody>
-            <tr><td><strong>summary</strong></td><td>Auxiliary LLM (server-side)</td><td>Limited — the aux-prompt is fixed, your phrasing affects retrieval not synthesis</td></tr>
-            <tr><td><strong>fast</strong></td><td>Main agent, from snippets</td><td>Limited — there's little synthesisable material; the prompt mostly shapes how the agent navigates from there</td></tr>
-            <tr><td><strong>guided</strong></td><td>Main agent, from raw messages</td><td><strong>High</strong> — synthesis structure is entirely the main agent's choice, so user prompt shapes it directly</td></tr>
+            <tr><td><strong>summary</strong></td><td>Auxiliary LLM (server-side)</td><td>Limited — aux-prompt is fixed; your phrasing affects retrieval, not synthesis</td></tr>
+            <tr><td><strong>fast</strong></td><td>Main agent, from snippets</td><td>Limited — little synthesisable material; mostly shapes how the agent navigates from there</td></tr>
+            <tr><td><strong>guided</strong></td><td>Main agent, from raw messages</td><td><strong>High</strong> — synthesis structure is entirely the main agent's choice, prompt cues land directly</td></tr>
           </tbody>
         </table>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
-          <strong>What the A/B actually surfaced (May 13, Opus, same multi-anchor drill):</strong>
+
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:12px 0 8px">
+          <strong>Run 1 — bare drill instruction.</strong>
+          <em>"drill into the most promising ones with multi-anchor guided"</em>
         </p>
-        <ul class="node-list">
-          <li><strong>Prompt 1</strong> — <em>"drill into the most promising ones with multi-anchor guided"</em> → chronological state-walk with named stages, analyst-notes feel, action items surfaced ("§6 drift, §6.7 addendum pending, PR #20238 status"), some confabulation about PR state.</li>
-          <li><strong>Prompt 2</strong> — <em>"…give me a briefing-style recap, not a transcript walk"</em> → polished narrative arc with phase headings, story-shape closer ("where it stands going into today"), <strong>verbatim quote pulling</strong> from past sessions, fewer action items.</li>
-          <li>Both outputs were prose. Neither was the transcript-walk the original card predicted. The strong-form "guided defaults to transactional" claim is falsified for this setup.</li>
+        <ul class="node-list" style="margin:0 0 0 18px">
+          <li>Chronological state-walk with named stages, analyst-notes feel</li>
+          <li>Surfaced action items at the bottom (§6 drift, PR status)</li>
+          <li>Some confabulation about PR state (mixed up #20238 with the salvage branch)</li>
+          <li>Honestly prose, but not particularly polished — felt like analyst's open notebook</li>
         </ul>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
-          <strong>Refined finding: the lever isn't transcript-vs-prose, it's how much
-          structural opinion the agent invents vs how much you specify.</strong>
-          Default = analyst notes with action items; explicit-briefing = curated
-          executive narrative with quoted sources. Both have value, in different
-          situations. There's no "right" default — but there IS real per-prompt
-          steering room on guided that you don't have on summary.
+
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:12px 0 8px">
+          <strong>Run 2 — added explicit briefing cue.</strong>
+          <em>"…give me a briefing-style recap, not a transcript walk"</em>
+        </p>
+        <ul class="node-list" style="margin:0 0 0 18px">
+          <li>Polished narrative arc with phase headings, story-shape closer</li>
+          <li><strong>Verbatim quote pulling</strong> from past sessions — pulled user's "fast session search that returns the wrong results is pretty useless" verbatim, unprompted</li>
+          <li><strong>Lost the action items</strong> — narrative shape dominated, operational handoff dropped</li>
+          <li>Falsified the original "guided defaults to transcript walk" hypothesis — both runs produced prose</li>
+        </ul>
+
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:12px 0 8px">
+          <strong>Run 3 — full stack: briefing + tightness + active retrieval + dual closer.</strong>
+          See the <a href="#repro">reproducibility section</a> for the full prompt.
+        </p>
+        <ul class="node-list" style="margin:0 0 0 18px">
+          <li><strong>Active retrieval played hard:</strong> initial fast → multi-anchor guided → refetch with smaller windows → <em>second supplemental fast search</em> ("guided mode session_search implementation OR merged OR PR") to plug a known shipping-state gap. The model didn't synthesise from the original hits — it noticed a gap and went and got more data.</li>
+          <li><strong>Briefing prose survived the workflow instructions.</strong> Output is still narrative-shaped — Scope, four numbered Stages, Handoff, Gaps. Tightness cue held: bulleted lists where they should be, paragraphs where they should be, no novel-length sprawl.</li>
+          <li><strong>Both closer sections present and substantive.</strong> Handoff = 6 actionable bullets. Gaps = 5 bullets, each pointing at a real retrieval failure (meta-pollution, missing implementation session, thin Stage 1 anchor, no guided-mode metrics) not hedging.</li>
+          <li><strong>Verbatim quoting continued unprompted</strong> — appears to be what Opus does once it has raw guided messages with user dialogue; no explicit cue needed.</li>
+          <li><strong>The killer self-aware bullet:</strong> the gaps section ended with — <em>"Live demonstration of the bug: ironically, this whole briefing is itself an example of the pathology — I'm reconstructing the Stage 4 shipping state from cron/sibling references rather than from the work session, because that's what FTS5 surfaced. Exactly the failure mode the investigation documented."</em> The agent caught itself instantiating the very bug being investigated.</li>
+        </ul>
+
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:12px 0 0">
+          <strong>Refined finding:</strong> the steering lever isn't transcript-vs-prose
+          — it's how much structural opinion the agent invents vs how much the user
+          specifies. The four shape-knobs that mattered for guided synthesis: briefing
+          framing, tightness ("each section should earn its place"), active retrieval
+          ("you have the toolkit — use it"), and dual closer (handoff + gaps as
+          explicit named sections). All four landed in Run 3 — that's the version
+          worth promoting to the schema description once the pattern holds across a
+          few more days of normal use.
         </p>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
-          <strong>Schema-tuning candidates worth A/B'ing next:</strong> verbatim
-          quote-pulling cue (does asking reinforce it or backfire?), action-item
-          surfacing under briefing posture (Prompt 2 lost that — can a single
-          additional line restore it without breaking the narrative shape?), and
-          honest-about-gaps cue ("flag explicitly when fewer than N sessions found,
-          or when retrieval feels meta-only"). None of these need code changes; they
-          need iterating on user-prompt phrasing and observing what comes back.
+          <strong>Why this matters beyond styling:</strong> Run 3's gaps section
+          surfaced a finding (the meta-pollution self-demo) that wouldn't have been
+          visible from Run 1 or Run 2. The honest-about-gaps cue isn't just
+          aesthetic — it's an epistemic surface that catches when retrieval is
+          quietly failing. Same query, same modes, same data; just better
+          instructions to the synthesiser. <em>This is the §6.7 iteration loop in
+          action: tune the prompt, observe what comes back, only promote to code
+          when the evidence holds.</em>
         </p>
       </div>
 
@@ -1522,6 +1551,44 @@ PYTHONPATH=/path/to/hermes-agent \
 #                                                  the agent's next-turn answer
 #    profile-output/&lt;timestamp&gt;-replay.json  — raw replay data
 </pre>
+      </div>
+
+      <div class="ve-card c-teal anim" style="--i:48b; margin-top:16px">
+        <div class="ve-card__label">The Run 3 prompt — full text (referenced from §6.7)</div>
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
+          The prompt that produced the briefing-plus-active-retrieval-plus-honest-gaps
+          output described in §6.7's three-run arc. Paste into the CLI / TUI against
+          a real DB to reproduce the behaviour shape.
+        </p>
+<pre class="state shared">fast-search "session-search-investigation" then drill into the most
+promising hits with multi-anchor guided.
+
+briefing-style recap, not a transcript walk. keep it tight — each
+section should earn its place. briefing as long as the material
+warrants, no longer. handoff as a punchy bulleted list, not paragraphs.
+gaps as a short list of what's actually thin.
+
+play the retrieval surface actively. if the fast results look meta-heavy
+or sparse, run additional fast searches with sharper phrasing to fill
+the gaps before synthesising. you can run multiple fast searches in
+parallel for breadth-first coverage, bump limit up to 10 if you want
+wider nets, and drill deeper with extra guided calls if the windows
+hint at something off-screen. you have the toolkit — use it.
+
+close with two things:
+  (1) "what's still open / what to look at next" — a real handoff
+      section
+  (2) "what was thin or missing in what i found" — honesty about gaps
+      in retrieval, not just gaps in the work itself
+</pre>
+        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
+          Substitute the FTS5 query string ("session-search-investigation") for
+          whatever topic you want to test. The rest of the prompt stays as-is. The
+          four shape-knobs in this prompt (briefing framing, tightness, active
+          retrieval, dual closer) are the candidates being evaluated for eventual
+          promotion to the tool's schema description — once a few days of normal
+          use confirm the pattern holds.
+        </p>
       </div>
 
       <div class="ve-card c-teal anim" style="--i:49; margin-top:16px">
