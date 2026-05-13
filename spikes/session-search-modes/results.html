@@ -418,14 +418,19 @@
 
         <!-- Reference clock: 80s. Each row's bar is sized so longest mode (summary, 60s)
              reaches 75% of the track. That keeps segments visible on the short rows
-             without making them feel undersold relative to summary. -->
+             without making them feel undersold relative to summary.
+
+             Every row ends with a "think" segment — that's the agent writing its
+             final reply for the user, after the last tool call. Without it, the
+             agent would just hand back raw tool output. -->
 
         <div class="timeline-row" style="margin-top:8px">
-          <div class="timeline-mode">recent only<span class="ms">no query</span></div>
+          <div class="timeline-mode">browse<span class="ms">no query</span></div>
           <div class="timeline-track">
-            <!-- 11s of 80 = 13.75% -->
-            <div class="timeline-seg think" style="left:0%; width:12.5%;">think</div>
-            <div class="timeline-seg tool-recent" style="left:12.5%; width:1.25%;"></div>
+            <!-- 11s of 80 = ~14%. Tool call is instant (DB read), most time is the
+                 agent reading the list and replying. -->
+            <div class="timeline-seg tool-recent" style="left:0%; width:1.5%;"></div>
+            <div class="timeline-seg think" style="left:1.5%; width:12.5%;">agent replies</div>
           </div>
           <div class="timeline-cost">$0.15<span class="cost-detail">~11s</span></div>
         </div>
@@ -434,8 +439,9 @@
           <div class="timeline-mode">fast only<span class="ms">discovery</span></div>
           <div class="timeline-track">
             <!-- 14s of 80 = 17.5% -->
-            <div class="timeline-seg think" style="left:0%; width:14%;">agent thinks</div>
-            <div class="timeline-seg tool-fast" style="left:14%; width:3.5%;">fast</div>
+            <div class="timeline-seg think" style="left:0%; width:4%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:4%; width:3.5%;">fast</div>
+            <div class="timeline-seg think" style="left:7.5%; width:10%;">agent replies</div>
           </div>
           <div class="timeline-cost">$0.17<span class="cost-detail">~14s</span></div>
         </div>
@@ -444,10 +450,11 @@
           <div class="timeline-mode">fast + guided<span class="ms">drill-down</span></div>
           <div class="timeline-track">
             <!-- 28s of 80 = 35% -->
-            <div class="timeline-seg think" style="left:0%; width:14%;">agent thinks</div>
-            <div class="timeline-seg tool-fast" style="left:14%; width:3%;">fast</div>
-            <div class="timeline-seg think" style="left:17%; width:14%;">agent thinks</div>
-            <div class="timeline-seg tool-guided" style="left:31%; width:4%;">drill</div>
+            <div class="timeline-seg think" style="left:0%; width:5%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:5%; width:3%;">fast</div>
+            <div class="timeline-seg think" style="left:8%; width:9%;">picks anchor</div>
+            <div class="timeline-seg tool-guided" style="left:17%; width:4%;">drill</div>
+            <div class="timeline-seg think" style="left:21%; width:14%;">agent replies</div>
           </div>
           <div class="timeline-cost">$0.28<span class="cost-detail">~28s</span></div>
         </div>
@@ -456,21 +463,23 @@
           <div class="timeline-mode">fast×N + guided<span class="ms">active retrieval</span></div>
           <div class="timeline-track">
             <!-- 72s of 80 = 90%. 6 fast searches + 2 guided drills + thinking. -->
-            <div class="timeline-seg think" style="left:0%; width:11%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:11%; width:2.5%;">f</div>
-            <div class="timeline-seg think" style="left:13.5%; width:10%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:23.5%; width:2.5%;">f</div>
-            <div class="timeline-seg think" style="left:26%; width:10%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:36%; width:2.5%;">f</div>
-            <div class="timeline-seg think" style="left:38.5%; width:11%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:49.5%; width:2.5%;">f</div>
-            <div class="timeline-seg think" style="left:52%; width:9%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:61%; width:2.5%;">f</div>
-            <div class="timeline-seg think" style="left:63.5%; width:8%;">think</div>
-            <div class="timeline-seg tool-guided" style="left:71.5%; width:3%;">drill</div>
-            <div class="timeline-seg think" style="left:74.5%; width:5%;">think</div>
-            <div class="timeline-seg tool-guided" style="left:79.5%; width:3%;">drill</div>
-            <div class="timeline-seg think" style="left:82.5%; width:7.5%;">think</div>
+            <div class="timeline-seg think" style="left:0%; width:5%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:5%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:7.5%; width:7%;">sharpen</div>
+            <div class="timeline-seg tool-fast" style="left:14.5%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:17%; width:7%;">sharpen</div>
+            <div class="timeline-seg tool-fast" style="left:24%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:26.5%; width:7%;">sharpen</div>
+            <div class="timeline-seg tool-fast" style="left:33.5%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:36%; width:7%;">sharpen</div>
+            <div class="timeline-seg tool-fast" style="left:43%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:45.5%; width:7%;">sharpen</div>
+            <div class="timeline-seg tool-fast" style="left:52.5%; width:2.5%;">f</div>
+            <div class="timeline-seg think" style="left:55%; width:6%;">picks anchors</div>
+            <div class="timeline-seg tool-guided" style="left:61%; width:3%;">drill</div>
+            <div class="timeline-seg think" style="left:64%; width:4%;">·</div>
+            <div class="timeline-seg tool-guided" style="left:68%; width:3%;">drill</div>
+            <div class="timeline-seg think" style="left:71%; width:19%;">agent replies (briefing)</div>
           </div>
           <div class="timeline-cost">$0.69<span class="cost-detail">~72s</span></div>
         </div>
@@ -479,11 +488,10 @@
           <div class="timeline-mode">summary<span class="ms">synthesis</span></div>
           <div class="timeline-track">
             <!-- 60s of 80 = 75%. Aux LLM dominates the visible bar. -->
-            <div class="timeline-seg think" style="left:0%; width:8%;">think</div>
-            <div class="timeline-seg tool-fast" style="left:8%; width:2%;">f</div>
-            <div class="timeline-seg think" style="left:10%; width:6%;">think</div>
-            <div class="timeline-seg aux" style="left:16%; width:52%;">aux LLM — per-session summarisation (Opus, ~$0.50)</div>
-            <div class="timeline-seg think" style="left:68%; width:7%;">think</div>
+            <div class="timeline-seg think" style="left:0%; width:4%;">think</div>
+            <div class="timeline-seg tool-fast" style="left:4%; width:2%;">f</div>
+            <div class="timeline-seg aux" style="left:6%; width:54%;">aux LLM — per-session summarisation (Opus, ~$0.50)</div>
+            <div class="timeline-seg think" style="left:60%; width:15%;">agent replies</div>
           </div>
           <div class="timeline-cost">$1.00<span class="cost-detail">~60s</span></div>
         </div>
@@ -492,12 +500,12 @@
           <span class="item"><span class="swatch" style="background:rgba(148,163,184,0.4)"></span> agent reasoning</span>
           <span class="item"><span class="swatch" style="background:#34d399"></span> fast (snippets)</span>
           <span class="item"><span class="swatch" style="background:#93c5fd"></span> guided (drill-down)</span>
-          <span class="item"><span class="swatch" style="background:#c4b5fd"></span> recent (browse)</span>
+          <span class="item"><span class="swatch" style="background:#c4b5fd"></span> browse (no query)</span>
           <span class="item"><span class="swatch" style="background:#f87171"></span> aux LLM (summary work)</span>
         </div>
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
-          The summary track is dominated by aux-LLM work — that's where the cost lives. Other modes are tool reads against SQLite; the visible time is mostly the agent reasoning between calls.
+          The summary track is dominated by aux-LLM work — that's where the cost lives. Other modes are tool reads against SQLite; the visible time is mostly the agent reasoning between calls and writing the final reply.
         </p>
       </div>
     </section>
@@ -644,7 +652,7 @@
         <div class="ve-card__label">Median per-scenario cost, stacked by source</div>
 
         <div class="costbar-row" style="margin-top:8px">
-          <div class="costbar-label">recent only<span class="sub">browse, no query</span></div>
+          <div class="costbar-label">browse<span class="sub">no query</span></div>
           <div class="costbar-track">
             <div class="costbar-seg main" style="width:15%">$0.15</div>
           </div>
