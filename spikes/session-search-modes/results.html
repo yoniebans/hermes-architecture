@@ -716,6 +716,128 @@
       font-style: italic;
     }
 
+    /* === Section: variance + rubric heatmap === */
+    .varbar-row {
+      display: grid;
+      grid-template-columns: 36px 1fr 70px;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+    }
+    .varbar-sid {
+      color: var(--text-dim, #94a3b8);
+      text-align: right;
+    }
+    .varbar-track {
+      position: relative;
+      height: 14px;
+      background: rgba(148, 163, 184, 0.05);
+      border-radius: 2px;
+    }
+    .varbar-range {
+      position: absolute;
+      top: 5px;
+      height: 4px;
+      background: linear-gradient(90deg, rgba(94, 234, 212, 0.4), rgba(94, 234, 212, 0.7));
+      border-radius: 2px;
+    }
+    .varbar-tick {
+      position: absolute;
+      width: 2px;
+      height: 14px;
+      top: 0;
+    }
+    .varbar-tick.median {
+      background: #5eead4;
+      width: 3px;
+      transform: translateX(-1.5px);
+    }
+    .varbar-tick.p90 {
+      background: #fde68a;
+      transform: translateX(-1px);
+    }
+    .varbar-val {
+      color: #5eead4;
+      font-weight: 600;
+      text-align: left;
+    }
+    .varbar-legend {
+      font-size: 10px;
+      color: var(--text-dim, #94a3b8);
+      margin: 0 0 12px 46px;
+      font-family: 'Fira Code', monospace;
+    }
+    .varbar-legend .leg-tick { display:inline-block; width: 3px; height: 10px; vertical-align: middle; margin: 0 4px 1px 12px; }
+    .varbar-legend .leg-tick.median { background: #5eead4; }
+    .varbar-legend .leg-tick.p90 { background: #fde68a; }
+    .varbar-legend .leg-range { display:inline-block; width:18px; height:4px; background: linear-gradient(90deg, rgba(94, 234, 212, 0.4), rgba(94, 234, 212, 0.7)); border-radius:2px; vertical-align: middle; margin: 0 4px 0 0; }
+
+    .hm-row {
+      display: grid;
+      grid-template-columns: 36px repeat(4, 30px) 1fr;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+    }
+    .hm-sid {
+      color: var(--text-dim, #94a3b8);
+      text-align: right;
+      padding-right: 6px;
+    }
+    .hm-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .hm-cell.h-5 { background: #6ee7b7; color: #064e3b; }
+    .hm-cell.h-4 { background: #fde68a; color: #78350f; }
+    .hm-cell.h-3 { background: #fdba74; color: #7c2d12; }
+    .hm-cell.h-2 { background: #fca5a5; color: #7f1d1d; }
+    .hm-cell.h-1 { background: #f87171; color: #fef2f2; }
+    .hm-note {
+      color: var(--text-dim, #94a3b8);
+      font-size: 10px;
+      font-style: italic;
+      padding-left: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hm-legend {
+      font-size: 10px;
+      color: var(--text-dim, #94a3b8);
+      margin: 12px 0 8px 46px;
+      font-family: 'Fira Code', monospace;
+    }
+    .hm-legend .hm-leg {
+      display: inline-block;
+      width: 18px;
+      height: 12px;
+      vertical-align: middle;
+      margin: 0 4px 1px 12px;
+      border-radius: 2px;
+    }
+    .hm-summary-stat {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--text-dim, #94a3b8);
+      margin: 12px 0 0 46px;
+    }
+    .hm-summary-stat .big {
+      color: #6ee7b7;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
     .deepdive-link {
       margin-top: 32px;
       padding: 18px 24px;
@@ -1735,6 +1857,490 @@
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 16px 0 0; line-height:1.55; font-style:italic">
           <strong style="color:#fde68a">93% of scenarios</strong> (14/15 excluding the 3 test-infrastructure cases) would have run measurably worse under the old default — either by paying multiples of the new cost, by silently laundering thin retrieval into confident prose, or by missing a behavioural improvement (memory-first instinct, temporal sorting cue, multi-anchor catch-up). v2 numbers reflect 90 iterations across 18 scenarios; cell verdicts are median behaviour over 5 iterations each.
         </p>
+      </div>
+
+      <div class="ve-card c-amber anim" style="--i:5" style="margin-top:16px">
+        <div class="ve-card__label">Variance across 5 iterations — wall time</div>
+        <p style="font-size:12px; line-height:1.55; margin: 8px 0 12px; color: var(--text-dim, #94a3b8)">
+          For each scenario: min → max range of wall time across 5 iterations, with median (teal) and p90 (yellow) ticks. Most scenarios cluster tight; <strong style="color:#fde68a">S05 spreads wide</strong> (regression test exercising the pair-resolution safety net), and <strong style="color:#fde68a">S14</strong> is the highest absolute (premium-prompt active retrieval).
+        </p>
+        <div class="varbar-legend">
+          <span class="leg-range"></span> range  <span class="leg-tick median"></span> median  <span class="leg-tick p90"></span> p90  · scale 0–90s
+        </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S01</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:9.9%; width:4.64%"></div>
+                <div class="varbar-tick median" style="left:11.2%"></div>
+                <div class="varbar-tick p90" style="left:11.9%"></div>
+              </div>
+              <div class="varbar-val">10.1s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S02</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:41.8%; width:12.53%"></div>
+                <div class="varbar-tick median" style="left:42.4%"></div>
+                <div class="varbar-tick p90" style="left:45.3%"></div>
+              </div>
+              <div class="varbar-val">38.1s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S03</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:24.7%; width:15.86%"></div>
+                <div class="varbar-tick median" style="left:32.1%"></div>
+                <div class="varbar-tick p90" style="left:33.2%"></div>
+              </div>
+              <div class="varbar-val">28.9s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S04</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:23.0%; width:14.62%"></div>
+                <div class="varbar-tick median" style="left:25.4%"></div>
+                <div class="varbar-tick p90" style="left:26.6%"></div>
+              </div>
+              <div class="varbar-val">22.9s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S05</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:21.0%; width:48.87%"></div>
+                <div class="varbar-tick median" style="left:31.4%"></div>
+                <div class="varbar-tick p90" style="left:41.8%"></div>
+              </div>
+              <div class="varbar-val">28.2s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S06</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:10.4%; width:1.68%"></div>
+                <div class="varbar-tick median" style="left:11.1%"></div>
+                <div class="varbar-tick p90" style="left:11.5%"></div>
+              </div>
+              <div class="varbar-val">9.9s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S07</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:35.1%; width:25.21%"></div>
+                <div class="varbar-tick median" style="left:52.5%"></div>
+                <div class="varbar-tick p90" style="left:57.3%"></div>
+              </div>
+              <div class="varbar-val">47.3s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S08</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:28.3%; width:12.24%"></div>
+                <div class="varbar-tick median" style="left:30.7%"></div>
+                <div class="varbar-tick p90" style="left:34.3%"></div>
+              </div>
+              <div class="varbar-val">27.6s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S09</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:15.6%; width:10.96%"></div>
+                <div class="varbar-tick median" style="left:17.8%"></div>
+                <div class="varbar-tick p90" style="left:24.1%"></div>
+              </div>
+              <div class="varbar-val">16.0s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S10</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:20.4%; width:5.05%"></div>
+                <div class="varbar-tick median" style="left:22.8%"></div>
+                <div class="varbar-tick p90" style="left:23.9%"></div>
+              </div>
+              <div class="varbar-val">20.5s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S11</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:9.5%; width:3.24%"></div>
+                <div class="varbar-tick median" style="left:10.5%"></div>
+                <div class="varbar-tick p90" style="left:11.3%"></div>
+              </div>
+              <div class="varbar-val">9.5s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S12</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:13.4%; width:1.66%"></div>
+                <div class="varbar-tick median" style="left:13.9%"></div>
+                <div class="varbar-tick p90" style="left:13.9%"></div>
+              </div>
+              <div class="varbar-val">12.5s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S13</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:39.0%; width:6.25%"></div>
+                <div class="varbar-tick median" style="left:42.9%"></div>
+                <div class="varbar-tick p90" style="left:43.8%"></div>
+              </div>
+              <div class="varbar-val">38.6s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S14</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:68.1%; width:29.95%"></div>
+                <div class="varbar-tick median" style="left:74.4%"></div>
+                <div class="varbar-tick p90" style="left:76.9%"></div>
+              </div>
+              <div class="varbar-val">66.9s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S15</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:18.6%; width:3.22%"></div>
+                <div class="varbar-tick median" style="left:19.7%"></div>
+                <div class="varbar-tick p90" style="left:20.1%"></div>
+              </div>
+              <div class="varbar-val">17.8s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S16</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:34.6%; width:22.26%"></div>
+                <div class="varbar-tick median" style="left:37.4%"></div>
+                <div class="varbar-tick p90" style="left:37.7%"></div>
+              </div>
+              <div class="varbar-val">33.7s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S17</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:29.8%; width:3.18%"></div>
+                <div class="varbar-tick median" style="left:31.3%"></div>
+                <div class="varbar-tick p90" style="left:31.4%"></div>
+              </div>
+              <div class="varbar-val">28.2s</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S18</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:32.3%; width:5.22%"></div>
+                <div class="varbar-tick median" style="left:35.5%"></div>
+                <div class="varbar-tick p90" style="left:37.4%"></div>
+              </div>
+              <div class="varbar-val">32.0s</div>
+            </div>
+      </div>
+
+      <div class="ve-card c-amber anim" style="--i:6" style="margin-top:16px">
+        <div class="ve-card__label">Variance across 5 iterations — cost</div>
+        <p style="font-size:12px; line-height:1.55; margin: 8px 0 12px; color: var(--text-dim, #94a3b8)">
+          Same shape, in dollars. The cheap scenarios (S06, S11, S12) show one-outlier sensitivity — single $0.18 iteration in a sea of $0.03 iterations spreads the range; the median holds steady. Synthesis scenarios cluster tight around $0.30; <strong style="color:#fde68a">S14</strong> is the cost ceiling at ~$0.65.
+        </p>
+        <div class="varbar-legend">
+          <span class="leg-range"></span> range  <span class="leg-tick median"></span> median  <span class="leg-tick p90"></span> p90  · scale $0–$0.75
+        </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S01</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:21.0%; width:0.15%"></div>
+                <div class="varbar-tick median" style="left:21.1%"></div>
+                <div class="varbar-tick p90" style="left:21.2%"></div>
+              </div>
+              <div class="varbar-val">$0.158</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S02</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:46.3%; width:8.42%"></div>
+                <div class="varbar-tick median" style="left:47.1%"></div>
+                <div class="varbar-tick p90" style="left:47.9%"></div>
+              </div>
+              <div class="varbar-val">$0.354</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S03</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:15.1%; width:28.24%"></div>
+                <div class="varbar-tick median" style="left:41.4%"></div>
+                <div class="varbar-tick p90" style="left:41.6%"></div>
+              </div>
+              <div class="varbar-val">$0.310</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S04</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:18.8%; width:24.61%"></div>
+                <div class="varbar-tick median" style="left:20.8%"></div>
+                <div class="varbar-tick p90" style="left:37.8%"></div>
+              </div>
+              <div class="varbar-val">$0.156</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S05</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:7.0%; width:63.43%"></div>
+                <div class="varbar-tick median" style="left:29.6%"></div>
+                <div class="varbar-tick p90" style="left:44.8%"></div>
+              </div>
+              <div class="varbar-val">$0.222</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S06</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:4.2%; width:19.54%"></div>
+                <div class="varbar-tick median" style="left:6.5%"></div>
+                <div class="varbar-tick p90" style="left:23.6%"></div>
+              </div>
+              <div class="varbar-val">$0.049</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S07</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:28.2%; width:30.35%"></div>
+                <div class="varbar-tick median" style="left:45.6%"></div>
+                <div class="varbar-tick p90" style="left:54.4%"></div>
+              </div>
+              <div class="varbar-val">$0.342</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S08</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:34.8%; width:16.57%"></div>
+                <div class="varbar-tick median" style="left:50.5%"></div>
+                <div class="varbar-tick p90" style="left:51.1%"></div>
+              </div>
+              <div class="varbar-val">$0.379</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S09</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:10.5%; width:19.82%"></div>
+                <div class="varbar-tick median" style="left:24.7%"></div>
+                <div class="varbar-tick p90" style="left:25.1%"></div>
+              </div>
+              <div class="varbar-val">$0.185</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S10</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:10.0%; width:19.77%"></div>
+                <div class="varbar-tick median" style="left:12.9%"></div>
+                <div class="varbar-tick p90" style="left:26.5%"></div>
+              </div>
+              <div class="varbar-val">$0.097</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S11</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:3.6%; width:17.94%"></div>
+                <div class="varbar-tick median" style="left:4.0%"></div>
+                <div class="varbar-tick p90" style="left:4.2%"></div>
+              </div>
+              <div class="varbar-val">$0.030</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S12</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:4.6%; width:18.72%"></div>
+                <div class="varbar-tick median" style="left:4.8%"></div>
+                <div class="varbar-tick p90" style="left:6.1%"></div>
+              </div>
+              <div class="varbar-val">$0.036</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S13</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:27.3%; width:22.41%"></div>
+                <div class="varbar-tick median" style="left:47.4%"></div>
+                <div class="varbar-tick p90" style="left:47.7%"></div>
+              </div>
+              <div class="varbar-val">$0.355</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S14</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:75.0%; width:19.62%"></div>
+                <div class="varbar-tick median" style="left:86.6%"></div>
+                <div class="varbar-tick p90" style="left:87.9%"></div>
+              </div>
+              <div class="varbar-val">$0.649</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S15</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:11.5%; width:16.84%"></div>
+                <div class="varbar-tick median" style="left:15.7%"></div>
+                <div class="varbar-tick p90" style="left:27.8%"></div>
+              </div>
+              <div class="varbar-val">$0.118</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S16</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:29.4%; width:31.46%"></div>
+                <div class="varbar-tick median" style="left:44.4%"></div>
+                <div class="varbar-tick p90" style="left:54.6%"></div>
+              </div>
+              <div class="varbar-val">$0.333</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S17</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:17.5%; width:20.91%"></div>
+                <div class="varbar-tick median" style="left:36.4%"></div>
+                <div class="varbar-tick p90" style="left:36.6%"></div>
+              </div>
+              <div class="varbar-val">$0.273</div>
+            </div>
+            <div class="varbar-row">
+              <div class="varbar-sid">S18</div>
+              <div class="varbar-track">
+                <div class="varbar-range" style="left:23.9%; width:20.27%"></div>
+                <div class="varbar-tick median" style="left:39.5%"></div>
+                <div class="varbar-tick p90" style="left:42.9%"></div>
+              </div>
+              <div class="varbar-val">$0.296</div>
+            </div>
+      </div>
+
+      <div class="ve-card c-emerald anim" style="--i:7" style="margin-top:16px">
+        <div class="ve-card__label">Rubric scores — 4 axes × 18 scenarios (median across 5 iterations)</div>
+        <p style="font-size:12px; line-height:1.55; margin: 8px 0 12px; color: var(--text-dim, #94a3b8)">
+          Each scenario judged on Mode appropriateness, Search fidelity, Topic fidelity, Usefulness — 1–5 scale, grader independent of the run agent. Predominantly green; the 7 with score docks are annotated.
+        </p>
+        <div class="hm-summary-stat"><span class="big">11/18</span> scenarios perfect 5/5/5/5 across all four axes. 7 with at least one axis docked, all small, all explained.</div>
+        <div class="hm-legend" style="margin-top:8px">
+          <span class="hm-leg" style="background:#6ee7b7"></span>5 · ideal &nbsp;
+          <span class="hm-leg" style="background:#fde68a"></span>4 · minor nit &nbsp;
+          <span class="hm-leg" style="background:#fdba74"></span>3 · noted issue &nbsp;
+          <span class="hm-leg" style="background:#fca5a5"></span>2 · meaningful dock &nbsp;
+        </div>
+            <div class="hm-row">
+              <div class="hm-sid">S01</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-4" title="Search fidelity: 4/5">S4</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div> <span class="hm-note">Rock-solid browse behaviour on the carry-over prompt; correctly identifies the active session and offers a guided next s</span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S02</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S03</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S04</div>
+              <div class="hm-cell h-3" title="Mode appropriateness: 3/5">M3</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div> <span class="hm-note">Answers are excellent and consistent, but every run escalates to guided when fast alone was expected — systematic over-s</span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S05</div>
+              <div class="hm-cell h-2" title="Mode appropriateness: 2/5">M2</div>
+              <div class="hm-cell h-4" title="Search fidelity: 4/5">S4</div>
+              <div class="hm-cell h-3" title="Topic fidelity: 3/5">T3</div>
+              <div class="hm-cell h-3" title="Usefulness: 3/5">U3</div> <span class="hm-note">Regression test split the agent: half drilled correctly, half flagged the fabricated SHA and refused — meta-honesty vs. </span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S06</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S07</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S08</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S09</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-4" title="Search fidelity: 4/5">S4</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-4" title="Usefulness: 4/5">U4</div> <span class="hm-note">Fast mode reliably surfaces the rare-token Apr 17 sessions; variance is in whether the 18:02 companion gets directly hit</span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S10</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S11</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S12</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S13</div>
+              <div class="hm-cell h-3" title="Mode appropriateness: 3/5">M3</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div> <span class="hm-note">Answers are excellent and consistent, but default_mode=summary had zero observable effect — agent never used summary mod</span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S14</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S15</div>
+              <div class="hm-cell h-4" title="Mode appropriateness: 4/5">M4</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div> <span class="hm-note">Recency-shaped query reliably triggers sort=newest and anchors on the latest matching session; only nit is consistent gu</span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S16</div>
+              <div class="hm-cell h-4" title="Mode appropriateness: 4/5">M4</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div> <span class="hm-note">sort=oldest reliably steers the agent to the originating session; quality of the origin framing varies but is consistent</span>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S17</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
+            <div class="hm-row">
+              <div class="hm-sid">S18</div>
+              <div class="hm-cell h-5" title="Mode appropriateness: 5/5">M5</div>
+              <div class="hm-cell h-5" title="Search fidelity: 5/5">S5</div>
+              <div class="hm-cell h-5" title="Topic fidelity: 5/5">T5</div>
+              <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
+            </div>
       </div>
     </section>
 
