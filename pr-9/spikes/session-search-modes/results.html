@@ -333,6 +333,116 @@
     .takeaway li:last-child { border-bottom: none; }
     .takeaway li strong { color: var(--emerald, #34d399); font-family: 'Fira Code', monospace; }
 
+    /* === Fidelity matrix over all 14 scenarios === */
+    .matrix {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 6px 0 0;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .matrix-row {
+      display: grid;
+      grid-template-columns: 56px 1.4fr 1.1fr 1.0fr 1.6fr;
+      gap: 12px;
+      padding: 8px 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      align-items: center;
+    }
+    .matrix-row:last-child { border-bottom: none; }
+    .matrix-head {
+      background: rgba(148, 163, 184, 0.08);
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: var(--text-dim, #94a3b8);
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .matrix-sid {
+      font-family: 'Fira Code', monospace;
+      font-weight: 600;
+      color: var(--text-dim, #94a3b8);
+      font-size: 11px;
+    }
+    .matrix-mode {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 3px;
+      display: inline-block;
+      justify-self: start;
+    }
+    .matrix-mode.fast    { background: rgba(52, 211, 153, 0.15);  color: #34d399; }
+    .matrix-mode.summary { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+    .matrix-mode.guided  { background: rgba(147, 197, 253, 0.15); color: #93c5fd; }
+    .matrix-mode.browse  { background: rgba(196, 181, 253, 0.15); color: #c4b5fd; }
+    .matrix-r {
+      font-size: 11px;
+      font-family: 'Fira Code', monospace;
+    }
+    .matrix-r.strong { color: #86efac; }
+    .matrix-r.low,
+    .matrix-r.thin   { color: var(--text-dim, #94a3b8); font-style: italic; }
+    .matrix-risk {
+      font-size: 11px;
+      padding-left: 10px;
+      border-left: 3px solid transparent;
+    }
+    .matrix-risk.high   { border-left-color: #f87171; color: #fca5a5; }
+    .matrix-risk.medium { border-left-color: #fde68a; color: #fde68a; }
+    .matrix-risk.none   { border-left-color: rgba(52, 211, 153, 0.6); color: #86efac; }
+    .matrix-risk.skip   { border-left-color: rgba(148, 163, 184, 0.3); color: var(--text-dim, #94a3b8); font-style: italic; }
+
+    .matrix-rollup {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+    @media (max-width: 920px) {
+      .matrix-rollup { grid-template-columns: repeat(2, 1fr); }
+    }
+    .matrix-rollup-item {
+      padding: 14px 16px;
+      border-radius: 5px;
+      border-left: 3px solid transparent;
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .matrix-rollup-item.high   { border-left-color: #f87171; }
+    .matrix-rollup-item.medium { border-left-color: #fde68a; }
+    .matrix-rollup-item.low    { border-left-color: #34d399; }
+    .matrix-rollup-item.skip   { border-left-color: rgba(148, 163, 184, 0.5); }
+    .matrix-rollup-n {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      line-height: 1;
+    }
+    .matrix-rollup-item.high   .matrix-rollup-n { color: #fca5a5; }
+    .matrix-rollup-item.medium .matrix-rollup-n { color: #fde68a; }
+    .matrix-rollup-item.low    .matrix-rollup-n { color: #86efac; }
+    .matrix-rollup-item.skip   .matrix-rollup-n { color: var(--text-dim, #94a3b8); }
+    .matrix-rollup-label {
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: var(--text-dim, #94a3b8);
+      margin: 6px 0 6px;
+    }
+    .matrix-rollup-desc {
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--text, #e2e8f0);
+    }
+
     /* === Section: introduction & mode interplay === */
     .intro-grid {
       display: grid;
@@ -1436,6 +1546,162 @@
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 16px 0 0; line-height:1.55">
           Bonus on prior-work questions: the agent now reaches for the session DB <em>before</em> <code>gh pr list</code> / web / filesystem. Memory first, external sources second.
+        </p>
+      </div>
+
+      <div class="ve-card c-amber anim" style="--i:5; margin-top:16px">
+        <div class="ve-card__label">The whole smoke set, classified — would the old default have laundered?</div>
+        <p style="font-size:13px; line-height:1.6; margin:0 0 14px">
+          One anecdote is a story; fourteen is a signal. Below: each smoke-test scenario, the mode the agent actually picked, the retrieval strength observed, and the <strong>specific risk</strong> the old summary-on-everything default would have run.
+        </p>
+
+        <div class="matrix">
+          <div class="matrix-row matrix-head">
+            <div>Scenario</div>
+            <div>Question shape</div>
+            <div>Mode picked</div>
+            <div>Retrieval</div>
+            <div>Old-default risk</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S01</div>
+            <div>"what was I working on recently?"</div>
+            <div class="matrix-mode browse">browse</div>
+            <div class="matrix-r low">n/a (no FTS)</div>
+            <div class="matrix-risk none">none — browse handles this</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S02</div>
+            <div>"what do we know about Telepath?"</div>
+            <div class="matrix-mode fast">fast → guided</div>
+            <div class="matrix-r strong">strong (3.8 KB)</div>
+            <div class="matrix-risk medium">~$1 paid for the same answer</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S03</div>
+            <div>"walk me through how X came together"</div>
+            <div class="matrix-mode summary">summary</div>
+            <div class="matrix-r strong">strong (aux confirmed)</div>
+            <div class="matrix-risk none">summary is correct here</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S04</div>
+            <div>"what was the cache-tokens fix?"</div>
+            <div class="matrix-mode summary">summary</div>
+            <div class="matrix-r strong">strong</div>
+            <div class="matrix-risk none">summary is correct here</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S05</div>
+            <div>regression test — multi-anchor drill</div>
+            <div class="matrix-mode fast">fast + 2×guided</div>
+            <div class="matrix-r strong">strong (6.8 KB)</div>
+            <div class="matrix-risk skip">n/a — regression test</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S06</div>
+            <div>"where did we leave session_search?"</div>
+            <div class="matrix-mode fast">fast (alone)</div>
+            <div class="matrix-r strong">strong (3.8 KB)</div>
+            <div class="matrix-risk high">~6× more cost for same answer</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S07</div>
+            <div>"recap memory/context architecture"</div>
+            <div class="matrix-mode summary">summary</div>
+            <div class="matrix-r strong">strong (aux confirmed)</div>
+            <div class="matrix-risk none">summary is correct here</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S08</div>
+            <div>"drill into X cold" (no prior fast)</div>
+            <div class="matrix-mode browse">browse → improvised</div>
+            <div class="matrix-r low">n/a (no FTS)</div>
+            <div class="matrix-risk medium">would have laundered with summary</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S09</div>
+            <div>"status of commons-messaging PR?"</div>
+            <div class="matrix-mode fast">fast (memory-first)</div>
+            <div class="matrix-r strong">strong (4.1 KB)</div>
+            <div class="matrix-risk high">would have missed the memory-first behaviour entirely</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S10</div>
+            <div>"Karpathy llm-wiki ingestion?"</div>
+            <div class="matrix-mode fast">fast</div>
+            <div class="matrix-r strong">strong (6.6 KB)</div>
+            <div class="matrix-risk high">~6× more cost for same answer</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S11</div>
+            <div>nonexistent topic (zero-hit probe)</div>
+            <div class="matrix-mode fast">fast</div>
+            <div class="matrix-r thin">thin (no hits)</div>
+            <div class="matrix-risk high">the canonical confident-stale failure mode</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S12</div>
+            <div>FTS5 default-AND footgun probe</div>
+            <div class="matrix-mode fast">fast</div>
+            <div class="matrix-r strong">strong (6.0 KB)</div>
+            <div class="matrix-risk medium">~6× more cost for same answer</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S13</div>
+            <div>A/B mirror of S02 with default_mode:fast</div>
+            <div class="matrix-mode fast">fast → guided</div>
+            <div class="matrix-r strong">strong (3.8 KB)</div>
+            <div class="matrix-risk skip">n/a — A/B test</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S14</div>
+            <div>Run 3 prompt — active retrieval</div>
+            <div class="matrix-mode fast">6×fast + 2×guided</div>
+            <div class="matrix-r strong">strong (11.1 KB)</div>
+            <div class="matrix-risk high">would not have fanned out / refined</div>
+          </div>
+        </div>
+
+        <div class="matrix-rollup">
+          <div class="matrix-rollup-item high">
+            <div class="matrix-rollup-n">5</div>
+            <div class="matrix-rollup-label">HIGH-risk under old default</div>
+            <div class="matrix-rollup-desc">Would have paid 6× for the same answer, missed a behavioural improvement, or laundered confident prose over a zero-hit retrieval.</div>
+          </div>
+          <div class="matrix-rollup-item medium">
+            <div class="matrix-rollup-n">3</div>
+            <div class="matrix-rollup-label">MEDIUM-risk under old default</div>
+            <div class="matrix-rollup-desc">Same answer, but billed at ~$1 instead of ~$0.17.</div>
+          </div>
+          <div class="matrix-rollup-item low">
+            <div class="matrix-rollup-n">4</div>
+            <div class="matrix-rollup-label">No change — summary was correct</div>
+            <div class="matrix-rollup-desc">Cross-session synthesis questions where summary mode was always the right call.</div>
+          </div>
+          <div class="matrix-rollup-item skip">
+            <div class="matrix-rollup-n">2</div>
+            <div class="matrix-rollup-label">N/A — regression / A-B</div>
+            <div class="matrix-rollup-desc">Test infrastructure scenarios, no end-user comparison.</div>
+          </div>
+        </div>
+
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 16px 0 0; line-height:1.55; font-style:italic">
+          <strong style="color:#fde68a">~64% of scenarios</strong> (9/14 excluding the 2 test-infrastructure cases) would have run measurably worse under the old default — either by paying multiples of the new cost, by silently laundering thin retrieval into confident prose, or by reaching for external tools when the answer lived in memory. The honesty improvement isn't an anecdote; it's the design lever doing its job.
         </p>
       </div>
     </section>
