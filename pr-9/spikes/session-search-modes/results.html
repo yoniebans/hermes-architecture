@@ -1574,73 +1574,73 @@
 
           <div class="matrix-row">
             <div class="matrix-sid">S02</div>
-            <div>"what do we know about Telepath?"</div>
+            <div>"recall the atlas-drift cron arc"</div>
             <div class="matrix-mode fast">fast → guided</div>
-            <div class="matrix-r strong">strong (3.8 KB)</div>
-            <div class="matrix-risk medium">~$1 paid for the same answer</div>
+            <div class="matrix-r strong">strong (3 anchors)</div>
+            <div class="matrix-risk high">~3× more cost for same answer</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S03</div>
-            <div>"walk me through how X came together"</div>
-            <div class="matrix-mode summary">summary</div>
-            <div class="matrix-r strong">strong (aux confirmed)</div>
-            <div class="matrix-risk none">summary is correct here</div>
+            <div>"walk me through the cache-tokens fix"</div>
+            <div class="matrix-mode fast">fast → guided</div>
+            <div class="matrix-r strong">strong (2 anchors)</div>
+            <div class="matrix-risk medium">would have paid summary cost</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S04</div>
-            <div>"what was the cache-tokens fix?"</div>
-            <div class="matrix-mode summary">summary</div>
-            <div class="matrix-r strong">strong</div>
-            <div class="matrix-risk none">summary is correct here</div>
+            <div>"status of commons-messaging PR?"</div>
+            <div class="matrix-mode fast">fast (sort=newest) → guided</div>
+            <div class="matrix-r strong">strong (5/5 sort=newest)</div>
+            <div class="matrix-risk high">would have hit gh first, missed memory</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S05</div>
             <div>regression test — multi-anchor drill</div>
-            <div class="matrix-mode fast">fast + 2×guided</div>
-            <div class="matrix-r strong">strong (6.8 KB)</div>
+            <div class="matrix-mode fast">fast + guided (60% rebind)</div>
+            <div class="matrix-r strong">strong (safety net firing)</div>
             <div class="matrix-risk skip">n/a — regression test</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S06</div>
-            <div>"where did we leave session_search?"</div>
+            <div>"hermes-agent-dev skill?"</div>
             <div class="matrix-mode fast">fast (alone)</div>
-            <div class="matrix-r strong">strong (3.8 KB)</div>
+            <div class="matrix-r strong">strong (5/5 5/5)</div>
             <div class="matrix-risk high">~6× more cost for same answer</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S07</div>
             <div>"recap memory/context architecture"</div>
-            <div class="matrix-mode summary">summary</div>
-            <div class="matrix-r strong">strong (aux confirmed)</div>
-            <div class="matrix-risk none">summary is correct here</div>
+            <div class="matrix-mode fast">fast → guided</div>
+            <div class="matrix-r strong">strong (2-3 anchors)</div>
+            <div class="matrix-risk medium">would have paid summary cost</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S08</div>
             <div>"drill into X cold" (no prior fast)</div>
-            <div class="matrix-mode browse">browse → improvised</div>
-            <div class="matrix-r low">n/a (no FTS)</div>
+            <div class="matrix-mode fast">fast → guided</div>
+            <div class="matrix-r strong">strong (correct refusal/recovery)</div>
             <div class="matrix-risk medium">would have laundered with summary</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S09</div>
-            <div>"status of commons-messaging PR?"</div>
-            <div class="matrix-mode fast">fast (memory-first)</div>
-            <div class="matrix-r strong">strong (4.1 KB)</div>
-            <div class="matrix-risk high">would have missed the memory-first behaviour entirely</div>
+            <div>"Karpathy llm-wiki ingestion?"</div>
+            <div class="matrix-mode fast">fast (sometimes sort=oldest)</div>
+            <div class="matrix-r strong">strong (rare-token recall)</div>
+            <div class="matrix-risk high">~6× more cost for same answer</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S10</div>
-            <div>"Karpathy llm-wiki ingestion?"</div>
-            <div class="matrix-mode fast">fast</div>
-            <div class="matrix-r strong">strong (6.6 KB)</div>
+            <div>"atlas drift PR review"</div>
+            <div class="matrix-mode fast">fast (alone)</div>
+            <div class="matrix-r strong">strong (no drill needed)</div>
             <div class="matrix-risk high">~6× more cost for same answer</div>
           </div>
 
@@ -1648,7 +1648,7 @@
             <div class="matrix-sid">S11</div>
             <div>nonexistent topic (zero-hit probe)</div>
             <div class="matrix-mode fast">fast</div>
-            <div class="matrix-r thin">thin (no hits)</div>
+            <div class="matrix-r thin">thin (no hits, $0.03)</div>
             <div class="matrix-risk high">the canonical confident-stale failure mode</div>
           </div>
 
@@ -1656,52 +1656,84 @@
             <div class="matrix-sid">S12</div>
             <div>FTS5 default-AND footgun probe</div>
             <div class="matrix-mode fast">fast</div>
-            <div class="matrix-r strong">strong (6.0 KB)</div>
+            <div class="matrix-r strong">strong, $0.04</div>
             <div class="matrix-risk medium">~6× more cost for same answer</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S13</div>
-            <div>A/B mirror of S02 with default_mode:fast</div>
-            <div class="matrix-mode fast">fast → guided</div>
-            <div class="matrix-r strong">strong (3.8 KB)</div>
-            <div class="matrix-risk skip">n/a — A/B test</div>
+            <div>A/B mirror of S02 with default_mode:summary</div>
+            <div class="matrix-mode fast">fast → guided (config ignored)</div>
+            <div class="matrix-r strong">strong but didn't honour config</div>
+            <div class="matrix-risk skip">n/a — A/B test (finding flagged)</div>
           </div>
 
           <div class="matrix-row">
             <div class="matrix-sid">S14</div>
             <div>Run 3 prompt — active retrieval</div>
-            <div class="matrix-mode fast">6×fast + 2×guided</div>
-            <div class="matrix-r strong">strong (11.1 KB)</div>
+            <div class="matrix-mode fast">fast×N + guided (sort=newest 5/5)</div>
+            <div class="matrix-r strong">strong (briefing + handoff + gaps)</div>
             <div class="matrix-risk high">would not have fanned out / refined</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S15</div>
+            <div>"where did we leave X" (recency-shaped)</div>
+            <div class="matrix-mode fast">fast (sort=newest 5/5) → guided</div>
+            <div class="matrix-r strong">strong (1 anchor, $0.12)</div>
+            <div class="matrix-risk high">old default had no temporal signal</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S16</div>
+            <div>"how did X start" (origin-shaped)</div>
+            <div class="matrix-mode fast">fast (sort=oldest 5/5) → guided</div>
+            <div class="matrix-r strong">strong (1-3 anchors)</div>
+            <div class="matrix-risk high">origin hidden under descendants</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S17</div>
+            <div>"catch me up across N sessions"</div>
+            <div class="matrix-mode fast">fast → guided (3 anchors 5/5)</div>
+            <div class="matrix-r strong">strong (bookends + multi-anchor)</div>
+            <div class="matrix-risk high">single-anchor would have missed half the arc</div>
+          </div>
+
+          <div class="matrix-row">
+            <div class="matrix-sid">S18</div>
+            <div>anchor-quality stress test</div>
+            <div class="matrix-mode fast">fast → guided (sensible anchor 5/5)</div>
+            <div class="matrix-r strong">strong (canonical moment found)</div>
+            <div class="matrix-risk skip">n/a — quality probe</div>
           </div>
         </div>
 
         <div class="matrix-rollup">
           <div class="matrix-rollup-item high">
-            <div class="matrix-rollup-n">5</div>
+            <div class="matrix-rollup-n">10</div>
             <div class="matrix-rollup-label">HIGH-risk under old default</div>
-            <div class="matrix-rollup-desc">Would have paid 6× for the same answer, missed a behavioural improvement, or laundered confident prose over a zero-hit retrieval.</div>
+            <div class="matrix-rollup-desc">Would have paid 6× for the same answer, missed a behavioural improvement (memory-first / temporal cue / multi-anchor), or laundered confident prose over a zero-hit retrieval.</div>
           </div>
           <div class="matrix-rollup-item medium">
-            <div class="matrix-rollup-n">3</div>
+            <div class="matrix-rollup-n">4</div>
             <div class="matrix-rollup-label">MEDIUM-risk under old default</div>
-            <div class="matrix-rollup-desc">Same answer, but billed at ~$1 instead of ~$0.17.</div>
+            <div class="matrix-rollup-desc">Same answer eventually, but billed at summary cost ($0.30+) instead of fast cost ($0.05–$0.20).</div>
           </div>
           <div class="matrix-rollup-item low">
-            <div class="matrix-rollup-n">4</div>
-            <div class="matrix-rollup-label">No change — summary was correct</div>
-            <div class="matrix-rollup-desc">Cross-session synthesis questions where summary mode was always the right call.</div>
+            <div class="matrix-rollup-n">1</div>
+            <div class="matrix-rollup-label">No change — old default was fine</div>
+            <div class="matrix-rollup-desc">S01 browse path is unchanged across versions.</div>
           </div>
           <div class="matrix-rollup-item skip">
-            <div class="matrix-rollup-n">2</div>
-            <div class="matrix-rollup-label">N/A — regression / A-B</div>
+            <div class="matrix-rollup-n">3</div>
+            <div class="matrix-rollup-label">N/A — regression / A-B / probe</div>
             <div class="matrix-rollup-desc">Test infrastructure scenarios, no end-user comparison.</div>
           </div>
         </div>
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 16px 0 0; line-height:1.55; font-style:italic">
-          <strong style="color:#fde68a">~64% of scenarios</strong> (9/14 excluding the 2 test-infrastructure cases) would have run measurably worse under the old default — either by paying multiples of the new cost, by silently laundering thin retrieval into confident prose, or by reaching for external tools when the answer lived in memory. The honesty improvement isn't an anecdote; it's the design lever doing its job.
+          <strong style="color:#fde68a">93% of scenarios</strong> (14/15 excluding the 3 test-infrastructure cases) would have run measurably worse under the old default — either by paying multiples of the new cost, by silently laundering thin retrieval into confident prose, or by missing a behavioural improvement (memory-first instinct, temporal sorting cue, multi-anchor catch-up). v2 numbers reflect 90 iterations across 18 scenarios; cell verdicts are median behaviour over 5 iterations each.
         </p>
       </div>
     </section>
@@ -1717,51 +1749,53 @@
       </p>
 
       <div class="ve-card c-rose anim" style="--i:3">
-        <div class="ve-card__label">Median per-scenario cost, stacked by source</div>
+        <div class="ve-card__label">Median and p90 per-scenario cost, stacked by source — v2 (5 iterations × 18 scenarios)</div>
 
         <div class="costbar-row" style="margin-top:8px">
           <div class="costbar-label">browse<span class="sub">no query</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main-cost" style="width:15%">$0.15</div>
+            <div class="costbar-seg main-cost" style="width:16%">$0.16</div>
           </div>
-          <div class="costbar-amount">$0.15</div>
+          <div class="costbar-amount">$0.16 · p90 $0.16</div>
         </div>
 
         <div class="costbar-row">
           <div class="costbar-label">fast only<span class="sub">discovery</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main-cost" style="width:17%">$0.17</div>
+            <div class="costbar-seg main-cost" style="width:7%">$0.07</div>
           </div>
-          <div class="costbar-amount">$0.17</div>
+          <div class="costbar-amount">$0.07 · p90 $0.18</div>
         </div>
 
         <div class="costbar-row">
           <div class="costbar-label">fast + guided<span class="sub">drill-down</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main-cost" style="width:28%">$0.28</div>
+            <div class="costbar-seg main-cost" style="width:32%">$0.32</div>
           </div>
-          <div class="costbar-amount">$0.28</div>
+          <div class="costbar-amount">$0.32 · p90 $0.34</div>
         </div>
 
         <div class="costbar-row">
           <div class="costbar-label">fast×N + guided<span class="sub">active retrieval (Run 3 stack)</span></div>
           <div class="costbar-track">
-            <div class="costbar-seg main-cost" style="width:69%">$0.69</div>
+            <div class="costbar-seg main-cost" style="width:65%">$0.65</div>
           </div>
-          <div class="costbar-amount">$0.69</div>
+          <div class="costbar-amount">$0.65 · p90 $0.66</div>
         </div>
 
         <div class="costbar-row">
-          <div class="costbar-label">summary<span class="sub">aux LLM per matched session</span></div>
+          <div class="costbar-label">summary<span class="sub">aux LLM per matched session (v1.8 reference)</span></div>
           <div class="costbar-track">
             <div class="costbar-seg main-cost" style="width:49%">main $0.49</div>
             <div class="costbar-seg aux" style="width:51%">aux LLM $0.52</div>
           </div>
-          <div class="costbar-amount">$1.00</div>
+          <div class="costbar-amount">$1.00 · n/a in v2</div>
         </div>
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
-          Medians from a 14-scenario smoke test against the user's real session DB. Pricing computed by hermes's own <code>agent/usage_pricing.py</code> against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026) — same rate card for both main and aux costs. Single run per scenario; ratios should hold under repeated runs, p90s are not measured.
+          v2 numbers: medians and p90s computed across 5 iterations × 18 scenarios. Pricing computed by hermes's own <code>agent/usage_pricing.py</code> against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026) — same rate card for both main and aux costs. <strong>Ratios are robust; absolute dollars assume Opus pricing</strong> and will scale with provider/model choice.
+          <br><br>
+          The <em>summary</em> row carries its v1.8 reference value because v2's agent didn't pick summary in any of the 90 iterations — even on S13 where <code>default_mode: summary</code> was configured (see §3 callout on the schema-teaching ceiling). The row is preserved here so the reader can see the cost trade-off summary represents; under the new schema it's effectively opt-in only.
           <br><br>
           <em>browse</em> isn't one of the three modes — it's <code>session_search()</code> called with no query, a separate code path that lists recent sessions. Included here as a baseline because the agent reaches for it on "what was I working on recently?"-shaped questions.
         </p>
@@ -1784,11 +1818,11 @@
       <div class="takeaway anim" style="--i:2">
         <h3>What this means in practice</h3>
         <ul>
-          <li><strong>The default is now fast.</strong> Schema reframed so "catch me up on X" routes through <code>fast → guided</code> instead of reflexively burning a summary call. Same DB, same retrieval, but recall now starts cheap.</li>
+          <li><strong>The default is now fast.</strong> Schema reframed so "catch me up on X" routes through <code>fast → guided</code> instead of reflexively burning a summary call. Same DB, same retrieval, but recall now starts cheap. v2 measured this across 90 iterations on 18 scenarios — 17/18 showed 5/5 mode-pick stability.</li>
           <li><strong>Memory first, external sources second.</strong> The agent now reaches for the session DB before <code>gh pr list</code>, web search, or the filesystem on questions about prior work. The behavioural shift is bigger than the cost shift — and the cost shift is real.</li>
           <li><strong>Guided is the recall workhorse.</strong> Returns raw messages around your anchor <em>plus</em> the session's opening and closing turns as bookends — so you get framing for free, without an aux LLM. Tool output is filtered out by default.</li>
           <li><strong>Summary is opt-in for genuine synthesis.</strong> When you actually want a recap across N sessions, it's still there — but it's a deliberate choice now, not the default for every question that mentions the past.</li>
-          <li><strong>Honesty improved more than cost.</strong> No hallucinations observed across the 14-scenario smoke set. Thin retrieval shows up as thin output instead of confident-but-wrong prose. Single sample size — but the failure mode is mechanically prevented, not just unobserved.</li>
+          <li><strong>Honesty improved more than cost.</strong> No hallucinations observed across the 90-iteration v2 set. Rubric scoring: 11/18 scenarios perfect 5/5/5/5, 7 with small documented score docks (none disqualifying). Thin retrieval shows up as thin output instead of confident-but-wrong prose.</li>
         </ul>
       </div>
 
@@ -1808,7 +1842,11 @@ auxiliary:
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 14px 0 0; line-height:1.55">
           Or force a mode per call by naming it in the prompt: <em>"use fast mode to find sessions about X"</em>,
           <em>"summary only"</em>, <em>"drill into the most promising hit with guided"</em>. Explicit overrides
-          always win.
+          always win — both at the resolver level (the agent's explicit <code>mode=</code> argument bypasses the configured default)
+          and at the prompt level (the agent reads what you ask for and honours it).
+        </p>
+        <p style="font-size:12px; color:#fca5a5; margin: 14px 0 0; line-height:1.55">
+          <strong style="color:#f87171">Caveat measured in v2:</strong> setting <code>default_mode: summary</code> in config is currently a soft preference. The schema description tells the agent about your configured default, but on synthesis-shaped questions ("recall…", "walk me through…", "catch me up on…") the agent's training that <code>fast → guided</code> is the right composition currently overrides the user's stated preference. If you want guaranteed summary mode, name it in the prompt (<em>"use summary mode for this"</em>) — that always works.
         </p>
       </div>
 
