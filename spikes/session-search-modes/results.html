@@ -1185,6 +1185,21 @@
         in <code>~/.hermes/config.yaml</code>. The agent will start with cheap snippet scans on most questions
         and only reach for synthesis when the question explicitly demands it.
       </div>
+
+      <div class="ve-card c-sky anim" style="--i:5; margin-top:16px">
+        <div class="ve-card__label">How mode selection actually happens</div>
+        <p style="font-size:13px; line-height:1.6; margin:0 0 10px">
+          There's no pre-routing step, no classifier, no separate model deciding which mode to use. Mode selection is the <strong>main model's own choice</strong>, made every turn from three signals — all of which live in the tool's schema description and the user's request:
+        </p>
+        <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6">
+          <li><strong>Schema teaching</strong> — the tool description in <code>session_search_tool.py</code> (commits <code>1a00d730e</code>, <code>54d817f88</code>, <code>74fdfe6b5</code>, <code>659af123c</code>) frames the three modes as <em>"two starts + one follow-up"</em>, explicitly anti-patterns reflexive summary picks for catch-up, and teaches multi-anchor guided for cross-session work.</li>
+          <li><strong>User wording</strong> — phrases like <em>"drill into…"</em>, <em>"walk me through…"</em>, <em>"find the session where…"</em>, or an explicit <em>"use fast mode"</em> shift which signature the model matches. The schema doesn't enumerate these phrases; the model generalises from the role tags (<em>discovery / synthesis / drill-down</em>).</li>
+          <li><strong>Configured default</strong> — when the model omits <code>mode</code>, the resolver reads <code>auxiliary.session_search.default_mode</code> (default <code>fast</code> as of this PR). Explicit <code>mode=</code> always wins over the configured default.</li>
+        </ul>
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 10px 0 0; line-height:1.55; font-style:italic">
+          The implication: mode-selection quality is a <strong>prompt-engineering surface</strong>, not a code surface. Sharpen the schema description, you sharpen mode picks. The four schema commits above are exactly this kind of iteration on the live agent.
+        </p>
+      </div>
     </section>
 
     <section id="data-returned">
@@ -1296,7 +1311,22 @@
         </p>
       </div>
 
-      <div class="ve-card c-indigo anim" style="--i:5" style="margin-top:16px">
+      <div class="ve-card c-indigo anim" style="--i:5; margin-top:16px">
+        <div class="ve-card__label">When anchor selection goes wrong</div>
+        <p style="font-size:13px; line-height:1.6; margin:0 0 10px">
+          The fast → guided composition is only as good as the anchor fast picks. If <code>match_message_id</code> lands on a tangential snippet — a passing mention, a meta-discussion, the wrong session of a multi-session topic — guided will dutifully fetch the ±N messages around the wrong point. Three mitigations are built in:
+        </p>
+        <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6">
+          <li><strong>Bookends partially compensate.</strong> Even when the window is centred on noise, <code>bookend_start</code> and <code>bookend_end</code> surface the session's actual opening and resolution. The reader at least gets the session's <em>shape</em> for free, regardless of where the anchor landed.</li>
+          <li><strong>Multi-anchor fan-out for ambiguous topics.</strong> When a subject spans multiple sessions, the schema teaches the agent to pass the top 2–3 fast hits as separate anchors in one guided call — so a bad top hit doesn't sink the whole drill. This is the design lever for the "FTS5 ranks by relevance, not recency" failure mode (the top hit for a multi-day arc is often the <em>oldest</em> session).</li>
+          <li><strong>Re-fast with sharper query.</strong> When guided windows look noisy or empty, the agent can re-run fast with refined wording. This is unguarded — relies entirely on the model noticing — and is the most fragile of the three.</li>
+        </ul>
+        <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 10px 0 0; line-height:1.55; font-style:italic">
+          What's <em>not</em> built in: automated re-anchoring, anchor-quality scoring, or a "this looked wrong, try again" loop. Anchor selection failure is a real failure mode this spike doesn't fully solve — the bookends and multi-anchor fan-out close most of the gap, but a determined adversarial query could still produce a confidently-centred window of irrelevant context. Worth measuring in a follow-up.
+        </p>
+      </div>
+
+      <div class="ve-card c-indigo anim" style="--i:6" style="margin-top:16px">
         <div class="ve-card__label">The agent's tunable parameters</div>
 
         <div class="lever-grid">
@@ -1465,12 +1495,17 @@
         </div>
 
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 18px 0 0; line-height:1.55">
-          Medians from a 14-scenario smoke test against the user's real session DB. Pricing computed by hermes's own <code>agent/usage_pricing.py</code> against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026) — same rate card for both main and aux costs.
+          Medians from a 14-scenario smoke test against the user's real session DB. Pricing computed by hermes's own <code>agent/usage_pricing.py</code> against the Anthropic <code>claude-opus-4-7</code> rate card (May 2026) — same rate card for both main and aux costs. Single run per scenario; ratios should hold under repeated runs, p90s are not measured.
+          <br><br>
+          <em>browse</em> isn't one of the three modes — it's <code>session_search()</code> called with no query, a separate code path that lists recent sessions. Included here as a baseline because the agent reaches for it on "what was I working on recently?"-shaped questions.
         </p>
       </div>
 
       <div class="callout anim" style="--i:4">
-        <strong>The headline:</strong> summary is the only expensive mode, and the expense is the aux LLM call dispatched <em>per matched session</em>. Reserve it for synthesis questions — for everything else, fast is 4–6× cheaper and 3× faster.
+        <strong>The headline:</strong> summary is the only expensive mode, and the expense is the aux LLM call dispatched <em>per matched session</em>. Reserve it for synthesis questions — for everything else, fast is <strong>~6× cheaper and ~4× faster</strong> ($0.17 vs $1.00, 14s vs 60s on these scenarios).
+        <span class="callout-note" style="display:block; margin-top:8px; font-size:11px; color:var(--text-dim, #94a3b8); font-style:italic">
+          Ratios are robust across providers; absolute dollar figures assume claude-opus-4-7 (Anthropic public rate card, May 2026). Swap providers and the dollar columns scale, the column-to-column ratios don't.
+        </span>
       </div>
     </section>
 
@@ -1484,9 +1519,10 @@
         <h3>What this means in practice</h3>
         <ul>
           <li><strong>The default is now fast.</strong> Schema reframed so "catch me up on X" routes through <code>fast → guided</code> instead of reflexively burning a summary call. Same DB, same retrieval, but recall now starts cheap.</li>
+          <li><strong>Memory first, external sources second.</strong> The agent now reaches for the session DB before <code>gh pr list</code>, web search, or the filesystem on questions about prior work. The behavioural shift is bigger than the cost shift — and the cost shift is real.</li>
           <li><strong>Guided is the recall workhorse.</strong> Returns raw messages around your anchor <em>plus</em> the session's opening and closing turns as bookends — so you get framing for free, without an aux LLM. Tool output is filtered out by default.</li>
           <li><strong>Summary is opt-in for genuine synthesis.</strong> When you actually want a recap across N sessions, it's still there — but it's a deliberate choice now, not the default for every question that mentions the past.</li>
-          <li><strong>Honesty improved more than cost.</strong> Zero hallucinations across the smoke-test set. Thin retrieval shows up as thin output instead of confident-but-wrong prose.</li>
+          <li><strong>Honesty improved more than cost.</strong> No hallucinations observed across the 14-scenario smoke set. Thin retrieval shows up as thin output instead of confident-but-wrong prose. Single sample size — but the failure mode is mechanically prevented, not just unobserved.</li>
         </ul>
       </div>
 
