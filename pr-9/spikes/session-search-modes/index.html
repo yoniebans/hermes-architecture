@@ -64,8 +64,6 @@
         <a href="#findings">4. Findings</a>
         <a href="#state-walk">5. State walk</a>
         <a href="#consumer-replay">6. Consumer simulation</a>
-        <a href="#followups">7. Future work</a>
-        <a href="#repro">8. Reproducibility</a>
       </div>
     </div>
   </nav>
@@ -239,57 +237,50 @@
         Single run per query. Auxiliary model: whatever <code>auxiliary.session_search</code>
         resolves to in the live config. DB: 247 MB SQLite snapshot, 280 sessions, 18,157 messages.
         These numbers tell us how much each mode <em>costs</em>; the <a href="#consumer-replay">consumer
-        replay</a> in §6.5 tells us what each mode <em>delivers</em>.
+        replay</a> in §6 tells us what each mode <em>delivers</em>.
       </p>
 
       <div class="ve-card c-rose anim" style="--i:19; margin-bottom:20px">
-        <div class="ve-card__label">Per-query end-to-end latency &amp; payload size — three modes</div>
+        <div class="ve-card__label">Per-query tool latency &amp; payload size — three modes</div>
         <p style="font-size:12px;color:var(--text-dim);margin:0 0 12px">
-          <strong>Read this caption before the table.</strong> Fast is a single tool call
-          and the only mode whose wall time is meaningful as a latency comparison.
-          Summary is a single tool call but it triggers an auxiliary LLM fan-out, so its
-          wall time IS its end-to-end cost. Guided is never used in isolation — it always
-          rides on top of a prior fast call <em>plus</em> the main-agent inference turn
-          that picks the anchors. The "fast → think → guided (e2e)" column below
-          accounts for that round-trip; the raw guided DB read is sub-3 ms but it is not
-          a standalone latency you can compare against fast.
+          Measures the tool's intrinsic latency profile. Fast is a single tool call.
+          Summary is a single tool call but triggers an auxiliary LLM fan-out — its
+          wall time is its end-to-end cost. Guided is never used in isolation — it
+          rides on a prior fast call plus an agent-inference turn that picks the
+          anchors; only the raw DB read is shown here. For full interaction timing
+          (tool walls + main-agent reasoning + final response composition), see
+          <a href="results.html#opener">results.html</a>, where v2 measured this
+          across 5 iterations × 18 scenarios on the as-shipped toolkit.
         </p>
         <table class="schema-table">
-          <thead><tr><th>Query</th><th style="text-align:right">fast (1 call)</th><th style="text-align:right">summary (1 call)</th><th style="text-align:right">fast → think → guided (e2e)</th><th style="text-align:right">fast B</th><th style="text-align:right">summary B</th><th style="text-align:right">guided B</th></tr></thead>
+          <thead><tr><th>Query</th><th style="text-align:right">fast (1 call)</th><th style="text-align:right">summary (1 call)</th><th style="text-align:right">guided (DB read)</th><th style="text-align:right">fast B</th><th style="text-align:right">summary B</th><th style="text-align:right">guided B</th></tr></thead>
           <tbody>
-            <tr><td><code>pii redaction multimodal</code></td><td style="text-align:right;color:var(--emerald)">11 ms</td><td style="text-align:right;color:var(--rose)">65.85 s</td><td style="text-align:right;color:var(--amber)">~15 s</td><td style="text-align:right">6,568</td><td style="text-align:right">21,389</td><td style="text-align:right">131,599</td></tr>
-            <tr><td><code>session_search_investigation</code></td><td style="text-align:right;color:var(--emerald)">5 ms</td><td style="text-align:right;color:var(--rose)">63.71 s</td><td style="text-align:right;color:var(--amber)">~15 s</td><td style="text-align:right">6,545</td><td style="text-align:right">22,546</td><td style="text-align:right">61,787</td></tr>
-            <tr><td><code>daily plan</code></td><td style="text-align:right;color:var(--emerald)">7 ms</td><td style="text-align:right;color:var(--rose)">42.41 s</td><td style="text-align:right;color:var(--amber)">~15 s</td><td style="text-align:right">5,618</td><td style="text-align:right">15,721</td><td style="text-align:right">31,808</td></tr>
+            <tr><td><code>pii redaction multimodal</code></td><td style="text-align:right;color:var(--emerald)">11 ms</td><td style="text-align:right;color:var(--rose)">65.85 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">6,568</td><td style="text-align:right">21,389</td><td style="text-align:right">131,599</td></tr>
+            <tr><td><code>session_search_investigation</code></td><td style="text-align:right;color:var(--emerald)">5 ms</td><td style="text-align:right;color:var(--rose)">63.71 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">6,545</td><td style="text-align:right">22,546</td><td style="text-align:right">61,787</td></tr>
+            <tr><td><code>daily plan</code></td><td style="text-align:right;color:var(--emerald)">7 ms</td><td style="text-align:right;color:var(--rose)">42.41 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">5,618</td><td style="text-align:right">15,721</td><td style="text-align:right">31,808</td></tr>
             <tr style="opacity:0.6"><td><code>atlas commons rewording</code></td><td style="text-align:right">0.27 ms</td><td style="text-align:right">0.17 ms</td><td style="text-align:right">— (no anchors)</td><td style="text-align:right">138</td><td style="text-align:right">141</td><td style="text-align:right">—</td></tr>
           </tbody>
         </table>
-        <p style="font-size:12px;color:var(--text-dim);margin:12px 0 0">
-          <strong>How the e2e column is computed:</strong> fast tool wall (5–11 ms,
-          measured) + main-agent inference to pick top-K anchors from the fast hits
-          (~15 s on Opus, the user's main model) + guided tool wall (2–3 ms, measured).
-          Inference time dominates by ~3 orders of magnitude. The fast column is
-          structurally faster; the e2e column is "fast end-to-end as a drill-down
-          workflow" and it sits in the same order of magnitude as summary's tool wall
-          (15 s vs 42–66 s), not below it.
-        </p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          <strong>Steering-improvements run:</strong> fast/summary use <code>limit=5</code>
-          (was 3); guided is multi-anchor and drills the top-3 fast hits in a single
-          call. The wider limit roughly doubles fast/summary payload (more sessions
-          surfaced) and roughly triples guided payload (three windows instead of one).
+          <strong>Steering-improvements run:</strong> the wider <code>limit</code> and
+          multi-anchor guided shown here were the candidates measured in this
+          investigation; both were promoted to the shipped toolkit (multi-anchor in
+          production, <code>limit</code> cap raised to 10). The wider limit roughly
+          doubles fast/summary payload and roughly triples guided payload.
           DB: 247 MB SQLite snapshot, 280 sessions, 18,157 messages.
         </p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          <strong>Payload trade-off, sharpened:</strong> multi-anchor guided's payload is
-          ~3–6× larger than summary's recap (131 kB vs 21 kB on Q1) because the agent
-          gets three full message windows of raw transcript. The strip-tool-results
-          follow-up (see §9) is even more justified now — Q1's 131 kB is dominated by
-          JSON tool-result bodies the agent doesn't need for steering.
+          <strong>Payload trade-off, sharpened:</strong> multi-anchor guided's payload
+          is ~3–6× larger than summary's recap (131 kB vs 21 kB on Q1) because the
+          agent gets three full message windows of raw transcript. Q1's 131 kB is
+          dominated by JSON tool-result bodies the agent doesn't need for steering
+          — a leaner-payload tool-noise filter on guided was a candidate follow-up
+          surfaced by this investigation.
         </p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
           Q4 returns zero FTS5 hits (the wider limit doesn't help when nothing matches),
           so guided has nothing to anchor on. The harness correctly skips it; the deeper
-          retrieval bug is the lever this PR doesn't pull (see §9).
+          retrieval bug is the deeper lever this PR doesn't pull — see the closing structural insight in §6.
         </p>
       </div>
 
@@ -536,7 +527,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           which sessions are surfaced — only what's done with them. Fast wraps the FTS5 snippet
           and ±1 message context (~3 short messages per hit). Summary fetches each surviving
           session's <em>full message list</em>, truncates each to 100k chars, and dispatches
-          parallel auxiliary LLM calls to recap them — see §6.5 for the per-query data flow.
+          parallel auxiliary LLM calls to recap them — see §6 for the per-query data flow.
         </p>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
           For Q1 in particular: FTS5 returned three <em>cron-job</em> sessions that discuss the
@@ -563,7 +554,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
       <p class="section-desc anim" style="--i:26d">
         This section answers a different question from §4. §4 measured how long
         <code>session_search</code> takes to run (the tool-side latency where the mode choice
-        actually changes the cost). §6.5 holds tool-side latency aside and asks: <em>given the
+        actually changes the cost). §6 holds tool-side latency aside and asks: <em>given the
         same JSON the live agent would receive, what answer does the model produce for the
         user?</em> The replay calls the same auxiliary path session_search itself uses
         (<code>auxiliary.session_search</code> → <code>auto</code> → main chat model), feeding
@@ -636,7 +627,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
             Q2's April 23 session is 397k chars, capped to 100k. Q3's April 23 session is the
             same. Late-session content (resolutions, decisions, status flips) is at risk of
-            falling outside the window. <em>Documented as future-work H2 in §9.</em>
+            falling outside the window — a candidate follow-up beyond this PR.
           </p>
         </div>
         <div class="ve-card c-emerald">
@@ -676,31 +667,9 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:8px 0 0">
             Neither is a clean win for "what the calling agent needs to know". Guided is the
             third lever in this trade-off — pull the actual messages around a chosen anchor,
-            without summarisation and without a 100k-char truncation gamble. <em>We'll measure
-            it once it ships.</em>
+            without summarisation and without a 100k-char truncation gamble.
           </p>
         </div>
-      </div>
-
-      <div class="ve-card c-amber anim" style="--i:26dd; margin-bottom:20px">
-        <div class="ve-card__label">⚠️ What §6.5 measures — and what it doesn't</div>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          The mode-vs-mode <strong>speed</strong> comparison lives in §4: <code>session_search</code>
-          itself is 5–21 ms in fast mode vs 27–37 s in summary mode (1,300–6,300× speedup).
-          That gap is what an agent pays as a function of which mode it picks.
-        </p>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          The next-turn synthesis (the LLM call the agent makes after session_search returns)
-          happens regardless of mode, and varies mostly with payload size and run-to-run
-          inference noise. Earlier drafts of this page had a "next-turn latency" column that
-          implied summary was faster than fast on Q2 (17.84 s vs 16.34 s) — that's noise on a
-          single LLM call against an external provider, not a real property of the modes.
-          Including it diluted the speed story without telling us anything reliable.
-        </p>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-          So §6.5 is presented as a <strong>quality / answer-shape</strong> measurement, not a
-          speed measurement. Use §4 to compare cost; use §6.5 to compare what the user reads.
-        </p>
       </div>
 
       <div class="ve-card c-indigo anim" style="--i:26e; margin-bottom:20px">
@@ -708,104 +677,58 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         <table class="schema-table">
           <thead><tr><th>Query (user-style phrasing)</th><th style="text-align:right">fast: chars</th><th style="text-align:right">summary: chars</th><th style="text-align:right">guided: chars</th><th>verdict</th></tr></thead>
           <tbody>
-            <tr><td>Q1 — "what was the final design for the PII work?"</td><td style="text-align:right">1,694</td><td style="text-align:right">3,079</td><td style="text-align:right">3,432</td><td>Summary now identifies the four-pass span-manifest pipeline as final; guided flags its own retrieval gap explicitly</td></tr>
+            <tr><td>Q1 — "what was the final design for the PII work?"</td><td style="text-align:right">1,694</td><td style="text-align:right">3,079</td><td style="text-align:right">3,432</td><td>Summary identifies the four-pass span-manifest pipeline as final; guided flags its own retrieval gap explicitly</td></tr>
             <tr><td>Q2 — "what is the session_search_investigation session?"</td><td style="text-align:right">1,825</td><td style="text-align:right">2,071</td><td style="text-align:right">2,709</td><td>Summary names the root cause (<code>_truncate_around_matches</code>, 100k window); guided shows where investigation paused</td></tr>
-            <tr><td>Q3 — "find the latest planning session"</td><td style="text-align:right">1,373</td><td style="text-align:right">2,138</td><td style="text-align:right">2,871</td><td>All three deliver; guided surfaces the commons-pivot &amp; 5-item agenda</td></tr>
+            <tr><td>Q3 — "find the latest planning session"</td><td style="text-align:right">1,373</td><td style="text-align:right">2,138</td><td style="text-align:right">2,871</td><td>All three deliver; guided surfaces the noon pivot and 5-item agenda via multi-anchor</td></tr>
             <tr><td>Q4 — "where did we land on atlas commons rewording?"</td><td style="text-align:right">747</td><td style="text-align:right">702</td><td style="text-align:right">—</td><td>Still no FTS5 hits — wider limit didn't rescue the AND-default footgun</td></tr>
           </tbody>
         </table>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          <strong>This run uses the steering improvements committed on top of the original
-          three-mode work:</strong> fast/summary <code>limit=5</code> (was 3) so the user has
-          more anchors to react to; guided drills the <em>top-3</em> fast hits in a single
-          multi-anchor call. Latencies are tool-side from §4. Quality assessment is qualitative
-          — see per-query cards below.
-        </p>
-        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          Notable improvements from the wider hit list: Q1 summary now identifies a
-          <em>different</em> final design than the prior 3-hit run (the later four-pass
-          span-manifest pipeline on <code>feat/redaction-passes</code>, rather than an earlier
-          standalone transform), because the wider window pulled in later cron transcripts that
-          documented the design pivot. <em>This is exactly the value of bringing the user
-          into the loop — even just on the LLM side</em>: more candidates ⇒ more chances for
-          the right session to land in the recap input.
+          Fast and summary use <code>limit=5</code>; guided drills the top-3 fast hits
+          in a single multi-anchor call. Quality assessment is qualitative.
+          Latencies are tool-side from §4.
         </p>
       </div>
 
       <div class="grid-2 gap-24 anim" style="--i:26f; margin-bottom:20px">
         <div class="ve-card c-emerald">
-          <div class="ve-card__label">Q1 — synthesis question | summary's answer changed with wider fast</div>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-            <strong>Fast:</strong> still hedges, but now mentions the May 2–3 weekend work
-            "extended well beyond the original scope" and points to a specific later cron
-            that contains the timeline recap. Better discovery, still epistemically careful.
-          </p>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-            <strong>Summary:</strong> with 5 sessions in the recap window (vs 3), now
-            confidently names the <em>four-pass span-manifest pipeline on
-            <code>feat/redaction-passes</code></em> as the final design — and explicitly
-            contrasts it with the original standalone <code>redact_multimodal.py</code> that
-            was scoped on May 1. <em>This is a different conclusion than the 3-hit run
-            reached.</em> The wider window pulled in later cron transcripts that documented
-            the pivot; without them the summary picked up an earlier standalone transform as "final".
-          </p>
+          <div class="ve-card__label">Q1 — wider hit list changed summary's conclusion</div>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            <strong>Guided:</strong> now flags its own limit explicitly: <em>"the design above
-            is the last fully documented design, but the implementation status beyond May 2 is
-            not visible in these results — you may have shipped the actual redactor over the
-            weekend without it being summarized yet."</em> This is the epistemic honesty the
-            page has been calling for; multi-anchor + raw messages produces a more grounded
-            answer than the prior single-anchor run.
+            With 5 sessions in the recap window (vs 3), summary now names the
+            <em>later four-pass span-manifest pipeline on
+            <code>feat/redaction-passes</code></em> as the final design — explicitly
+            contrasting it with an earlier standalone transform. A different
+            conclusion from the 3-hit run; wider retrieval pulled in later cron
+            transcripts that documented the pivot. Guided on the same query flags
+            its own limit honestly: "the design above is the last fully documented
+            design, but the implementation status beyond May 2 is not visible in
+            these results." That's the epistemic honesty the page has been calling
+            for.
           </p>
         </div>
         <div class="ve-card c-emerald">
-          <div class="ve-card__label">Q2 — guided's multi-anchor windows surface the root cause</div>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-            <strong>Fast / summary:</strong> summary now confidently identifies the root cause
-            (<code>_truncate_around_matches</code> in <code>session_search_tool.py</code>, 100k
-            window centred on first match landing at char ~24 of the transcript). Far more
-            specific than before — this is what wider retrieval gives the LLM to chew on.
-          </p>
+          <div class="ve-card__label">Q2 / Q3 — multi-anchor surfaces cross-session structure</div>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            <strong>Guided:</strong> with 3 anchors across the planning doc, the deep-dive
-            session, and the 11:00 cron, the agent reconstructs the full timeline including
-            "where the conversation was paused" — a cron at 07:00 missed a recent message,
-            and the user asked which session_search call picked the wrong window. Single-anchor
-            guided couldn't reach that level of cross-session structure.
-          </p>
-        </div>
-        <div class="ve-card c-emerald">
-          <div class="ve-card__label">Q3 — guided surfaces the commons pivot</div>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-            <strong>Fast:</strong> correctly identifies May 8 as substantive + May 9 as
-            aborted. Same as before.
-          </p>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            <strong>Guided:</strong> with 3 anchors (May 8 main session + April 23 daily-planning
-            origin + May 9 cut-off), surfaces the noon pivot to the <em>commons concept</em>,
-            the 5-item agenda with priorities, and the macro-4week-nudge cron context. None of
-            this came through in the single-anchor run. Multi-anchor lets the agent see the
-            shape of the planning evolution across sessions, not just one cross-section.
+            With 3 anchors per drill, guided reconstructs the full timeline (Q2)
+            and the shape of the planning evolution (Q3) — neither came through
+            on the prior single-anchor runs. Multi-anchor lets the agent see the
+            arc across sessions, not just one cross-section.
           </p>
         </div>
         <div class="ve-card c-rose">
           <div class="ve-card__label">Q4 — wider limit didn't rescue retrieval miss</div>
-          <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-            FTS5 default-AND tokenisation still returned 0 hits for "atlas commons rewording"
-            — bumping the limit from 3 to 5 doesn't help when there's nothing to rank. Both
-            modes return the same "did you mean…" reply. Guided is correctly skipped.
-          </p>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
-            <strong>This is the cleanest evidence in the page that retrieval is the deeper
-            lever.</strong> Steering improvements (wider hit list, multi-anchor, leaner
-            payloads) all need <em>something</em> to retrieve. Auto-OR rewriting + better
-            ranking remain the highest-value follow-up — see §9.
+            FTS5 default-AND still returned 0 hits — bumping the limit from 3 to 5
+            doesn't help when there's nothing to rank. The cleanest evidence on
+            the page that retrieval is the deeper lever: steering improvements
+            (wider hit list, multi-anchor, leaner payloads) all need <em>something</em>
+            to retrieve.
           </p>
         </div>
       </div>
 
       <div class="ve-card c-amber anim" style="--i:26g">
-        <div class="ve-card__label">⚠️ The structural insight</div>
+        <div class="ve-card__label">⚠️ The structural insight — retrieval is the deeper lever</div>
         <p style="font-size:14px;color:var(--text);line-height:1.6;margin:0 0 8px">
           Both modes work from the same FTS5 retrieval set. Summary's value-add is bounded by
           what an auxiliary LLM can wring from the <em>same sessions</em> the snippet path
@@ -816,10 +739,14 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           retrieval is imperfect.</strong>
         </p>
         <p style="font-size:14px;color:var(--text);line-height:1.6;margin:0">
-          This reframes the optimisation target. Mode parameter is optionality, not a
-          ranking; the highest-leverage fix is improving retrieval (FTS5 ranking, OR-default for
-          multi-keyword, title/recency-aware scoring, possibly semantic search) so every mode
-          starts from the right sessions. Tracked in §9.
+          This reframes the optimisation target. The mode parameter is optionality, not a
+          ranking. The highest-leverage follow-up isn't between fast and summary — it's
+          improving retrieval itself so every mode starts from the right sessions:
+          (a) auto-OR rewriting for multi-keyword queries (currently default-AND footgun),
+          (b) title and recency-aware ranking on top of FTS5 BM25, (c) potentially a
+          semantic-search complement for "what was the design / decision / latest update"
+          question shapes. Bigger than this PR — but the investigation's biggest takeaway
+          for future work.
         </p>
       </div>
 
@@ -835,7 +762,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         </p>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
           The corrected harness (<code>replay_session_search_consumer.py</code>) is reproducible
-          alongside <code>profile_session_search.py</code>; see §8.
+          alongside <code>profile_session_search.py</code> — harness pair available in the investigation workspace.
         </p>
       </div>
 
@@ -889,7 +816,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
 
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:12px 0 8px">
           <strong>Run 3 — full stack: briefing + tightness + active retrieval + dual closer.</strong>
-          See <a href="#repro">§8 Reproducibility</a> for the full prompt.
+          The full prompt is reproduced in the investigation workspace alongside the harness pair.
         </p>
         <ul class="node-list" style="margin:0 0 0 18px">
           <li><strong>Active retrieval played hard:</strong> initial fast → multi-anchor guided → refetch with smaller windows → <em>second supplemental fast search</em> ("guided mode session_search implementation OR merged OR PR") to plug a known shipping-state gap. The model didn't synthesise from the original hits — it noticed a gap and went and got more data.</li>
@@ -942,183 +869,6 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
       </div>
     </section>
 
-    <section id="followups">
-      <div class="sec-head anim" style="--i:42; color:var(--slate)">
-        <span class="dot" style="background:var(--slate)"></span> 7. Future work
-      </div>
-      <h2 class="anim" style="--i:43">Out of scope for this PR; flagged for follow-up</h2>
-
-      <div class="grid-2 gap-24 anim" style="--i:44">
-        <div class="ve-card c-slate">
-          <div class="ve-card__label">SQLite WAL vs gateway JSONL transcripts</div>
-          <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">
-            Two transcript stores currently exist: SQLite <code>messages</code> table
-            (canonical, FTS5-indexed, what session_search reads) and per-session JSONL
-            files written by the gateway. PR #21421's <code>session_recall</code> tool
-            chose to read JSONL. Before unifying or building further drill-down on
-            either, understand the requirements: why does the gateway write JSONL?
-            Which workflows depend on JSONL? Could JSONL be derived from SQLite at
-            export time, or vice versa? Worth a focused spec on its own.
-          </p>
-        </div>
-        <div class="ve-card c-slate">
-          <div class="ve-card__label">H2 follow-up (truncation late-content)</div>
-          <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">
-            Affects summary mode only. The 100K window centres on first match (25/75
-            bias). When the FTS5 hit is in message 1, late-session work isn't fed to
-            the summariser. Worth a narrow PR: window-bias balanced around match
-            density rather than first-match anchor.
-          </p>
-        </div>
-        <div class="ve-card c-slate">
-          <div class="ve-card__label">H3 follow-up (silent FTS5 errors)</div>
-          <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">
-            <code>search_messages()</code> swallows <code>sqlite3.OperationalError</code>
-            and returns <code>[]</code>. If the sanitiser misses an FTS5-special character,
-            the user gets "no matches" with no diagnostic. Surface the error or extend
-            <code>_sanitize_fts5_query</code>. Reproduce first.
-          </p>
-        </div>
-        <div class="ve-card c-amber">
-          <div class="ve-card__label">Retrieval is the deeper lever (FTS5 ranking + query construction)</div>
-          <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">
-            The consumer simulation (§6) showed both modes share the same FTS5 retrieval set —
-            so when retrieval misses (Q1 returned cron transcripts instead of the actual work
-            session; Q4 returned 0 hits), no mode rescues it. The highest-leverage follow-up is
-            improving retrieval itself: (a) auto-OR rewriting for multi-keyword queries
-            (currently default-AND footgun), (b) title and recency-aware ranking on top of FTS5
-            BM25, (c) potentially a semantic-search complement (embedding store keyed on session
-            id + recent turns) for "what was the design / decision / latest update" question
-            shapes. Bigger than this PR — but worth a dedicated spec, because every mode
-            benefits from better hits.
-          </p>
-        </div>
-        <div class="ve-card c-slate">
-          <div class="ve-card__label">FTS5 default-AND footgun</div>
-          <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">
-            Q4 returned 0 results because no message contained all three keywords.
-            Schema description already warns ("use OR for broad recall"). Consider
-            auto-OR rewriting for multi-keyword queries that would otherwise miss,
-            with a flag for strict-AND when needed.
-          </p>
-        </div>
-        <div class="ve-card c-slate">
-          <div class="ve-card__label">Profile harness extensions</div>
-          <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0">
-            More queries, per-individual-summarize-call latency capture (we currently
-            only capture sum-of-walls), test against trigram CJK paths, capture per-session
-            transcript size to correlate with summary latency. The harness is reproducible
-            (see §8).
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section id="repro">
-      <div class="sec-head anim" style="--i:45; color:var(--teal)">
-        <span class="dot" style="background:var(--teal)"></span> 8. Reproducibility
-      </div>
-      <h2 class="anim" style="--i:46">How a colleague reruns this on their machine</h2>
-
-      <div class="ve-card c-teal anim" style="--i:47">
-        <div class="ve-card__label">Prerequisites</div>
-        <ul class="node-list">
-          <li>Local hermes-agent checkout with the salvage branch checked out (or current main if this PR has merged)</li>
-          <li>A <code>~/.hermes/state.db</code> with at least a few sessions on it (the more, the more representative)</li>
-          <li>Python venv at <code>$HOME/.hermes/hermes-agent/venv</code> (or a worktree-local <code>.venv</code>)</li>
-          <li><code>auxiliary.session_search</code> configured (or "auto" routing to the main chat model)</li>
-        </ul>
-      </div>
-
-      <div class="ve-card c-teal anim" style="--i:48; margin-top:16px">
-        <div class="ve-card__label">Steps</div>
-<pre class="state spec"># 1. Snapshot the live DB to a scratch path (read-only, doesn't touch live)
-sqlite3 ~/.hermes/state.db ".backup '/tmp/profile-state.db'"
-
-# 2. Edit the QUERIES list at the top of profile_session_search.py
-#    to match topics that exist in YOUR DB
-
-# 3. Run the latency / size profiling harness
-PYTHONPATH=/path/to/hermes-agent \
-  /path/to/venv/bin/python \
-  /path/to/profile_session_search.py
-
-# 4. Output of step 3:
-#    profile-output/&lt;timestamp&gt;-report.md   — human-readable per-query side-by-side
-#    profile-output/&lt;timestamp&gt;-raw.json   — full raw responses for both modes
-
-# 5. (Optional) Edit the USER_QUESTIONS dict in replay_session_search_consumer.py
-#    so each query has a corresponding user-style phrasing
-
-# 6. Run the consumer-replay harness against the raw.json from step 4
-PYTHONPATH=/path/to/hermes-agent \
-  /path/to/venv/bin/python \
-  /path/to/replay_session_search_consumer.py \
-  profile-output/&lt;timestamp&gt;-raw.json
-
-# 7. Output of step 6:
-#    profile-output/&lt;timestamp&gt;-replay.md   — per-query 3-way comparison of
-#                                                  the agent's next-turn answer
-#    profile-output/&lt;timestamp&gt;-replay.json  — raw replay data
-</pre>
-      </div>
-
-      <div class="ve-card c-teal anim" style="--i:48b; margin-top:16px">
-        <div class="ve-card__label">The Run 3 prompt — full text (referenced from §6.7)</div>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
-          The prompt that produced the briefing-plus-active-retrieval-plus-honest-gaps
-          output described in §6.7's three-run arc. Paste into the CLI / TUI against
-          a real DB to reproduce the behaviour shape.
-        </p>
-<pre class="state shared">fast-search "session-search-investigation" then drill into the most
-promising hits with multi-anchor guided.
-
-briefing-style recap, not a transcript walk. keep it tight — each
-section should earn its place. briefing as long as the material
-warrants, no longer. handoff as a punchy bulleted list, not paragraphs.
-gaps as a short list of what's actually thin.
-
-play the retrieval surface actively. if the fast results look meta-heavy
-or sparse, run additional fast searches with sharper phrasing to fill
-the gaps before synthesising. you can run multiple fast searches in
-parallel for breadth-first coverage, bump limit up to 10 if you want
-wider nets, and drill deeper with extra guided calls if the windows
-hint at something off-screen. you have the toolkit — use it.
-
-close with two things:
-  (1) "what's still open / what to look at next" — a real handoff
-      section
-  (2) "what was thin or missing in what i found" — honesty about gaps
-      in retrieval, not just gaps in the work itself
-</pre>
-        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0">
-          Substitute the FTS5 query string ("session-search-investigation") for
-          whatever topic you want to test. The rest of the prompt stays as-is. The
-          four shape-knobs in this prompt (briefing framing, tightness, active
-          retrieval, dual closer) are the candidates being evaluated for eventual
-          promotion to the tool's schema description — once a few days of normal
-          use confirm the pattern holds.
-        </p>
-      </div>
-
-      <div class="ve-card c-teal anim" style="--i:49; margin-top:16px">
-        <div class="ve-card__label">Harness pair — what each one measures</div>
-        <ul class="node-list">
-          <li><code>profile_session_search.py</code> — measures session_search itself: per-mode latency, response bytes, FTS5 hit shape. Foundation for the §4 latency/size table</li>
-          <li><code>replay_session_search_consumer.py</code> — measures what the user actually sees: replays the calling agent's next turn against the same auxiliary path session_search uses (<code>auxiliary.session_search</code>), feeding the JSON from step 3 as the tool result. Foundation for the §6.5 consumer-simulation table</li>
-          <li>Both are standalone Python; PYTHONPATH-based imports; no installation required</li>
-          <li>Both read-only against the snapshot; never touch the live DB</li>
-          <li>Each query runs once per mode (latency variance is small relative to magnitude of differences); the replay does up to 3 attempts per call to weather transient empty completions and reports the attempts count</li>
-          <li>Wall-clock end-to-end via <code>perf_counter</code>; <code>profile_session_search.py</code> additionally per-stage instruments via temporary monkey-patches that unwind in <code>finally</code></li>
-          <li>Both use whatever <code>auxiliary.session_search</code> resolves to in the live config — consume real LLM tokens</li>
-        </ul>
-      </div>
-
-      <div class="ve-card c-teal anim" style="--i:50; margin-top:16px">
-        <div class="ve-card__label">Companion artefacts (drafting history + harness pair)</div>
-        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">The reproducibility harness pair (<code>profile_session_search.py</code> and <code>replay_session_search_consumer.py</code>), the raw profiling JSON, the consumer-replay reports, and earlier drafting-history pages all live in the investigation workspace alongside this published page. They consume real LLM tokens and reference private session content, so they are not republished here. The commands above are sufficient to reproduce the run on any local <code>~/.hermes/state.db</code>.</p>
-      </div>
-    </section>
 
   </main>
 </div>
