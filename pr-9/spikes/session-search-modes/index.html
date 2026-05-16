@@ -258,7 +258,7 @@
         <table class="schema-table">
           <thead><tr><th>Query</th><th style="text-align:right">fast (1 call)</th><th style="text-align:right">summary (1 call)</th><th style="text-align:right">guided (DB read)</th><th style="text-align:right">fast B</th><th style="text-align:right">summary B</th><th style="text-align:right">guided B</th></tr></thead>
           <tbody>
-            <tr><td><code>pii redaction multimodal</code></td><td style="text-align:right;color:var(--emerald)">11 ms</td><td style="text-align:right;color:var(--rose)">65.85 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">6,568</td><td style="text-align:right">21,389</td><td style="text-align:right">131,599</td></tr>
+            <tr><td><code>[q1 topic keywords]</code></td><td style="text-align:right;color:var(--emerald)">11 ms</td><td style="text-align:right;color:var(--rose)">65.85 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">6,568</td><td style="text-align:right">21,389</td><td style="text-align:right">131,599</td></tr>
             <tr><td><code>session_search_investigation</code></td><td style="text-align:right;color:var(--emerald)">5 ms</td><td style="text-align:right;color:var(--rose)">63.71 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">6,545</td><td style="text-align:right">22,546</td><td style="text-align:right">61,787</td></tr>
             <tr><td><code>daily plan</code></td><td style="text-align:right;color:var(--emerald)">7 ms</td><td style="text-align:right;color:var(--rose)">42.41 s</td><td style="text-align:right;color:var(--amber)">~2 ms</td><td style="text-align:right">5,618</td><td style="text-align:right">15,721</td><td style="text-align:right">31,808</td></tr>
             <tr style="opacity:0.6"><td><code>atlas commons rewording</code></td><td style="text-align:right">0.27 ms</td><td style="text-align:right">0.17 ms</td><td style="text-align:right">— (no anchors)</td><td style="text-align:right">138</td><td style="text-align:right">141</td><td style="text-align:right">—</td></tr>
@@ -327,7 +327,7 @@
       <div class="sec-head anim" style="--i:21; color:var(--indigo)">
         <span class="dot" style="background:var(--indigo)"></span> 5. State walk
       </div>
-      <h2 class="anim" style="--i:22">Q1 (<code>pii redaction multimodal</code>) traced through both modes</h2>
+      <h2 class="anim" style="--i:22">Q1 (<code>[q1 topic keywords]</code>) traced through both modes</h2>
       <p class="section-desc anim" style="--i:23">
         The numbers tell you which mode is faster; the state walk tells you which mode
         answers the user's question. Showing Result 1 of 3 for length.
@@ -336,7 +336,7 @@
       <div class="step-header"><div class="step-header__num">STEP 1 — INPUT (shared)</div><div class="step-header__title">The agent calls session_search</div></div>
       <span class="mode-label shared">SHARED</span>
 <pre class="state shared">{
-  "query": "pii redaction multimodal",
+  "query": "[q1 topic keywords]",
   "limit": 3,
   "mode": "summary"  // or "fast"
 }</pre>
@@ -348,7 +348,7 @@
   "id": 1234567,
   "session_id": "cron_[sid_A]_20260501_1600",
   "role": "assistant",
-  "snippet": "...&gt;&gt;&gt;pii&lt;&lt;&lt;-&gt;&gt;&gt;multimodal&lt;&lt;&lt;-&gt;&gt;&gt;redaction&lt;&lt;&lt; Task Created\nThe user's **#1 priority for May 1, 2026** ...",
+  "snippet": "...&gt;&gt;&gt;[q1]&lt;&lt;&lt;-&gt;&gt;&gt;[topic]&lt;&lt;&lt;-&gt;&gt;&gt;[keywords]&lt;&lt;&lt; Task Created\nThe user's **#1 priority for May 1, 2026** ...",
   "content": "(full message text — typically 1-10 KB)",
   "timestamp": 1748793600.123,
   "tool_name": null,
@@ -379,7 +379,7 @@
 <pre class="state fast">{
   "success": true,
   "mode": "fast",
-  "query": "pii redaction multimodal",
+  "query": "[q1 topic keywords]",
   "results": [
     {
       "session_id": "cron_[sid_A]_20260501_1600",
@@ -388,10 +388,10 @@
       "model": "claude-opus-4-6",
       "matched_role": "assistant",
       "title": null,
-      "snippet": "...>>>pii<<<->>>multimodal<<<->>>redaction<<< Task Created\\nThe user's **#1 priority for May 1, 2026** was established as **redacting >>>multimodal<<< data from the data pipeline**:\\n- **Session ID:** `>>>pii<<<->>>multimodal<<<->>>redaction<<<`\\n- **Goal:** Strip base64 encoded images and other >>>multimodal<<< payloads...",
+      "snippet": "...[q1] [topic] [keywords] Task Created\\nThe user's **#1 priority for May 1, 2026** was established as a specific scoping task from the data pipeline:\\n- **Session ID:** `[q1-topic-sid]`\\n- **Goal:** apply a targeted transform to [topic] data...",
       "context": [
         {"role": "assistant", "content": "Now let me search for each session ID to find what was worked on today."},
-        {"role": "tool", "content": "{\"success\": true, \"query\": \"pii-multimodal-redaction\", \"results\": [{\"session_id\": \"cron_[sid_C]_20260501_1100\", \"when\": \"May 01, 2026 at 11:00 AM\", \"source\": \"cron\", \"model\": \"claude-opus-4-6\",...[trimmed]"},
+        {"role": "tool", "content": "{\"success\": true, \"query\": \"[q1-topic-sid]\", \"results\": [{\"session_id\": \"cron_[sid_C]_20260501_1100\", \"when\": \"May 01, 2026 at 11:00 AM\", \"source\": \"cron\", \"model\": \"claude-opus-4-6\",...[trimmed]"},
         {"role": "tool", "content": "{\"success\": true, \"query\": \"session-search-investigation\", \"results\": [{\"session_id\": \"[earlier_investigation_sid]\", \"when\": \"April 23, 2026 at 10:34 AM\", \"source\": \"tui\", \"model\": \"claude-opus-4-6\", \"summ...[trimmed]"}
       ],
       "summary": "[Search hit — summary not generated in fast mode] Use snippet/context fields, or set mode='summary' for LLM-generated recall."
@@ -431,14 +431,14 @@ Summarize the conversation with a focus on the search topic. Include:
 Be thorough but concise. Preserve specific details (commands, paths, error messages)
 that would be useful to recall. Write in past tense as a factual recap.</pre>
       <span class="mode-label summary">SUMMARY — user_prompt template (filled per session)</span>
-<pre class="state summary">Search topic: pii redaction multimodal
+<pre class="state summary">Search topic: [q1 topic keywords]
 Session source: cron
 Session date: May 01, 2026 at 04:00 PM
 
 CONVERSATION TRANSCRIPT:
 {the ~100K-char truncated transcript from step 5S}
 
-Summarize this conversation with focus on: pii redaction multimodal</pre>
+Summarize this conversation with focus on: [q1 topic keywords]</pre>
 
       <div class="step-header"><div class="step-header__num">STEP 7S — SUMMARY OUTPUT</div><div class="step-header__title">Wrap LLM outputs with metadata, return JSON</div></div>
       <div class="meta-row">15,137 bytes (~3,784 tokens). 3.9× bigger than fast.</div>
@@ -446,7 +446,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
 <pre class="state summary">{
   "success": true,
   "mode": "summary",
-  "query": "pii redaction multimodal",
+  "query": "[q1 topic keywords]",
   "results": [
     {
       "session_id": "cron_[sid_A]_20260501_1600",
@@ -465,7 +465,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         <ul class="node-list">
           <li>A multi-section structured recap: Context, Actions, Findings, Files, Outcome, Notable</li>
           <li>References the morning <strong>work session</strong> <code>[work_session_sid]</code> (180 messages) — but reads it second-hand: the session itself was never matched by FTS5; the recap reproduces what the cron transcripts say <em>about</em> it</li>
-          <li>Reports specific findings: 1,304 base64 blobs, 293.6 MB, MIME breakdown, planned redaction approach, status <code>🟡 in progress</code> — accurate in this case, but every fact is downstream of the same cron transcripts the FTS5 hits returned</li>
+          <li>Reports specific findings: a measured count, dataset size, classification breakdown, and planned approach, status <code>🟡 in progress</code> — accurate in this case, but every fact is downstream of the same cron transcripts the FTS5 hits returned</li>
         </ul>
       </div>
       </div>
@@ -505,12 +505,12 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
     {"id": 12790, "role": "assistant", "content": "", "tool_calls": [...]},          // before-3
     {"id": 12791, "role": "tool",      "content": "{\"content\": \"     1|# 2026-05-01 — Daily Plan (draft)\\n     2|\\n     3|## Carry-..."},  // before-2: read planning doc
     {"id": 12792, "role": "assistant", "content": "Now let me search for each session ID to find what was worked on today."},  // before-1
-    {"id": 12793, "role": "tool",      "content": "{\"success\": true, \"query\": \"pii-multimodal-redaction\", \"results\": [{\"session_id\":...}",
-     "anchor": true},                                                                  // ← ANCHOR — session_search result for pii-multimodal-redaction (the FTS5 match was on the keywords inside this tool result)
+    {"id": 12793, "role": "tool",      "content": "{\"success\": true, \"query\": \"[q1-topic-sid]\", \"results\": [{\"session_id\":...}",
+     "anchor": true},                                                                  // ← ANCHOR — session_search result for [q1-topic-sid] (the FTS5 match was on the keywords inside this tool result)
     {"id": 12794, "role": "tool",      "content": "{\"success\": true, \"query\": \"session-search-investigation\", \"results\": [...]}"}, // after-1
     {"id": 12795, "role": "tool",      "content": "{\"success\": true, \"query\": \"dashboard-sessions-order\", \"results\": [...]}"},   // after-2
     {"id": 12796, "role": "assistant", "content": "The session searches are mostly returning prior cron check-ins. Let me search fo..."},  // after-3
-    {"id": 12797, "role": "tool",      "content": "{\"success\": true, \"query\": \"multimodal redaction recon scripts base64 image stri...}"},  // after-4
+    {"id": 12797, "role": "tool",      "content": "{\"success\": true, \"query\": \"[topic] [keywords] recon scripts ...}"},  // after-4
     {"id": 12798, "role": "tool",      "content": "{\"success\": true, \"mode\": \"recent\", \"results\": [...]}"}              // after-5
   ],
   "messages_before": 5,
@@ -522,7 +522,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         <div class="ve-card__label">What the agent learns from guided mode</div>
         <ul class="node-list">
           <li>The 11 actual messages around the FTS5 anchor — <strong>verbatim, no LLM in the loop</strong></li>
-          <li>Anchor message (<code>id=12793</code>) is itself a <em>tool-result</em>: the cron's previous <code>session_search</code> call for "pii-multimodal-redaction". So this drill-down lets the agent see the tool result the original FTS5 match was scoring against — useful because the previous cron's session_search result <em>contains</em> the project status snapshot at that moment</li>
+          <li>Anchor message (<code>id=12793</code>) is itself a <em>tool-result</em>: the cron's previous <code>session_search</code> call for "[q1-topic-sid]". So this drill-down lets the agent see the tool result the original FTS5 match was scoring against — useful because the previous cron's session_search result <em>contains</em> the project status snapshot at that moment</li>
           <li>The before-window shows the cron reading the planning doc (id=12791) and announcing its plan (id=12792). The after-window shows the cron continuing its own searches and pivoting (id=12796) when it sees only cron check-ins coming back</li>
           <li><strong>Caveat:</strong> guided still operates within the cron transcript that FTS5 retrieved — it doesn't reach the actual work session any more than fast or summary do. What it <em>does</em> give is the conversation around the match, which is more grounded than summary's cross-session reconstruction</li>
           <li><strong>Cost:</strong> guided's 49 kB payload is the full conversation window — bigger than summary's 12 kB recap. Composed across both turns: 53 kB of tokens enters the agent's context vs 12 kB for summary alone</li>
@@ -542,7 +542,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         </p>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
           For Q1 in particular: FTS5 returned three <em>cron-job</em> sessions that discuss the
-          PII work — not the work session itself. Summary's recap is therefore a recap of cron
+          the Q1 topic — not the work session itself. Summary's recap is therefore a recap of cron
           transcripts that talk about the work, not a recap of the work. The chain is:
           <em>actual work happened → cron job summarised it into its own transcript → FTS5 matched
           the cron transcript → our auxiliary LLM summarised the cron transcript → the calling
@@ -604,7 +604,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
             <th style="text-align:right">main-loop bytes (summary)</th>
           </tr></thead>
           <tbody>
-            <tr><td>Q1 PII</td><td style="text-align:right">3</td><td style="text-align:right">127</td><td style="text-align:right">293k</td><td style="text-align:right">220k</td><td style="text-align:right">1 / 3</td><td style="text-align:right">3.9k</td><td style="text-align:right">15.1k</td></tr>
+            <tr><td>Q1</td><td style="text-align:right">3</td><td style="text-align:right">127</td><td style="text-align:right">293k</td><td style="text-align:right">220k</td><td style="text-align:right">1 / 3</td><td style="text-align:right">3.9k</td><td style="text-align:right">15.1k</td></tr>
             <tr><td>Q2 investigation</td><td style="text-align:right">3</td><td style="text-align:right">413</td><td style="text-align:right">696k</td><td style="text-align:right">231k</td><td style="text-align:right">2 / 3</td><td style="text-align:right">3.8k</td><td style="text-align:right">13.1k</td></tr>
             <tr><td>Q3 planning</td><td style="text-align:right">3</td><td style="text-align:right">422</td><td style="text-align:right">526k</td><td style="text-align:right">200k</td><td style="text-align:right">2 / 3</td><td style="text-align:right">3.5k</td><td style="text-align:right">10.1k</td></tr>
             <tr style="opacity:0.6"><td>Q4 atlas</td><td style="text-align:right">0</td><td style="text-align:right">0</td><td style="text-align:right">0</td><td style="text-align:right">0</td><td style="text-align:right">—</td><td style="text-align:right">0.14k</td><td style="text-align:right">0.14k</td></tr>
@@ -694,7 +694,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         <table class="schema-table">
           <thead><tr><th>Query (user-style phrasing)</th><th style="text-align:right">fast: chars</th><th style="text-align:right">summary: chars</th><th style="text-align:right">guided: chars</th><th>verdict</th></tr></thead>
           <tbody>
-            <tr><td>Q1 — "what was the final design for the PII work?"</td><td style="text-align:right">1,694</td><td style="text-align:right">3,079</td><td style="text-align:right">3,432</td><td>Summary identifies the four-pass span-manifest pipeline as final; guided flags its own retrieval gap explicitly</td></tr>
+            <tr><td>Q1 — "what was the final design for the Q1 work?"</td><td style="text-align:right">1,694</td><td style="text-align:right">3,079</td><td style="text-align:right">3,432</td><td>Summary identifies the four-pass span-manifest pipeline as final; guided flags its own retrieval gap explicitly</td></tr>
             <tr><td>Q2 — "what is the session_search_investigation session?"</td><td style="text-align:right">1,825</td><td style="text-align:right">2,071</td><td style="text-align:right">2,709</td><td>Summary names the root cause (<code>_truncate_around_matches</code>, 100k window); guided shows where investigation paused</td></tr>
             <tr><td>Q3 — "find the latest planning session"</td><td style="text-align:right">1,373</td><td style="text-align:right">2,138</td><td style="text-align:right">2,871</td><td>All three deliver; guided surfaces the noon pivot and 5-item agenda via multi-anchor</td></tr>
             <tr><td>Q4 — "where did we land on atlas commons rewording?"</td><td style="text-align:right">747</td><td style="text-align:right">702</td><td style="text-align:right">—</td><td>Still no FTS5 hits — wider limit didn't rescue the AND-default footgun</td></tr>
@@ -714,7 +714,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">
             With 5 sessions in the recap window (vs 3), summary now names the
             <em>later four-pass span-manifest pipeline on
-            <code>feat/redaction-passes</code></em> as the final design — explicitly
+            <code>feat/[impl-branch]</code></em> as the final design — explicitly
             contrasting it with an earlier standalone transform. A different
             conclusion from the 3-hit run; wider retrieval pulled in later cron
             transcripts that documented the pivot. Guided on the same query flags
