@@ -59,11 +59,10 @@
       <div class="toc-page__sections">
         <a href="#overview">Overview</a>
         <a href="#problem">1. Problem</a>
-        <a href="#approach">2. Approach</a>
-        <a href="#system-today">3. System as it was</a>
-        <a href="#findings">4. Findings</a>
-        <a href="#state-walk">5. State walk</a>
-        <a href="#consumer-replay">6. Consumer simulation</a>
+        <a href="#system-today">2. System as it was</a>
+        <a href="#findings">3. Findings</a>
+        <a href="#state-walk">4. State walk</a>
+        <a href="#consumer-replay">5. Consumer simulation</a>
       </div>
     </div>
   </nav>
@@ -131,36 +130,9 @@
       </div>
     </section>
 
-    <section id="approach">
-      <div class="sec-head anim" style="--i:8; color:var(--accent)">
-        <span class="dot" style="background:var(--accent)"></span> 2. Approach
-      </div>
-      <h2 class="anim" style="--i:9">Profile against a real database, salvage prior art, propose a light extension</h2>
-      <p class="section-desc anim" style="--i:10">
-        Recon found <strong><a href="https://github.com/NousResearch/hermes-agent/pull/20238">PR #20238 (JabberELF)</a></strong> already proposed a fast/summary
-        dual-mode — the same design we'd independently arrived at. We salvaged the
-        substantive commit, validated its claims with a profile harness, and proposed
-        a third <code>guided</code> mode for anchored drill-down on top.
-      </p>
-      <div class="card-grid">
-      <div class="ve-card c-accent anim" style="--i:11">
-        <div class="ve-card__label">Investigation steps</div>
-        <ol class="node-list">
-          <li>Read the atlas (<code>hermes-architecture</code>) for context; surface gaps for later drift PR</li>
-          <li>Read the source: <code>tools/session_search_tool.py</code>, <code>hermes_state.search_messages()</code>, <code>agent/auxiliary_client.py</code></li>
-          <li>Search for prior PRs — found 27 open PRs touching session_search; identified #20238 as the bullseye</li>
-          <li>Cherry-pick #20238's substantive commit onto a fresh worktree branch off current main; preserve JabberELF authorship</li>
-          <li>Build a profile harness against a copy of the live state.db; run all 4 queries × 2 modes</li>
-          <li>Confirm hypothesis H1; falsify the "summary distils, fast inflates" assumption (size ratio is opposite); reframe the recall-quality argument</li>
-          <li>Propose <code>mode=guided</code> as a third option for anchored drill-down</li>
-        </ol>
-      </div>
-      </div>
-    </section>
-
     <section id="system-today">
       <div class="sec-head anim" style="--i:12; color:var(--teal)">
-        <span class="dot" style="background:var(--teal)"></span> 3. System as it was
+        <span class="dot" style="background:var(--teal)"></span> 2. System as it was
       </div>
       <h2 class="anim" style="--i:13">Three-stage pipeline; cost concentrated in stage 3</h2>
       <p class="section-desc anim" style="--i:14">
@@ -232,7 +204,7 @@
 
     <section id="findings">
       <div class="sec-head anim" style="--i:16; color:var(--rose)">
-        <span class="dot" style="background:var(--rose)"></span> 4. Findings
+        <span class="dot" style="background:var(--rose)"></span> 3. Findings
       </div>
       <h2 class="anim" style="--i:17">Latency &amp; size measured against real DB</h2>
       <p class="section-desc anim" style="--i:18">
@@ -325,7 +297,7 @@
 
     <section id="state-walk">
       <div class="sec-head anim" style="--i:21; color:var(--indigo)">
-        <span class="dot" style="background:var(--indigo)"></span> 5. State walk
+        <span class="dot" style="background:var(--indigo)"></span> 4. State walk
       </div>
       <h2 class="anim" style="--i:22">Q1 (<code>[q1 topic keywords]</code>) traced through both modes</h2>
       <p class="section-desc anim" style="--i:23">
@@ -560,7 +532,7 @@ Summarize this conversation with focus on: [q1 topic keywords]</pre>
 
     <section id="consumer-replay">
       <div class="sec-head anim" style="--i:26b; color:var(--indigo)">
-        <span class="dot" style="background:var(--indigo)"></span> 6. Consumer simulation
+        <span class="dot" style="background:var(--indigo)"></span> 5. Consumer simulation
       </div>
       <h2 class="anim" style="--i:26c">What the user actually sees: replaying the agent's next turn</h2>
       <p class="section-desc anim" style="--i:26d">
