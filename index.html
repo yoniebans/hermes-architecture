@@ -88,10 +88,10 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.11.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.13.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       Hermes is a Python-based AI agent framework that connects LLMs to the real world
-      through 30+ tools, 22 messaging platforms, multiple execution backends, and a
+      through 30+ tools, 25+ messaging platforms, multiple execution backends, and a
       composable skill system. It runs as a CLI, a React terminal TUI, a web dashboard,
       a messaging gateway daemon, an ACP server for editors, and an MCP server for tool interop.
     </p>
@@ -103,7 +103,7 @@
         <div class="kpi-card__label">Built-in Tools</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--teal)">22</div>
+        <div class="kpi-card__value" style="color:var(--teal)">25+</div>
         <div class="kpi-card__label">Platform Adapters</div>
       </div>
       <div class="kpi-card">
@@ -220,7 +220,7 @@
     <p class="section-desc anim" style="--i:12">
       Hermes deploys in six modes &mdash; CLI, TUI (React/Ink), Web Dashboard, Gateway, ACP Server,
       and MCP Server &mdash; all driving the same AIAgent core. The core delegates to an intelligence
-      layer, a tool system, persistent state, a cron scheduler, and optional RL environments.
+      layer, a tool system, persistent state, and a cron scheduler.
     </p>
 
     <section class="diagram-shell anim" style="--i:13">
@@ -262,8 +262,6 @@
             kanban["Kanban Board<br/><small>hermes_cli/kanban_db.py</small>"]
           end
 
-          rlenv["RL Environments<br/><small>environments/</small>"]
-
           cli --> core
           tui --> core
           webdash --> core
@@ -277,17 +275,14 @@
           core --> memprov
           core --> state
           core -.-> cronmod
-          core -.-> rlenv
 
           classDef entry fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
           classDef core fill:#0d948822,stroke:#0d9488,stroke-width:2px
           classDef sub fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
-          classDef opt fill:#e11d4808,stroke:#e11d4844,stroke-width:1px,stroke-dasharray:5 5
 
           class cli,tui,webdash,gw,acp,mcp entry
           class core core
           class intel,tools,memprov,state,cronmod sub
-          class rlenv opt
       </script>
     </section>
 
@@ -866,18 +861,8 @@
       </div>
     </div>
 
-    <!-- RL + Batch -->
+    <!-- Batch Runner -->
     <div class="grid-2 gap-24 anim" style="--i:37">
-      <div class="ve-card c-rose">
-        <div class="ve-card__label">RL Training Environments</div>
-        <ul class="node-list">
-          <li><code>HermesAgentBaseEnv</code> &mdash; Atropos integration</li>
-          <li><code>HermesAgentLoop</code> &mdash; reusable multi-turn engine</li>
-          <li>SWE-bench, web research, agentic OPD environments</li>
-          <li>Tool call parsers for VLLM/SGLang rollouts</li>
-          <li>Two-phase: OpenAI server &rarr; ManagedServer</li>
-        </ul>
-      </div>
       <div class="ve-card c-slate">
         <div class="ve-card__label">Batch Runner</div>
         <ul class="node-list">
@@ -886,6 +871,15 @@
           <li>Checkpointing for fault tolerance and resumption</li>
           <li>Trajectory saving + tool usage aggregation</li>
           <li>Toolset distribution selection per run</li>
+        </ul>
+      </div>
+      <div class="ve-card c-slate">
+        <div class="ve-card__label">Localization</div>
+        <ul class="node-list">
+          <li><code>locales/</code> — 16 language YAML catalogs</li>
+          <li>Scope: CLI approval prompts + select gateway slash replies</li>
+          <li>Agent output, logs, tool results stay English</li>
+          <li>Parity enforced by <code>tests/agent/test_i18n.py</code></li>
         </ul>
       </div>
     </div>
