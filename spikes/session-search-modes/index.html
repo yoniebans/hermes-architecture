@@ -142,6 +142,7 @@
         substantive commit, validated its claims with a profile harness, and proposed
         a third <code>guided</code> mode for anchored drill-down on top.
       </p>
+      <div class="card-grid">
       <div class="ve-card c-accent anim" style="--i:11">
         <div class="ve-card__label">Investigation steps</div>
         <ol class="node-list">
@@ -153,6 +154,7 @@
           <li>Confirm hypothesis H1; falsify the "summary distils, fast inflates" assumption (size ratio is opposite); reframe the recall-quality argument</li>
           <li>Propose <code>mode=guided</code> as a third option for anchored drill-down</li>
         </ol>
+      </div>
       </div>
     </section>
 
@@ -240,6 +242,7 @@
         replay</a> in §6 tells us what each mode <em>delivers</em>.
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-rose anim" style="--i:19; margin-bottom:20px">
         <div class="ve-card__label">Per-query tool latency &amp; payload size — three modes</div>
         <p style="font-size:12px;color:var(--text-dim);margin:0 0 12px">
@@ -282,6 +285,7 @@
           so guided has nothing to anchor on. The harness correctly skips it; the deeper
           retrieval bug is the deeper lever this PR doesn't pull — see the closing structural insight in §6.
         </p>
+      </div>
       </div>
 
       <div class="grid-2 gap-24 anim" style="--i:20">
@@ -397,7 +401,8 @@
   "message": "Fast search returned FTS snippets without LLM summarization."
 }</pre>
 
-      <div class="ve-card c-emerald" style="margin-top:12px">
+      <div class="card-grid">
+      <div class="ve-card c-emerald">
         <div class="ve-card__label">What the agent learns from fast mode</div>
         <ul class="node-list">
           <li>Three sessions touched the topic; here are their IDs and timestamps</li>
@@ -405,6 +410,7 @@
           <li>Context shows the agent was running session_search inside this cron job</li>
           <li>NOT visible: the actual work session <code>[work_session_sid]</code> was never matched (cron jobs that mention the topic outranked it on FTS5 BM25)</li>
         </ul>
+      </div>
       </div>
 
       <div class="sec-head" style="color:var(--rose);margin-top:24px">
@@ -453,13 +459,15 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
   "count": 3, "sessions_searched": 3
 }</pre>
 
-      <div class="ve-card c-rose" style="margin-top:12px">
+      <div class="card-grid">
+      <div class="ve-card c-rose">
         <div class="ve-card__label">What the agent learns from summary mode</div>
         <ul class="node-list">
           <li>A multi-section structured recap: Context, Actions, Findings, Files, Outcome, Notable</li>
           <li>References the morning <strong>work session</strong> <code>[work_session_sid]</code> (180 messages) — but reads it second-hand: the session itself was never matched by FTS5; the recap reproduces what the cron transcripts say <em>about</em> it</li>
           <li>Reports specific findings: 1,304 base64 blobs, 293.6 MB, MIME breakdown, planned redaction approach, status <code>🟡 in progress</code> — accurate in this case, but every fact is downstream of the same cron transcripts the FTS5 hits returned</li>
         </ul>
+      </div>
       </div>
 
       <div class="sec-head" style="color:var(--indigo);margin-top:24px">
@@ -509,7 +517,8 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
   "messages_after": 5
 }</pre>
 
-      <div class="ve-card c-indigo" style="margin-top:12px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo">
         <div class="ve-card__label">What the agent learns from guided mode</div>
         <ul class="node-list">
           <li>The 11 actual messages around the FTS5 anchor — <strong>verbatim, no LLM in the loop</strong></li>
@@ -519,8 +528,10 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           <li><strong>Cost:</strong> guided's 49 kB payload is the full conversation window — bigger than summary's 12 kB recap. Composed across both turns: 53 kB of tokens enters the agent's context vs 12 kB for summary alone</li>
         </ul>
       </div>
+      </div>
 
-      <div class="ve-card c-amber" style="margin-top:12px">
+      <div class="card-grid">
+      <div class="ve-card c-amber">
         <div class="ve-card__label">⚠️ Critical: fast and summary share the same retrieval set</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
           Both modes return the <em>same three sessions</em>. The mode parameter doesn't change
@@ -544,6 +555,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           that <em>both</em> modes start from the right set of sessions.
         </p>
       </div>
+      </div>
     </section>
 
     <section id="consumer-replay">
@@ -561,6 +573,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         the JSON from the §4 run as the tool result. Same model, same payload, real LLM tokens.
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-amber anim" style="--i:26da; margin-bottom:20px">
         <div class="ve-card__label">⚠️ The mechanism: fast and summary differ in what each <em>internally</em> processes, not just what they emit</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
@@ -574,7 +587,9 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           So summary mode <em>internally</em> processes far more raw transcript than fast surfaces to the main loop, but the calling agent never sees that raw transcript — it sees a distillation. The numbers below quantify the gap.
         </p>
       </div>
+      </div>
 
+      <div class="card-grid">
       <div class="ve-card c-amber anim" style="--i:26db; margin-bottom:20px">
         <div class="ve-card__label">Data flow per query — what each mode reads from the DB and sends to which LLM</div>
         <table class="schema-table">
@@ -602,6 +617,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           dispatched in parallel; "main-loop bytes" is the JSON the calling agent sees, before
           the next-turn synthesis call.
         </p>
+      </div>
       </div>
 
       <div class="grid-2 gap-24 anim" style="--i:26dc; margin-bottom:20px">
@@ -672,6 +688,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         </div>
       </div>
 
+      <div class="card-grid">
       <div class="ve-card c-indigo anim" style="--i:26e; margin-bottom:20px">
         <div class="ve-card__label">Replay results — answer size &amp; shape per (query, mode), with wider fast (limit=5) + multi-anchor guided (top-3)</div>
         <table class="schema-table">
@@ -688,6 +705,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           in a single multi-anchor call. Quality assessment is qualitative.
           Latencies are tool-side from §4.
         </p>
+      </div>
       </div>
 
       <div class="grid-2 gap-24 anim" style="--i:26f; margin-bottom:20px">
@@ -727,6 +745,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
         </div>
       </div>
 
+      <div class="card-grid">
       <div class="ve-card c-amber anim" style="--i:26g">
         <div class="ve-card__label">⚠️ The structural insight — retrieval is the deeper lever</div>
         <p style="font-size:14px;color:var(--text);line-height:1.6;margin:0 0 8px">
@@ -749,8 +768,10 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           for future work.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-indigo anim" style="--i:26h; margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:26h">
         <div class="ve-card__label">Replay methodology — pitfall noted</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
           The first replay run produced 0-character completions for Q1-fast and Q3-fast — the
@@ -765,8 +786,10 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           alongside <code>profile_session_search.py</code> — harness pair available in the investigation workspace.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-rose anim" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-rose anim">
         <div class="ve-card__label">Follow-up measurement — three-run prompt-tuning arc on guided synthesis</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
           A separate measurement on the same multi-anchor drill, run three times with
@@ -842,8 +865,10 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           instructions to the synthesiser.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-amber anim" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-amber anim">
         <div class="ve-card__label">Tool-side speedup isn't free at the agent-context level</div>
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 8px">
           A measurement that complicates the headline "fast is faster than summary":
@@ -866,6 +891,7 @@ Summarize this conversation with focus on: pii redaction multimodal</pre>
           guided still wins on Q1 (it surfaced the four-pass span-manifest design
           that summary missed) — but speed is not the reason to reach for it.
         </p>
+      </div>
       </div>
     </section>
 

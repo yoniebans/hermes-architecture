@@ -1107,7 +1107,8 @@
         <code>session_search</code> had one mode. Every question — discovery, drill-down, synthesis — paid the same <em style="color:#fca5a5; font-style:normal">~30–60s, ~$1.00</em> for an LLM-narrated recap. Worse: when retrieval was weak, the aux LLM still produced confident prose. <strong style="color:#fca5a5">Thin hits got laundered into authoritative-sounding answers.</strong>
       </p>
 
-      <div class="ve-card c-indigo anim" style="--i:3; margin-top: 18px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:3">
         <div class="ve-card__label">The three modes</div>
 
         <div class="mode-intro-row">
@@ -1134,8 +1135,10 @@
           </div>
         </div>
       </div>
+      </div>
 
-      <div class="ve-card c-indigo anim" style="--i:4; margin-top: 16px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:4">
         <div class="ve-card__label">What each mode actually does</div>
 
         <div class="mechanism-grid">
@@ -1216,8 +1219,10 @@
           Fast and summary run the same FTS5 query. The gap is what happens <em>after</em>: summary fetches every message from every match and runs an aux LLM over each one. Fast skips both. Guided skips the search entirely and just reads a window around a known point, plus the session's framing bookends.
         </div>
       </div>
+      </div>
 
-      <div class="ve-card c-indigo anim" style="--i:5; margin-top: 16px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:5">
         <div class="ve-card__label">How they connect</div>
 
         <div class="interplay" style="margin-top:0; background:transparent; padding:0">
@@ -1254,6 +1259,7 @@
           </p>
         </div>
       </div>
+      </div>
     </section>
 
     <section id="timeline">
@@ -1266,6 +1272,7 @@
         seconds and dollars go — agent reasoning (grey), tool calls (coloured), aux LLM work (red).
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-teal anim" style="--i:3">
         <div class="ve-card__label">Median wall time and total cost, by mode pattern</div>
 
@@ -1361,6 +1368,7 @@
           The summary track is dominated by aux-LLM work — that's where the cost lives. Other modes are tool reads against SQLite; the visible time is mostly the agent reasoning between calls and writing the final reply.
         </p>
       </div>
+      </div>
     </section>
 
     <section id="shapes">
@@ -1373,6 +1381,7 @@
         prompt and it'll be honoured — but for most usage the defaults land correctly.
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-sky anim" style="--i:3">
         <div class="shapes-row">
           <div>Question shape</div>
@@ -1411,6 +1420,7 @@
           <div class="shapes-cost">~$1.00</div>
         </div>
       </div>
+      </div>
 
       <div class="callout anim" style="--i:4">
         <strong>The lever a power user wants:</strong> set <code>auxiliary.session_search.default_mode: fast</code>
@@ -1418,7 +1428,8 @@
         and only reach for synthesis when the question explicitly demands it.
       </div>
 
-      <div class="ve-card c-sky anim" style="--i:5; margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-sky anim" style="--i:5">
         <div class="ve-card__label">How mode selection actually happens</div>
         <p style="font-size:13px; line-height:1.6; margin:0 0 10px">
           There's no pre-routing step, no classifier, no separate model deciding which mode to use. Mode selection is the <strong>main model's own choice</strong>, made every turn from three signals — all of which live in the tool's schema description, the shipped <code>session-recall</code> skill, and the user's request:
@@ -1433,6 +1444,7 @@
           The implication: mode-selection quality is a <strong>prompt-engineering surface</strong>, not a code surface. The schema specifies what; the skill teaches when and why. Both can be sharpened independently of the implementation.
         </p>
       </div>
+      </div>
     </section>
 
     <section id="data-returned">
@@ -1444,6 +1456,7 @@
         Same DB, same query, different artefacts handed to the calling agent. Wide-and-shallow snippets, narrative prose, or raw conversation windows.
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-indigo anim" style="--i:3">
         <div class="ve-card__label">Per-call response anatomy (real bytes from the smoke test)</div>
 
@@ -1507,8 +1520,10 @@
           </div>
         </div>
       </div>
+      </div>
 
-      <div class="ve-card c-indigo anim" style="--i:4" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:4">
         <div class="ve-card__label">Where each mode sits on the breadth ↔ depth axis</div>
 
         <div class="bd-axis">
@@ -1543,8 +1558,10 @@
           Fast and summary are <em>horizontal</em> — they scan across sessions. Guided is <em>vertical</em> — it dives into one. The typical flow is fast (find the candidates) → guided (read what was actually said). Summary collapses both into a single LLM-narrated middle, at LLM-narrated cost.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-indigo anim" style="--i:5; margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:5">
         <div class="ve-card__label">When anchor selection goes wrong</div>
         <p style="font-size:13px; line-height:1.6; margin:0 0 10px">
           The fast → guided composition is only as good as the anchor fast picks. If <code>match_message_id</code> lands on a tangential snippet — a passing mention, a meta-discussion, the wrong session of a multi-session topic — guided will dutifully fetch the ±N messages around the wrong point. Three mitigations are built in:
@@ -1558,8 +1575,10 @@
           What's <em>not</em> built in: automated re-anchoring, anchor-quality scoring, or a "this looked wrong, try again" loop. Anchor selection failure is a real failure mode this spike doesn't fully solve — the bookends and multi-anchor fan-out close most of the gap, but a determined adversarial query could still produce a confidently-centred window of irrelevant context. Worth measuring in a follow-up.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-indigo anim" style="--i:6" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-indigo anim" style="--i:6">
         <div class="ve-card__label">The agent's tunable parameters</div>
 
         <div class="lever-grid">
@@ -1599,6 +1618,7 @@
           The agent composes these knobs without you having to think about them. The shape of your question drives <code>mode</code>; the breadth of the topic drives <code>limit</code>; the depth of the drill drives <code>anchors</code> and <code>window</code>. Power users can pin any of them — the agent honours explicit overrides.
         </p>
       </div>
+      </div>
     </section>
 
     <section id="fidelity">
@@ -1611,6 +1631,7 @@
         weak retrieval with confident-sounding prose.
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-amber anim" style="--i:3">
         <div class="ve-card__label">The failure mode the old version had</div>
         <div class="fidelity-grid">
@@ -1643,8 +1664,10 @@
           The old default (summary-on-everything) sat on the dangerous diagonal. The new defaults pull toward "honest about gaps" by surfacing raw snippets first — and let the agent widen the search when results look thin.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-amber anim" style="--i:4" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-amber anim" style="--i:4">
         <div class="ve-card__label">A real example — same question, both modes</div>
 
         <div class="example-pair">
@@ -1671,8 +1694,10 @@
           Bonus on prior-work questions: the agent now reaches for the session DB <em>before</em> <code>gh pr list</code> / web / filesystem. Memory first, external sources second.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-amber anim" style="--i:5; margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-amber anim" style="--i:5">
         <div class="ve-card__label">The whole smoke set, classified — would the old default have laundered?</div>
         <p style="font-size:13px; line-height:1.6; margin:0 0 14px">
           One anecdote is a story; fourteen is a signal. Below: each smoke-test scenario, the mode the agent actually picked, the retrieval strength observed, and the <strong>specific risk</strong> the old summary-on-everything default would have run.
@@ -1859,8 +1884,10 @@
           <strong style="color:#fde68a">93% of scenarios</strong> (14/15 excluding the 3 test-infrastructure cases) would have run measurably worse under the old default — either by paying multiples of the new cost, by silently laundering thin retrieval into confident prose, or by missing a behavioural improvement (memory-first instinct, temporal sorting cue, multi-anchor catch-up). v2 numbers reflect 90 iterations across 18 scenarios; cell verdicts are median behaviour over 5 iterations each.
         </p>
       </div>
+      </div>
 
-      <div class="ve-card c-amber anim" style="--i:5" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-amber anim" style="--i:5">
         <div class="ve-card__label">Variance across 5 iterations — wall time</div>
         <p style="font-size:12px; line-height:1.55; margin: 8px 0 12px; color: var(--text-dim, #94a3b8)">
           For each scenario: min → max range of wall time across 5 iterations, with median (teal) and p90 (yellow) ticks. Most scenarios cluster tight; <strong style="color:#fde68a">S05 spreads wide</strong> (regression test exercising the pair-resolution safety net), and <strong style="color:#fde68a">S14</strong> is the highest absolute (premium-prompt active retrieval).
@@ -2031,8 +2058,10 @@
               <div class="varbar-val">32.0s</div>
             </div>
       </div>
+      </div>
 
-      <div class="ve-card c-amber anim" style="--i:6" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-amber anim" style="--i:6">
         <div class="ve-card__label">Variance across 5 iterations — cost</div>
         <p style="font-size:12px; line-height:1.55; margin: 8px 0 12px; color: var(--text-dim, #94a3b8)">
           Same shape, in dollars. The cheap scenarios (S06, S11, S12) show one-outlier sensitivity — single $0.18 iteration in a sea of $0.03 iterations spreads the range; the median holds steady. Synthesis scenarios cluster tight around $0.30; <strong style="color:#fde68a">S14</strong> is the cost ceiling at ~$0.65.
@@ -2203,8 +2232,10 @@
               <div class="varbar-val">$0.296</div>
             </div>
       </div>
+      </div>
 
-      <div class="ve-card c-emerald anim" style="--i:7" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-emerald anim" style="--i:7">
         <div class="ve-card__label">Rubric scores — 4 axes × 18 scenarios (median across 5 iterations)</div>
         <p style="font-size:12px; line-height:1.55; margin: 8px 0 12px; color: var(--text-dim, #94a3b8)">
           Each scenario judged on Mode appropriateness, Search fidelity, Topic fidelity, Usefulness — 1–5 scale, grader independent of the run agent. Predominantly green; the 7 with score docks are annotated.
@@ -2343,6 +2374,7 @@
               <div class="hm-cell h-5" title="Usefulness: 5/5">U5</div>
             </div>
       </div>
+      </div>
     </section>
 
     <section id="costs">
@@ -2355,6 +2387,7 @@
         work that summary mode dispatches per matched session. Both are priced from the same rate card.
       </p>
 
+      <div class="card-grid">
       <div class="ve-card c-rose anim" style="--i:3">
         <div class="ve-card__label">Median and p90 per-scenario cost, stacked by source — v2 (5 iterations × 18 scenarios)</div>
 
@@ -2407,6 +2440,7 @@
           <em>browse</em> isn't one of the three modes — it's <code>session_search()</code> called with no query, a separate code path that lists recent sessions. Included here as a baseline because the agent reaches for it on "what was I working on recently?"-shaped questions.
         </p>
       </div>
+      </div>
 
       <div class="callout anim" style="--i:4">
         <strong>The headline:</strong> summary is the only expensive mode, and the expense is the aux LLM call dispatched <em>per matched session</em>. Reserve it for synthesis questions — for everything else, fast is <strong>~6× cheaper and ~4× faster</strong> ($0.17 vs $1.00, 14s vs 60s on these scenarios).
@@ -2434,7 +2468,8 @@
         </ul>
       </div>
 
-      <div class="ve-card c-emerald anim" style="--i:3" style="margin-top:16px">
+      <div class="card-grid">
+      <div class="ve-card c-emerald anim" style="--i:3">
         <div class="ve-card__label">How to try it</div>
         <p style="font-size:13px; line-height:1.55; margin:8px 0 12px">
           Two ways, depending on how much control you want.
@@ -2456,6 +2491,7 @@ auxiliary:
         <p style="font-size:12px; color:#fca5a5; margin: 14px 0 0; line-height:1.55">
           <strong style="color:#f87171">Caveat measured in v2:</strong> setting <code>default_mode: summary</code> in config is currently a soft preference. The schema description tells the agent about your configured default, but on synthesis-shaped questions ("recall…", "walk me through…", "catch me up on…") the agent's training that <code>fast → guided</code> is the right composition currently overrides the user's stated preference. If you want guaranteed summary mode, name it in the prompt (<em>"use summary mode for this"</em>) — that always works.
         </p>
+      </div>
       </div>
 
       <div class="deepdive-link">
