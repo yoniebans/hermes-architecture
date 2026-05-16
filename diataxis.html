@@ -88,7 +88,7 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">Diátaxis Documentation Map &mdash; v0.11.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">Diátaxis Documentation Map &mdash; v0.13.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       The C4 diagrams show <em>what</em> Hermes is built from and <em>how</em> parts connect.
       This page fills in the rest: <em>why</em> the architecture is shaped this way, <em>how</em>
@@ -189,7 +189,7 @@
 
     <div class="prose anim" style="--i:10">
       <p>
-        That's the entire system. Everything else &mdash; the 30+ tools, 20 platform adapters, credential pool,
+        That's the entire system. Everything else &mdash; the 30+ tools, 25+ platform adapters, credential pool,
         context compressor, cron scheduler &mdash; is <strong>supporting infrastructure</strong> around this single loop.
       </p>
     </div>
@@ -807,7 +807,6 @@
             memplugin["Memory Provider<br/><small>MemoryProvider ABC</small>"]
             adapter["Platform Adapter<br/><small>BasePlatformAdapter subclass</small>"]
             env["Exec Backend<br/><small>BaseEnvironment subclass</small>"]
-            rlenv["RL Environment<br/><small>HermesAgentBaseEnv subclass</small>"]
           end
 
           subgraph effort["Implementation Effort"]
@@ -817,7 +816,6 @@
             e3b["1 folder + 2 files<br/><small>Lifecycle hooks + ABC</small>"]
             e4["1 Python class<br/><small>3 abstract methods</small>"]
             e5["1 Python class<br/><small>2 abstract methods</small>"]
-            e6["1 Python class<br/><small>4 abstract methods + Atropos</small>"]
           end
 
           skill --> e1
@@ -826,13 +824,12 @@
           memplugin --> e3b
           adapter --> e4
           env --> e5
-          rlenv --> e6
 
           classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
           classDef eff fill:#933eea11,stroke:#933eea44,stroke-width:1px
 
-          class skill,tool,plugin,memplugin,adapter,env,rlenv ext
-          class e1,e2,e3,e3b,e4,e5,e6 eff
+          class skill,tool,plugin,memplugin,adapter,env ext
+          class e1,e2,e3,e3b,e4,e5 eff
       </script>
     </section>
 
