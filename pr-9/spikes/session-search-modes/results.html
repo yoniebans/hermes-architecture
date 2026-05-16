@@ -1421,15 +1421,16 @@
       <div class="ve-card c-sky anim" style="--i:5; margin-top:16px">
         <div class="ve-card__label">How mode selection actually happens</div>
         <p style="font-size:13px; line-height:1.6; margin:0 0 10px">
-          There's no pre-routing step, no classifier, no separate model deciding which mode to use. Mode selection is the <strong>main model's own choice</strong>, made every turn from three signals — all of which live in the tool's schema description and the user's request:
+          There's no pre-routing step, no classifier, no separate model deciding which mode to use. Mode selection is the <strong>main model's own choice</strong>, made every turn from three signals — all of which live in the tool's schema description, the shipped <code>session-recall</code> skill, and the user's request:
         </p>
         <ul style="margin:0; padding-left:20px; font-size:13px; line-height:1.6">
-          <li><strong>Schema teaching</strong> — the tool description in <code>session_search_tool.py</code> (commits <code>1a00d730e</code>, <code>54d817f88</code>, <code>74fdfe6b5</code>, <code>659af123c</code>) frames the three modes as <em>"two starts + one follow-up"</em>, explicitly anti-patterns reflexive summary picks for catch-up, and teaches multi-anchor guided for cross-session work.</li>
-          <li><strong>User wording</strong> — phrases like <em>"drill into…"</em>, <em>"walk me through…"</em>, <em>"find the session where…"</em>, or an explicit <em>"use fast mode"</em> shift which signature the model matches. The schema doesn't enumerate these phrases; the model generalises from the role tags (<em>discovery / synthesis / drill-down</em>).</li>
+          <li><strong>Schema description</strong> — the tool description is a compact specification: what each mode does, returns, and costs; the anchor contract; FTS5 syntax; and a one-paragraph "when to use". It ships in every system prompt and stays tight.</li>
+          <li><strong><code>session-recall</code> skill</strong> — the playbook layer. Pre-flight rules, mode picker table, levers, composition patterns, worked examples, pitfalls. Auto-loaded by the agent on recall-shaped questions; not in every system prompt, so cost is paid only when relevant.</li>
+          <li><strong>User wording</strong> — phrases like <em>"drill into…"</em>, <em>"walk me through…"</em>, <em>"find the session where…"</em>, or an explicit <em>"use fast mode"</em> shift which signature the model matches. Neither schema nor skill enumerates these phrases; the model generalises from the role tags (<em>discovery / synthesis / drill-down</em>).</li>
           <li><strong>Configured default</strong> — when the model omits <code>mode</code>, the resolver reads <code>auxiliary.session_search.default_mode</code> (default <code>fast</code> as of this PR). Explicit <code>mode=</code> always wins over the configured default.</li>
         </ul>
         <p style="font-size:12px; color:var(--text-dim, #94a3b8); margin: 10px 0 0; line-height:1.55; font-style:italic">
-          The implication: mode-selection quality is a <strong>prompt-engineering surface</strong>, not a code surface. Sharpen the schema description, you sharpen mode picks. The four schema commits above are exactly this kind of iteration on the live agent.
+          The implication: mode-selection quality is a <strong>prompt-engineering surface</strong>, not a code surface. The schema specifies what; the skill teaches when and why. Both can be sharpened independently of the implementation.
         </p>
       </div>
     </section>
@@ -2428,6 +2429,7 @@
           <li><strong>Memory first, external sources second.</strong> The agent now reaches for the session DB before <code>gh pr list</code>, web search, or the filesystem on questions about prior work. The behavioural shift is bigger than the cost shift — and the cost shift is real.</li>
           <li><strong>Guided is the recall workhorse.</strong> Returns raw messages around your anchor <em>plus</em> the session's opening and closing turns as bookends — so you get framing for free, without an aux LLM. Tool output is filtered out by default.</li>
           <li><strong>Summary is opt-in for genuine synthesis.</strong> When you actually want a recap across N sessions, it's still there — but it's a deliberate choice now, not the default for every question that mentions the past.</li>
+          <li><strong>A shipped <code>session-recall</code> skill teaches the composition.</strong> Every install bundles a skill at <code>skills/memory/session-recall/</code> that the agent loads on recall-shaped questions: pre-flight rules, mode picker, levers, composition patterns, worked examples, pitfalls. The schema describes what each mode does; the skill teaches when and why.</li>
           <li><strong>Honesty improved more than cost.</strong> No hallucinations observed across the 90-iteration v2 set. Rubric scoring: 11/18 scenarios perfect 5/5/5/5, 7 with small documented score docks (none disqualifying). Thin retrieval shows up as thin output instead of confident-but-wrong prose.</li>
         </ul>
       </div>
