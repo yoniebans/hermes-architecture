@@ -88,7 +88,7 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.13.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">C4 System Architecture &mdash; v0.14.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       Hermes is a Python-based AI agent framework that connects LLMs to the real world
       through 30+ tools, 25+ messaging platforms, multiple execution backends, and a
@@ -170,7 +170,7 @@
           end
 
           llm["LLM Providers<br/><small>OpenRouter, Anthropic, DeepSeek, +27</small>"]
-          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +19</small>"]
+          platforms["Messaging Platforms<br/><small>Telegram, Discord, Slack, +20</small>"]
           compute["Compute Backends<br/><small>Local, Docker, SSH, Modal, Daytona, Singularity, Vercel</small>"]
           browser["Browser Services<br/><small>Chromium, Browserbase</small>"]
           mcpServers["External MCP Servers"]
@@ -322,7 +322,7 @@
         <div class="ve-card__label">Gateway</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
-            Long-running daemon. Bridges 21 messaging platforms.
+            Long-running daemon. Bridges 22 messaging platforms.
             Manages sessions, cron, reconnection.
           </div>
         </div>
@@ -672,7 +672,7 @@
     <div class="sec-head anim" style="--i:28; color:var(--rose)">
       <span class="dot" style="background:var(--rose)"></span> Level 3 &mdash; Gateway
     </div>
-    <h2 class="anim" style="--i:29">21 platforms, one session layer</h2>
+    <h2 class="anim" style="--i:29">22 platforms, one session layer</h2>
     <p class="section-desc anim" style="--i:30">
       The Gateway daemon multiplexes across all messaging platforms. <code data-ref="gateway-runner">GatewayRunner</code>
       manages platform adapter lifecycles, caches AIAgent instances per session for prefix-cache
