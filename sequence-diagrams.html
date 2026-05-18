@@ -291,7 +291,8 @@
         <ul class="step-list">
           <li>Create or resume session from <code data-ref="gateway-session">session_store</code></li>
           <li>Load conversation history from transcript</li>
-          <li>Auto-compress if context exceeds 85% threshold</li>
+          <li>Hygiene-compress if context exceeds 85% (safety net; the agent's own
+            compressor triggers earlier at ~50%, see Compression sequence)</li>
           <li>Register agent in <code>_running_agents</code> map</li>
           <li>Execute and send response via adapter</li>
           <li>Persist transcript, clean up agent entry</li>
@@ -354,8 +355,8 @@
 
               GR->>GR: load conversation from transcript
 
-              opt Context Over 85 Percent
-                GR->>AG: auto-compress context
+              opt Context Over 85 Percent (hygiene safety net)
+                GR->>AG: hygiene auto-compress
               end
 
               GR->>AG: create AIAgent and register in _running_agents
