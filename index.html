@@ -952,11 +952,10 @@
     <div class="callout anim" style="--i:42">
       <strong>Auxiliary Model System.</strong>
       Side tasks use separate model configs, not the main conversation model.
-      Eight auxiliary channels: <code>vision</code>, <code data-ref="web-tools">web_extract</code>,
-      <code>compression</code>, <code>session_search</code>, <code>skills_hub</code>,
-      <code>approval</code>, <code>mcp</code>, <code>flush_memories</code>.
+      See <a href="data-model.html#config-hierarchy" style="color:var(--accent)">Data Model
+      &sect; Config Hierarchy</a> for the full task list and per-task timeouts.
       Default fallback: <code>google/gemini-3-flash-preview</code> via OpenRouter.
-      Each is independently configurable in <code>config.yaml</code>.
+      Each task is independently configurable in <code>config.yaml</code>.
     </div>
 
     <!-- ============================== -->

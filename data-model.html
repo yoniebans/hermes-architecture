@@ -97,7 +97,7 @@
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">30+</div><div class="kpi-card__label">Toolset groups</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">11</div><div class="kpi-card__label">Schema versions</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">11</div><div class="kpi-card__label">Auxiliary tasks</div></div>
   </div>
 </section>
 
@@ -845,21 +845,24 @@ graph TD
   <div class="ve-card c-amber anim" style="--i:43">
     <h3>Auxiliary Task Configuration</h3>
     <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
-      Eight auxiliary tasks can each be routed to different LLM providers.
-      Each task has the same schema: <code>provider</code>, <code>model</code>,
-      <code>base_url</code>, <code>api_key</code>, <code>timeout</code>.
+      Side tasks can each be routed to a different LLM provider. Every task has the same
+      schema: <code>provider</code>, <code>model</code>, <code>base_url</code>,
+      <code>api_key</code>, <code>timeout</code>, <code>extra_body</code>.
     </p>
     <table class="schema-table">
       <thead><tr><th>Task</th><th>Default Timeout</th><th>Purpose</th></tr></thead>
       <tbody>
-        <tr><td><span class="col-name">vision</span></td><td>30s</td><td>Image analysis (vision_analyze, browser_vision)</td></tr>
+        <tr><td><span class="col-name">vision</span></td><td>120s</td><td>Image analysis (<code>vision_analyze</code>, <code>browser_vision</code>)</td></tr>
         <tr><td><span class="col-name">web_extract</span></td><td>360s (6min)</td><td>Web page summarization</td></tr>
         <tr><td><span class="col-name">compression</span></td><td>120s</td><td>Context compression summaries</td></tr>
-        <tr><td><span class="col-name">session_search</span></td><td>30s</td><td>Past session summarization</td></tr>
         <tr><td><span class="col-name">skills_hub</span></td><td>30s</td><td>Skill search and matching</td></tr>
         <tr><td><span class="col-name">approval</span></td><td>30s</td><td>Smart approval risk assessment</td></tr>
         <tr><td><span class="col-name">mcp</span></td><td>30s</td><td>MCP server interactions</td></tr>
-        <tr><td><span class="col-name">flush_memories</span></td><td>30s</td><td>Pre-compression memory flush</td></tr>
+        <tr><td><span class="col-name">title_generation</span></td><td>30s</td><td>Session title generation</td></tr>
+        <tr><td><span class="col-name">triage_specifier</span></td><td>120s</td><td>Kanban triage → spec expansion</td></tr>
+        <tr><td><span class="col-name">kanban_decomposer</span></td><td>180s</td><td>Decompose triage task into child-task graph</td></tr>
+        <tr><td><span class="col-name">profile_describer</span></td><td>60s</td><td>Auto-generate profile descriptions</td></tr>
+        <tr><td><span class="col-name">curator</span></td><td>600s</td><td>Skill-usage curator review pass</td></tr>
       </tbody>
     </table>
   </div>
