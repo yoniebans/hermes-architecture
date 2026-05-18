@@ -96,7 +96,7 @@
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">30+</div><div class="kpi-card__label">Toolset groups</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">10</div><div class="kpi-card__label">Schema versions</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">11</div><div class="kpi-card__label">Schema versions</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
   </div>
 </section>
@@ -201,8 +201,8 @@ graph TD
   <h2 class="anim" style="--i:11">SQLite Schema</h2>
   <p class="section-desc anim" style="--i:12">
     All state lives in <code>~/.hermes/state.db</code> &mdash; a SQLite database with WAL mode for
-    concurrent reads. Schema version 10. FTS5 for full-text search across messages,
-    with a trigram index for CJK/substring queries.
+    concurrent reads. Schema version 11. FTS5 for full-text search across message content,
+    tool names, and tool-call arguments, with a trigram index for CJK/substring queries.
   </p>
 
   <div class="callout anim" style="--i:13">
@@ -286,25 +286,26 @@ graph TD
       <span class="col-version">FTS5 Virtual Table</span>
     </h3>
     <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
-      Full-text search index over message content. Backed by the <code>messages</code> table
-      via <code>content=messages, content_rowid=id</code>.
+      Full-text search index over <code>content || tool_name || tool_calls</code>.
+      Inline-mode FTS5 (since v11); triggers keep the index synced with the
+      <code>messages</code> table.
     </p>
-    <pre><code>CREATE VIRTUAL TABLE messages_fts USING fts5(
-    content,
-    content=messages,
-    content_rowid=id
-);
+    <pre><code>CREATE VIRTUAL TABLE messages_fts USING fts5(content);
 
--- Auto-sync triggers
+-- Auto-sync triggers (v11 — indexes content + tool_name + tool_calls)
 AFTER INSERT ON messages →
-    INSERT INTO messages_fts(rowid, content) VALUES (new.id, new.content);
+    INSERT INTO messages_fts(rowid, content) VALUES (
+        new.id,
+        COALESCE(new.content, '') || ' ' ||
+        COALESCE(new.tool_name, '') || ' ' ||
+        COALESCE(new.tool_calls, '')
+    );
 
 AFTER DELETE ON messages →
-    INSERT INTO messages_fts(messages_fts, rowid, content)
-    VALUES('delete', old.id, old.content);
+    DELETE FROM messages_fts WHERE rowid = old.id;
 
 AFTER UPDATE ON messages →
-    DELETE old entry, INSERT new entry;</code></pre>
+    DELETE old entry, INSERT new entry (same concat as INSERT).</code></pre>
   </div>
 
   <!-- Schema ER diagram -->
@@ -377,7 +378,7 @@ erDiagram
     }
 
     messages_fts_trigram {
-        TEXT content "FTS5 trigram v10"
+        TEXT content "FTS5 trigram (content + tool_name + tool_calls)"
     }
 
     state_meta {
@@ -386,7 +387,7 @@ erDiagram
     }
 
     schema_version {
-        INTEGER version "currently 10"
+        INTEGER version "currently 11"
     }
       </script>
   </section>
@@ -405,6 +406,7 @@ erDiagram
         <tr><td><span class="col-version">v6</span></td><td>Added reasoning, reasoning_details, codex_reasoning_items to messages</td></tr>
         <tr><td><span class="col-version">v7–v9</span></td><td>Declarative column reconciliation &mdash; new columns added via schema diff, no explicit migrations</td></tr>
         <tr><td><span class="col-version">v10</span></td><td>Added <code>messages_fts_trigram</code> (trigram FTS5 for CJK/substring search) with row backfill</td></tr>
+        <tr><td><span class="col-version">v11</span></td><td>FTS5 re-indexed to cover <code>content || tool_name || tool_calls</code> (inline-mode triggers replace external-content); enables <code>session_search</code> to find tool names and tool-call arguments, not just message content</td></tr>
       </tbody>
     </table>
   </div>
