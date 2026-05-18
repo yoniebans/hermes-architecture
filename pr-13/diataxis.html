@@ -670,7 +670,9 @@
             <code>clarify</code> (would confuse the user &mdash; they didn't talk to this agent),
             <code>memory</code> (prevents shared state corruption), <code>send_message</code>
             (no cross-platform side effects), <code>execute_code</code> (children should reason
-            step-by-step). Max depth is 2. Max concurrent children is 3. The parent only sees
+            step-by-step). Max depth is 1 by default (configurable up to 3 via
+            <code>delegation.max_spawn_depth</code>). Max concurrent children is 3 by default.
+            The parent only sees
             the delegation call + summary result, never intermediate tool calls &mdash;
             <strong>information hiding for context efficiency.</strong>
           </div>
