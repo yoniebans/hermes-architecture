@@ -93,6 +93,9 @@ window.ATLAS_REFS = {
     "web-dashboard": {
       "path": "web"
     },
+    "web-server": {
+      "path": "hermes_cli/web_server.py"
+    },
     "memory-manager": {
       "path": "agent/memory_manager.py"
     },
