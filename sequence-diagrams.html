@@ -723,7 +723,7 @@
           participant SI as sessions.json
 
           MC->>MCP: list tools
-          MCP-->>MC: conversations_list, messages_read, messages_send, etc.
+          MCP-->>MC: conversations_list, conversation_get, messages_read, messages_send, events_poll, events_wait, attachments_fetch, permissions_list_open
 
           MC->>MCP: conversations_list(platform, search)
           activate MCP

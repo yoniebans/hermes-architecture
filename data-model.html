@@ -142,6 +142,7 @@ graph TD
         taskruns["Task Runs<br/><small>attempt history, heartbeat, outcome</small>"]
         taskevents["Task Events<br/><small>append-only audit log</small>"]
         taskcomments["Task Comments<br/><small>threaded discussion</small>"]
+        tasklinks["Task Links<br/><small>parent-child DAG</small>"]
     end
 
     subgraph filesystem["Filesystem — ~/.hermes/"]
@@ -172,6 +173,7 @@ graph TD
     tasks --> taskruns
     tasks --> taskevents
     tasks --> taskcomments
+    tasks --> tasklinks
 
     classDef db fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
     classDef kanbandb fill:#818cf811,stroke:#818cf844,stroke-width:1.5px
@@ -179,7 +181,7 @@ graph TD
     classDef rt fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
 
     class sessions,messages,fts,trigram,statemeta db
-    class tasks,taskruns,taskevents,taskcomments kanbandb
+    class tasks,taskruns,taskevents,taskcomments,tasklinks kanbandb
     class skills,config,envfile,authjson,jobsjson,memory,plugins fs
     class toolreg,toolsets,auxconfig,memprov rt
       </script>
