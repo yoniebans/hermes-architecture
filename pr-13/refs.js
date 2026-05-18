@@ -99,6 +99,12 @@ window.ATLAS_REFS = {
     "cron-jobs": {
       "path": "cron/jobs.py"
     },
+    "hermes-constants": {
+      "path": "hermes_constants.py"
+    },
+    "tirith-security": {
+      "path": "tools/tirith_security.py"
+    },
     "web-dashboard": {
       "path": "web"
     },
