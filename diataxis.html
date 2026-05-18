@@ -189,7 +189,7 @@
 
     <div class="prose anim" style="--i:10">
       <p>
-        That's the entire system. Everything else &mdash; the 30+ tools, 25+ platform adapters, credential pool,
+        That's the entire system. Everything else &mdash; the 30+ tools, 27 platform adapters, credential pool,
         context compressor, cron scheduler &mdash; is <strong>supporting infrastructure</strong> around this single loop.
       </p>
     </div>
@@ -223,7 +223,7 @@
     </div>
 
     <div class="callout callout--tutorial anim" style="--i:12">
-      <strong>The key insight for newcomers:</strong> Hermes is NOT a monolith with 16 messaging
+      <strong>The key insight for newcomers:</strong> Hermes is NOT a monolith with 27 messaging
       integrations. It's a single agent loop with a <em>pluggable front door</em> (platforms) and
       a <em>pluggable toolkit</em> (tools). Everything else is glue.
     </div>
@@ -334,7 +334,7 @@
             <li><code>on_delegation()</code> → notified of subagent tasks</li>
             <li><code>session_id</code> on all hooks for concurrent scoping</li>
             <li>Prefetch is cached once per tool loop (latency-safe)</li>
-            <li>7 shipped providers as reference implementations</li>
+            <li>8 shipped providers as reference implementations</li>
           </ul>
         </div>
       </div>
@@ -410,7 +410,7 @@
           end
 
           subgraph core["Agent Core"]
-            runagent["run_agent.py<br/><small>8500 lines &middot; AIAgent</small>"]
+            runagent["run_agent.py<br/><small>AIAgent core</small>"]
             promptb["agent/prompt_builder.py"]
             compress["agent/context_compressor.py"]
             routing["agent/smart_model_routing.py"]
