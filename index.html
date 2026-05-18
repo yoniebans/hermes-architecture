@@ -409,7 +409,7 @@
     </div>
 
     <!-- Intelligence components grid -->
-    <div class="grid-3 gap-24 anim" style="--i:19">
+    <div class="grid-2 gap-24 anim" style="--i:19">
       <div class="ve-card c-emerald">
         <div class="ve-card__label">Prompt Builder</div>
         <ul class="node-list">
@@ -430,16 +430,6 @@
           <li>Summarize middle into structured template</li>
           <li>Iterative re-compression support</li>
           <li>Uses cheap auxiliary model</li>
-        </ul>
-      </div>
-      <div class="ve-card c-teal">
-        <div class="ve-card__label">Smart Model Routing</div>
-        <ul class="node-list">
-          <li>Short/simple messages → cheap model</li>
-          <li>Complex messages → primary model</li>
-          <li>Heuristics: length, words, keywords</li>
-          <li>No code blocks, URLs, or multi-line</li>
-          <li>Config-driven via <code>config.yaml</code></li>
         </ul>
       </div>
     </div>
@@ -925,8 +915,6 @@
         <div class="pipeline-step"><div class="step-name">Adapter</div><div class="step-detail">receive +<br>normalize</div></div>
         <div class="pipeline-arrow">→</div>
         <div class="pipeline-step" style="border-color:var(--teal-dim)"><div class="step-name">SessionStore</div><div class="step-detail">load / create</div></div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-step" style="border-color:var(--emerald-dim)"><div class="step-name">Smart Route</div><div class="step-detail">cheap vs<br>primary</div></div>
         <div class="pipeline-arrow">→</div>
         <div class="pipeline-step" style="border-color:var(--amber-dim)"><div class="step-name">AIAgent</div><div class="step-detail">run_conversation()</div></div>
         <div class="pipeline-arrow">→</div>
