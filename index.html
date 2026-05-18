@@ -580,7 +580,8 @@
           <div class="title">Spawning</div>
           <div class="desc">
             Parent AIAgent spawns children via <code>ThreadPoolExecutor</code>.
-            Max 3 concurrent children. Max depth 2 (no deep recursion).
+            Max 3 concurrent children. Max depth 1 by default
+            (configurable up to 3 via <code>delegation.max_spawn_depth</code>).
           </div>
         </div>
         <div class="inner-card">
