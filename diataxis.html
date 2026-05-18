@@ -684,13 +684,13 @@
         <div class="principle__body">
           <div class="principle__title">Generous credential exhaustion cooldowns</div>
           <div class="principle__desc">
-            When an API key hits a rate limit (HTTP 429), it's marked exhausted for <strong>1 hour</strong>.
-            When it hits a billing limit (HTTP 402), it's marked exhausted for <strong>24 hours</strong>.
-            These are intentionally generous &mdash; they avoid hammering providers at the cost of
-            potential under-utilization. The credential pool supports 4 selection strategies
-            (<code>fill_first</code>, <code>round_robin</code>, <code>random</code>,
-            <code>least_used</code>), with <code>fill_first</code> as default because it maximizes
-            provider-side cache hits.
+            When an API key hits an auth error (HTTP 401), it cools down for <strong>5 minutes</strong>
+            so transient token refreshes recover quickly. Rate limits (HTTP 429) and billing
+            errors (HTTP 402) cool down for <strong>1 hour</strong> — intentionally generous to
+            avoid hammering providers at the cost of potential under-utilization. The credential
+            pool supports 4 selection strategies (<code>fill_first</code>, <code>round_robin</code>,
+            <code>random</code>, <code>least_used</code>), with <code>fill_first</code> as default
+            because it maximizes provider-side cache hits.
           </div>
         </div>
       </div>
