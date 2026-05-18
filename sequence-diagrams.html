@@ -59,6 +59,7 @@
         <a href="sequence-diagrams.html#web-dashboard-flow">Web Dashboard Flow</a>
         <a href="sequence-diagrams.html#acp-flow">ACP Editor Flow</a>
         <a href="sequence-diagrams.html#mcp-flow">MCP Server Flow</a>
+        <a href="sequence-diagrams.html#cron-flow">Cron Job Execution</a>
         <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
         <a href="sequence-diagrams.html#context-compression">Compression</a>
         <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
@@ -779,6 +780,128 @@
           EB-->>MCP: new event or timeout
           MCP-->>MC: event data or empty
           deactivate MCP
+      </script>
+    </section>
+</section>
+
+    <!-- ============================== -->
+    <!-- SECTION 2f: CRON JOB FLOW       -->
+    <!-- ============================== -->
+
+<section id="cron-flow">
+    <div class="sec-head anim" style="--i:17; color:var(--amber)">
+      <span class="dot" style="background:var(--amber)"></span> Sequence 2f
+    </div>
+    <h2 class="anim" style="--i:18">Cron Job Execution</h2>
+    <p class="section-desc anim" style="--i:19">
+      The gateway daemon runs a 60-second tick in a background thread
+      (<code data-ref="cron-scheduler">cron/scheduler.py</code>).
+      Each tick acquires a non-blocking file lock so only one tick runs at a time
+      across overlapping processes, scans <code>~/.hermes/cron/jobs.json</code> for due jobs,
+      advances <code>next_run_at</code> under the lock (at-most-once semantics),
+      then dispatches each job to a worker thread that builds an isolated AIAgent
+      and delivers the response to the configured target.
+    </p>
+
+    <div class="grid-2 anim" style="--i:20">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Participants</div>
+        <ul class="step-list">
+          <li><code>Ticker</code> &mdash; Gateway background thread (60s loop)</li>
+          <li><code data-ref="cron-scheduler">Scheduler</code> &mdash; tick() in cron/scheduler.py</li>
+          <li><code data-ref="cron-jobs">jobs.json</code> &mdash; persistent job definitions</li>
+          <li><code>Lock</code> &mdash; ~/.hermes/cron/.tick.lock (fcntl/msvcrt)</li>
+          <li><code>Worker</code> &mdash; ThreadPoolExecutor worker per job</li>
+          <li><code data-ref="ai-agent">AIAgent</code> &mdash; fresh isolated session</li>
+          <li><code>Delivery</code> &mdash; live platform adapter or local sink</li>
+        </ul>
+      </div>
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Key Steps</div>
+        <ul class="step-list">
+          <li>Non-blocking flock &mdash; skip tick if another holds the lock</li>
+          <li>Load due jobs from <code>jobs.json</code></li>
+          <li><strong>Advance <code>next_run_at</code> first, under the lock</strong> &mdash; at-most-once</li>
+          <li>Parallel dispatch (<code>HERMES_CRON_MAX_PARALLEL</code>, unbounded default)</li>
+          <li>Per job: build prompt with skills + prompt-injection scan</li>
+          <li>Run isolated AIAgent in a fresh session (no shared state with user sessions)</li>
+          <li>Deliver final response via gateway adapter or local; <code>[SILENT]</code> marker suppresses delivery</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:21">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant T as Ticker (60s loop)
+          participant S as Scheduler.tick()
+          participant L as .tick.lock
+          participant J as jobs.json
+          participant W as Worker (ThreadPool)
+          participant AG as AIAgent
+          participant D as Delivery
+
+          T->>S: tick() every 60s
+          activate S
+          S->>L: flock LOCK_EX | LOCK_NB
+          alt Lock held by another tick
+            L-->>S: BlockingIOError
+            S-->>T: skip (return 0)
+          else Lock acquired
+            S->>J: get_due_jobs()
+            J-->>S: due jobs list
+            opt No jobs due
+              S-->>T: return 0
+            end
+
+            loop For each due job (under lock)
+              S->>J: advance_next_run(job_id)
+              Note over S,J: at-most-once: bumped BEFORE execution
+            end
+
+            S->>W: dispatch jobs (ThreadPool, max_parallel)
+            activate W
+
+            par Per-job execution
+              W->>W: build prompt (skills + injection scan)
+              opt Injection detected
+                W->>D: deliver "job blocked" notice
+              end
+              W->>AG: run_conversation() in fresh session
+              activate AG
+              AG-->>W: final response + output
+              deactivate AG
+
+              alt Response is [SILENT]
+                Note over W,D: suppress delivery; output still saved
+              else Has content
+                W->>D: deliver to target platform or local
+                D-->>W: ack
+              end
+            end
+
+            W-->>S: all jobs done
+            deactivate W
+            S->>L: flock LOCK_UN
+            S-->>T: return job count
+          end
+          deactivate S
       </script>
     </section>
 </section>

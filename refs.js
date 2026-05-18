@@ -93,6 +93,12 @@ window.ATLAS_REFS = {
     "acp-edit-approval": {
       "path": "acp_adapter/edit_approval.py"
     },
+    "cron-scheduler": {
+      "path": "cron/scheduler.py"
+    },
+    "cron-jobs": {
+      "path": "cron/jobs.py"
+    },
     "web-dashboard": {
       "path": "web"
     },
