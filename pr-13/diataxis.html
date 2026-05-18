@@ -413,7 +413,6 @@
             runagent["run_agent.py<br/><small>AIAgent core</small>"]
             promptb["agent/prompt_builder.py"]
             compress["agent/context_compressor.py"]
-            routing["agent/smart_model_routing.py"]
             creds["agent/credential_pool.py"]
             memmgr["agent/memory_manager.py"]
             memabc["agent/memory_provider.py<br/><small>ABC</small>"]
@@ -441,7 +440,6 @@
 
           runagent --> promptb
           runagent --> compress
-          runagent --> routing
           runagent --> creds
           runagent --> memmgr
           runagent --> transports
@@ -460,7 +458,7 @@
           classDef st fill:#933eea11,stroke:#933eea44,stroke-width:1.5px
 
           class cli,tuigw,webdash,gwrun,acpsrv,mcpsrv entry
-          class runagent,promptb,compress,routing,creds,memmgr,memabc,transports core
+          class runagent,promptb,compress,creds,memmgr,memabc,transports core
           class mt,reg,ts tool
           class sdb,mem,config st
       </script>
@@ -654,8 +652,7 @@
             for <code>rm</code>, <code>mv</code>, <code>dd</code>, <code>git reset --hard</code>.
             Path overlap detection uses prefix comparison rather than inode resolution (because "the file
             may not exist yet"). Context compression uses character limits, not token counts (because
-            "char counts are model-independent"). Smart model routing checks message length (&lt;160 chars,
-            &lt;28 words) and a keyword blocklist. These are all <strong>conscious simplicity choices</strong>
+            "char counts are model-independent"). These are all <strong>conscious simplicity choices</strong>
             that trade precision for reliability and portability.
           </div>
         </div>
