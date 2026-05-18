@@ -90,8 +90,26 @@ window.ATLAS_REFS = {
     "acp-adapter": {
       "path": "acp_adapter"
     },
+    "acp-edit-approval": {
+      "path": "acp_adapter/edit_approval.py"
+    },
+    "cron-scheduler": {
+      "path": "cron/scheduler.py"
+    },
+    "cron-jobs": {
+      "path": "cron/jobs.py"
+    },
+    "hermes-constants": {
+      "path": "hermes_constants.py"
+    },
+    "tirith-security": {
+      "path": "tools/tirith_security.py"
+    },
     "web-dashboard": {
       "path": "web"
+    },
+    "web-server": {
+      "path": "hermes_cli/web_server.py"
     },
     "memory-manager": {
       "path": "agent/memory_manager.py"

@@ -60,6 +60,7 @@
         <a href="sequence-diagrams.html#web-dashboard-flow">Web Dashboard Flow</a>
         <a href="sequence-diagrams.html#acp-flow">ACP Editor Flow</a>
         <a href="sequence-diagrams.html#mcp-flow">MCP Server Flow</a>
+        <a href="sequence-diagrams.html#cron-flow">Cron Job Execution</a>
         <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
         <a href="sequence-diagrams.html#context-compression">Compression</a>
         <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
@@ -95,9 +96,9 @@
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--accent)">4</div><div class="kpi-card__label">Storage layers</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">30+</div><div class="kpi-card__label">Toolset groups</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">10</div><div class="kpi-card__label">Schema versions</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">8</div><div class="kpi-card__label">Auxiliary tasks</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">56</div><div class="kpi-card__label">Toolset groups</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">11</div><div class="kpi-card__label">Schema versions</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">11</div><div class="kpi-card__label">Auxiliary tasks</div></div>
   </div>
 </section>
 
@@ -142,6 +143,7 @@ graph TD
         taskruns["Task Runs<br/><small>attempt history, heartbeat, outcome</small>"]
         taskevents["Task Events<br/><small>append-only audit log</small>"]
         taskcomments["Task Comments<br/><small>threaded discussion</small>"]
+        tasklinks["Task Links<br/><small>parent-child DAG</small>"]
     end
 
     subgraph filesystem["Filesystem — ~/.hermes/"]
@@ -172,6 +174,7 @@ graph TD
     tasks --> taskruns
     tasks --> taskevents
     tasks --> taskcomments
+    tasks --> tasklinks
 
     classDef db fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
     classDef kanbandb fill:#818cf811,stroke:#818cf844,stroke-width:1.5px
@@ -179,7 +182,7 @@ graph TD
     classDef rt fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
 
     class sessions,messages,fts,trigram,statemeta db
-    class tasks,taskruns,taskevents,taskcomments kanbandb
+    class tasks,taskruns,taskevents,taskcomments,tasklinks kanbandb
     class skills,config,envfile,authjson,jobsjson,memory,plugins fs
     class toolreg,toolsets,auxconfig,memprov rt
       </script>
@@ -201,8 +204,8 @@ graph TD
   <h2 class="anim" style="--i:11">SQLite Schema</h2>
   <p class="section-desc anim" style="--i:12">
     All state lives in <code>~/.hermes/state.db</code> &mdash; a SQLite database with WAL mode for
-    concurrent reads. Schema version 10. FTS5 for full-text search across messages,
-    with a trigram index for CJK/substring queries.
+    concurrent reads. Schema version 11. FTS5 for full-text search across message content,
+    tool names, and tool-call arguments, with a trigram index for CJK/substring queries.
   </p>
 
   <div class="callout anim" style="--i:13">
@@ -286,25 +289,26 @@ graph TD
       <span class="col-version">FTS5 Virtual Table</span>
     </h3>
     <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
-      Full-text search index over message content. Backed by the <code>messages</code> table
-      via <code>content=messages, content_rowid=id</code>.
+      Full-text search index over <code>content || tool_name || tool_calls</code>.
+      Inline-mode FTS5 (since v11); triggers keep the index synced with the
+      <code>messages</code> table.
     </p>
-    <pre><code>CREATE VIRTUAL TABLE messages_fts USING fts5(
-    content,
-    content=messages,
-    content_rowid=id
-);
+    <pre><code>CREATE VIRTUAL TABLE messages_fts USING fts5(content);
 
--- Auto-sync triggers
+-- Auto-sync triggers (v11 — indexes content + tool_name + tool_calls)
 AFTER INSERT ON messages →
-    INSERT INTO messages_fts(rowid, content) VALUES (new.id, new.content);
+    INSERT INTO messages_fts(rowid, content) VALUES (
+        new.id,
+        COALESCE(new.content, '') || ' ' ||
+        COALESCE(new.tool_name, '') || ' ' ||
+        COALESCE(new.tool_calls, '')
+    );
 
 AFTER DELETE ON messages →
-    INSERT INTO messages_fts(messages_fts, rowid, content)
-    VALUES('delete', old.id, old.content);
+    DELETE FROM messages_fts WHERE rowid = old.id;
 
 AFTER UPDATE ON messages →
-    DELETE old entry, INSERT new entry;</code></pre>
+    DELETE old entry, INSERT new entry (same concat as INSERT).</code></pre>
   </div>
 
   <!-- Schema ER diagram -->
@@ -377,7 +381,7 @@ erDiagram
     }
 
     messages_fts_trigram {
-        TEXT content "FTS5 trigram v10"
+        TEXT content "FTS5 trigram (content + tool_name + tool_calls)"
     }
 
     state_meta {
@@ -386,7 +390,7 @@ erDiagram
     }
 
     schema_version {
-        INTEGER version "currently 10"
+        INTEGER version "currently 11"
     }
       </script>
   </section>
@@ -405,6 +409,7 @@ erDiagram
         <tr><td><span class="col-version">v6</span></td><td>Added reasoning, reasoning_details, codex_reasoning_items to messages</td></tr>
         <tr><td><span class="col-version">v7–v9</span></td><td>Declarative column reconciliation &mdash; new columns added via schema diff, no explicit migrations</td></tr>
         <tr><td><span class="col-version">v10</span></td><td>Added <code>messages_fts_trigram</code> (trigram FTS5 for CJK/substring search) with row backfill</td></tr>
+        <tr><td><span class="col-version">v11</span></td><td>FTS5 re-indexed to cover <code>content || tool_name || tool_calls</code> (inline-mode triggers replace external-content); enables <code>session_search</code> to find tool names and tool-call arguments, not just message content</td></tr>
       </tbody>
     </table>
   </div>
@@ -627,11 +632,14 @@ classDiagram
       <div style="background:var(--sky-dim);padding:12px;border-radius:8px">
         <div style="font-weight:600;font-size:12px;color:var(--sky);margin-bottom:4px">Leaf Toolsets</div>
         <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.6">
-          web &middot; terminal &middot; file &middot; browser &middot;
-          vision &middot; image_gen &middot; skills &middot; tts &middot;
+          web &middot; search &middot; x_search &middot; vision &middot;
+          video &middot; image_gen &middot; video_gen &middot; computer_use &middot;
+          terminal &middot; moa &middot; skills &middot; browser &middot;
+          cronjob &middot; messaging &middot; file &middot; tts &middot;
           todo &middot; memory &middot; session_search &middot; clarify &middot;
-          code_execution &middot; delegation &middot; cronjob &middot; messaging &middot;
-          homeassistant &middot; search &middot; moa &middot; kanban
+          code_execution &middot; delegation &middot; homeassistant &middot; kanban &middot;
+          discord &middot; discord_admin &middot; yuanbao &middot; feishu_doc &middot;
+          feishu_drive &middot; spotify
         </div>
       </div>
       <div style="background:var(--teal-dim);padding:12px;border-radius:8px">
@@ -644,9 +652,14 @@ classDiagram
       <div style="background:var(--amber-dim);padding:12px;border-radius:8px">
         <div style="font-weight:600;font-size:12px;color:var(--amber);margin-bottom:4px">Platform Toolsets</div>
         <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.6">
-          hermes-cli &middot; hermes-telegram &middot; hermes-discord &middot;
-          hermes-slack &middot; hermes-whatsapp &middot; hermes-signal &middot;
-          hermes-acp &middot; hermes-gateway
+          hermes-cli &middot; hermes-cron &middot; hermes-gateway &middot; hermes-acp &middot;
+          hermes-api-server &middot; hermes-webhook &middot; hermes-telegram &middot;
+          hermes-discord &middot; hermes-slack &middot; hermes-whatsapp &middot;
+          hermes-signal &middot; hermes-bluebubbles &middot; hermes-matrix &middot;
+          hermes-mattermost &middot; hermes-email &middot; hermes-sms &middot;
+          hermes-homeassistant &middot; hermes-dingtalk &middot; hermes-feishu &middot;
+          hermes-weixin &middot; hermes-qqbot &middot; hermes-wecom &middot;
+          hermes-wecom-callback &middot; hermes-yuanbao
         </div>
       </div>
     </div>
@@ -816,7 +829,7 @@ graph TD
       <div>
         <div style="font-weight:600;font-size:12px;color:var(--sky);margin-bottom:4px">Execution</div>
         <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);line-height:1.8">
-          terminal<br>browser<br>compression<br>auxiliary<br>smart_model_routing
+          terminal<br>browser<br>compression<br>auxiliary
         </div>
       </div>
       <div>
@@ -843,21 +856,24 @@ graph TD
   <div class="ve-card c-amber anim" style="--i:43">
     <h3>Auxiliary Task Configuration</h3>
     <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
-      Eight auxiliary tasks can each be routed to different LLM providers.
-      Each task has the same schema: <code>provider</code>, <code>model</code>,
-      <code>base_url</code>, <code>api_key</code>, <code>timeout</code>.
+      Side tasks can each be routed to a different LLM provider. Every task has the same
+      schema: <code>provider</code>, <code>model</code>, <code>base_url</code>,
+      <code>api_key</code>, <code>timeout</code>, <code>extra_body</code>.
     </p>
     <table class="schema-table">
       <thead><tr><th>Task</th><th>Default Timeout</th><th>Purpose</th></tr></thead>
       <tbody>
-        <tr><td><span class="col-name">vision</span></td><td>30s</td><td>Image analysis (vision_analyze, browser_vision)</td></tr>
+        <tr><td><span class="col-name">vision</span></td><td>120s</td><td>Image analysis (<code>vision_analyze</code>, <code>browser_vision</code>)</td></tr>
         <tr><td><span class="col-name">web_extract</span></td><td>360s (6min)</td><td>Web page summarization</td></tr>
         <tr><td><span class="col-name">compression</span></td><td>120s</td><td>Context compression summaries</td></tr>
-        <tr><td><span class="col-name">session_search</span></td><td>30s</td><td>Past session summarization</td></tr>
         <tr><td><span class="col-name">skills_hub</span></td><td>30s</td><td>Skill search and matching</td></tr>
         <tr><td><span class="col-name">approval</span></td><td>30s</td><td>Smart approval risk assessment</td></tr>
         <tr><td><span class="col-name">mcp</span></td><td>30s</td><td>MCP server interactions</td></tr>
-        <tr><td><span class="col-name">flush_memories</span></td><td>30s</td><td>Pre-compression memory flush</td></tr>
+        <tr><td><span class="col-name">title_generation</span></td><td>30s</td><td>Session title generation</td></tr>
+        <tr><td><span class="col-name">triage_specifier</span></td><td>120s</td><td>Kanban triage → spec expansion</td></tr>
+        <tr><td><span class="col-name">kanban_decomposer</span></td><td>180s</td><td>Decompose triage task into child-task graph</td></tr>
+        <tr><td><span class="col-name">profile_describer</span></td><td>60s</td><td>Auto-generate profile descriptions</td></tr>
+        <tr><td><span class="col-name">curator</span></td><td>600s</td><td>Skill-usage curator review pass</td></tr>
       </tbody>
     </table>
   </div>
@@ -903,18 +919,18 @@ graph TD
 
 <!-- ──────── PLUGIN SYSTEM ──────── -->
 <section id="plugin-system">
-  <div class="sec-head anim" style="--i:44; color:var(--emerald)">
+  <div class="sec-head anim" style="--i:50; color:var(--emerald)">
     <span class="dot" style="background:var(--emerald)"></span> Plugins
   </div>
-  <h2 class="anim" style="--i:44">Plugin System</h2>
-  <p class="section-desc anim" style="--i:44">
+  <h2 class="anim" style="--i:51">Plugin System</h2>
+  <p class="section-desc anim" style="--i:52">
     Hermes uses a plugin architecture for extensibility. Five plugin categories exist: memory providers,
     context engines, general-purpose plugins, dashboard plugins, and platform plugins. The
     <code data-ref="plugin-manager">PluginManager</code> discovers and loads plugins from four sources
     in precedence order.
   </p>
 
-  <section class="diagram-shell anim" style="--i:44">
+  <section class="diagram-shell anim" style="--i:53">
     <p class="diagram-shell__hint">Plugin Architecture &middot; Ctrl/Cmd + wheel to zoom &middot; Drag to pan &middot; Double-click to fit</p>
     <div class="mermaid-wrap">
       <div class="zoom-controls">
@@ -931,50 +947,70 @@ graph TD
       <script type="text/plain" class="diagram-source">
 classDiagram
     class PluginManager {
-        -Dict~str,PluginInfo~ _plugins
-        -List~str~ _enabled
-        -List~str~ _disabled
-        +discover_plugins() List~PluginInfo~
-        +load_plugin(name) PluginInfo
-        +register_all()
-        +get_tools() List~ToolEntry~
-        +get_hooks() Dict
-        +get_commands() Dict
+        -Dict~str,LoadedPlugin~ plugins
+        -Set~str~ _plugin_tool_names
+        -Dict hooks
+        +discover_and_load(force) None
+        +invoke_hook(hook_name, kwargs) List
+        +list_plugins() List
+        +find_plugin_skill(qualified_name) Path
+        +list_plugin_skills(plugin_name) List
+        +remove_plugin_skill(qualified_name) None
+    }
+
+    class PluginManifest {
+        +str name
+        +str version
+        +str description
+        +str author
+        +str source         : bundled, user, project, entrypoint
+        +str kind           : standalone, backend, exclusive, platform
+        +str key            : path-derived (e.g. image_gen/openai)
+        +str path
+        +List requires_env
+        +List provides_tools
+        +List provides_hooks
+    }
+
+    class LoadedPlugin {
+        +PluginManifest manifest
+        +ModuleType module
+        +List tools_registered
+        +List hooks_registered
+        +List commands_registered
+        +bool enabled
+        +Optional~str~ error
     }
 
     class PluginContext {
-        +plugin_name: str
-        +hermes_home: str
-        +register_tool(schema, handler)
-        +register_hook(event, callback)
-        +register_command(name, handler)
-        +register_cli_command(name, parser)
-        +register_skill(skill_data)
-        +register_context_engine(engine)
-        +inject_message(role, content)
-        +dispatch_tool(name, args)
+        +PluginManifest manifest
+        +PluginLlm llm
+        +register_tool(name, toolset, schema, handler, ...) None
+        +register_hook(hook_name, callback) None
+        +register_command(name, ...) None
+        +register_cli_command(name, parser) None
+        +register_skill(...) None
+        +register_context_engine(engine) None
+        +register_image_gen_provider(provider) None
+        +register_video_gen_provider(provider) None
+        +register_web_search_provider(provider) None
+        +register_browser_provider(provider) None
+        +register_platform(...) None
+        +inject_message(content, role) bool
+        +dispatch_tool(name, args, kwargs) str
     }
 
-    class PluginInfo {
-        +name: str
-        +version: str
-        +source: str
-        +description: str
-        +pip_dependencies: List
-        +hooks: List
-        +enabled: bool
-    }
-
-    PluginManager "1" *-- "0..*" PluginInfo : manages
+    PluginManager "1" *-- "0..*" LoadedPlugin : plugins
+    LoadedPlugin "1" *-- "1" PluginManifest : manifest
     PluginManager ..> PluginContext : creates per plugin
-    PluginContext ..> ToolRegistry : register_tool
-    PluginContext ..> AIAgent : register_hook
+    PluginContext ..> ToolRegistry : register_tool / dispatch_tool
+    PluginContext ..> AIAgent : register_hook / inject_message
 
-    note for PluginManager "Discovery order:\n1. Bundled (repo/plugins/)\n2. User (~/.hermes/plugins/)\n3. Project (.hermes/plugins/)\n4. Pip (entry-point group)"
+    note for PluginManager "Discovery order (later wins on key collision):\n1. Bundled (repo/plugins/) — skips memory, context_engine, platforms, model-providers\n2. Bundled platforms (repo/plugins/platforms/)\n3. User (~/.hermes/plugins/) — gated by plugins.enabled\n4. Project (./.hermes/plugins/) — only with HERMES_ENABLE_PROJECT_PLUGINS=1\n5. Pip entry-point group (importlib.metadata)"
       </script>
   </section>
 
-  <div class="card-grid anim" style="--i:44">
+  <div class="card-grid anim" style="--i:54">
     <div class="ve-card">
       <h3 style="color:var(--teal)">plugin.yaml Schema</h3>
       <table class="schema-table">
@@ -983,10 +1019,11 @@ classDiagram
           <tr><td><span class="col-name">name</span></td><td>str</td><td>Unique plugin identifier</td></tr>
           <tr><td><span class="col-name">version</span></td><td>str</td><td>Semver version</td></tr>
           <tr><td><span class="col-name">description</span></td><td>str</td><td>Human-readable description</td></tr>
-          <tr><td><span class="col-name">pip_dependencies</span></td><td>list</td><td>Auto-installed pip packages</td></tr>
-          <tr><td><span class="col-name">hooks</span></td><td>list</td><td>Lifecycle hooks this plugin uses</td></tr>
-          <tr><td><span class="col-name">kind</span></td><td>str</td><td>Plugin category (<code>platform</code>, <code>memory</code>, etc.)</td></tr>
-          <tr><td><span class="col-name">required_env</span></td><td>list</td><td>Required environment variables (platform plugins)</td></tr>
+          <tr><td><span class="col-name">author</span></td><td>str</td><td>Plugin author</td></tr>
+          <tr><td><span class="col-name">requires_env</span></td><td>list</td><td>Required env vars (strings or dicts with details)</td></tr>
+          <tr><td><span class="col-name">provides_tools</span></td><td>list</td><td>Tool names this plugin will register</td></tr>
+          <tr><td><span class="col-name">provides_hooks</span></td><td>list</td><td>Lifecycle hooks this plugin will register</td></tr>
+          <tr><td><span class="col-name">kind</span></td><td>str</td><td>Plugin category (<code>standalone</code>, <code>backend</code>, <code>exclusive</code>, <code>platform</code>)</td></tr>
         </tbody>
       </table>
     </div>
@@ -997,6 +1034,7 @@ classDiagram
         <tbody>
           <tr><td><span class="col-name">Memory Provider</span></td><td>At most 1 active external provider</td></tr>
           <tr><td><span class="col-name">Context Engine</span></td><td>At most 1 replaces built-in compressor</td></tr>
+          <tr><td><span class="col-name">Model Provider</span></td><td>Inference backend (<code>kind: model-provider</code>); registers default/aux model + API mode; lives in <code>plugins/model-providers/</code></td></tr>
           <tr><td><span class="col-name">General Plugin</span></td><td>Opt-in via config.yaml enable list</td></tr>
           <tr><td><span class="col-name">Dashboard Plugin</span></td><td>JS bundle + manifest.json for web UI tabs</td></tr>
           <tr><td><span class="col-name">Platform Plugin</span></td><td>Registers adapter via <code>PlatformRegistry</code>; lives in <code>plugins/platforms/</code></td></tr>
@@ -1005,7 +1043,7 @@ classDiagram
     </div>
   </div>
 
-  <div class="ve-card c-amber anim" style="--i:44">
+  <div class="ve-card c-amber anim" style="--i:55">
     <h3>14 Lifecycle Hooks</h3>
     <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
       Plugins register callbacks for any combination of these events via
