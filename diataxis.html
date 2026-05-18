@@ -210,7 +210,7 @@
           <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
             <code data-ref="ai-agent">AIAgent</code> + its intelligence modules. This is where decisions are made:
             which model to call, how to build the prompt, when to compress, when to stop.
-            A <code>MemoryManager</code> orchestrates pluggable memory providers alongside the built-in store.
+            A <code data-ref="memory-manager">MemoryManager</code> orchestrates pluggable memory providers alongside the built-in store.
           </p>
         </div>
         <div>
@@ -722,7 +722,7 @@
           <div class="principle__desc">
             PR #4623 extracted the ~1,000-line <code>honcho_integration/</code> subsystem into a
             <strong>pluggable provider interface</strong> &mdash; <code data-ref="memory-provider">MemoryProvider</code> ABC in
-            <code>agent/memory_provider.py</code>, orchestrated by <code>agent/memory_manager.py</code>.
+            <code>agent/memory_provider.py</code>, orchestrated by <code data-ref="memory-manager">agent/memory_manager.py</code>.
             Honcho became just one of 8 plugins in <code>plugins/memory/</code>, matching the same ABC-plus-plugins
             pattern used for platform adapters and execution backends. Key design choices:
             <ul style="margin: 6px 0 0; padding-left: 20px">
@@ -762,7 +762,7 @@
         <div class="prose">
           <p>Context files are scanned for prompt injection before ingestion. Memory entries are scanned
           for exfiltration patterns (curl, SSH backdoors, invisible unicode). File permissions are
-          restrictive (0600 for secrets, 0700 for directories). The <code>tirith</code> binary does
+          restrictive (0600 for secrets, 0700 for directories). The <code data-ref="tirith-security">tirith</code> binary does
           pre-execution security scanning. Multiple layers, each catching different threat vectors.</p>
         </div>
       </div>
@@ -781,7 +781,7 @@
       <div class="ve-card c-explanation">
         <div class="ve-card__label">Profile Isolation</div>
         <div class="prose">
-          <p><code>get_hermes_home()</code> is the SOLE accessor for the Hermes directory &mdash; <code>Path.home() / ".hermes"</code>
+          <p><code data-ref="hermes-constants">get_hermes_home()</code> is the SOLE accessor for the Hermes directory &mdash; <code>Path.home() / ".hermes"</code>
           is never used directly. Profile switching sets <code>HERMES_HOME</code> before any module imports,
           so all 119+ references resolve to the active profile. Profile operations themselves are
           HOME-anchored (not HERMES_HOME), so <code>hermes -p coder profile list</code> can see all profiles.</p>
