@@ -136,7 +136,7 @@
     </div>
     <h2 class="anim" style="--i:6">Who interacts with Hermes?</h2>
     <p class="section-desc anim" style="--i:7">
-      Five actor types drive Hermes, and it depends on seven categories of external systems.
+      Four actor types drive Hermes, and it depends on seven categories of external systems.
       The diagram below shows the complete system boundary.
     </p>
 
@@ -163,8 +163,7 @@
           editor["Editor / IDE"]
           mcpClient["MCP Client"]
           cron["Cron Timer"]
-          rl["RL Training Framework"]
-
+          subgraph hermes["Hermes Agent System"]
           subgraph hermes["Hermes Agent System"]
             core["Core Agent Engine"]
           end
@@ -181,8 +180,7 @@
           editor -->|"ACP"| core
           mcpClient -->|"MCP"| core
           cron -->|"scheduled jobs"| core
-          rl -->|"RL env"| core
-
+          core -->|"inference"| llm
           core -->|"inference"| llm
           core -->|"messages"| platforms
           core -->|"commands"| compute
@@ -195,7 +193,7 @@
           classDef sys fill:#0d948822,stroke:#0d9488,stroke-width:2px
           classDef actor fill:#d9770611,stroke:#d9770644,stroke-width:1.5px
 
-          class user,editor,mcpClient,cron,rl actor
+          class user,editor,mcpClient,cron actor
           class llm,platforms,compute,browser,mcpServers,memProviders,media ext
           class core sys
       </script>
