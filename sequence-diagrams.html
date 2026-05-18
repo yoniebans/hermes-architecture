@@ -59,6 +59,7 @@
         <a href="sequence-diagrams.html#web-dashboard-flow">Web Dashboard Flow</a>
         <a href="sequence-diagrams.html#acp-flow">ACP Editor Flow</a>
         <a href="sequence-diagrams.html#mcp-flow">MCP Server Flow</a>
+        <a href="sequence-diagrams.html#cron-flow">Cron Job Execution</a>
         <a href="sequence-diagrams.html#agent-loop">Agent Loop</a>
         <a href="sequence-diagrams.html#context-compression">Compression</a>
         <a href="sequence-diagrams.html#tool-execution">Tool Execution</a>
@@ -98,11 +99,11 @@
     <!-- ====== KPIs ====== -->
     <div class="kpi-row anim" style="--i:3">
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--teal)">8</div>
+        <div class="kpi-card__value" style="color:var(--teal)">12</div>
         <div class="kpi-card__label">Key Sequences</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--sky)">4</div>
+        <div class="kpi-card__value" style="color:var(--sky)">6</div>
         <div class="kpi-card__label">Entry Points</div>
       </div>
       <div class="kpi-card">
@@ -118,7 +119,7 @@
         <div class="kpi-card__label">Recovery Strategies</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--rose)">2</div>
+        <div class="kpi-card__value" style="color:var(--rose)">1</div>
         <div class="kpi-card__label">Delegation Depth</div>
       </div>
     </div>
@@ -291,7 +292,8 @@
         <ul class="step-list">
           <li>Create or resume session from <code data-ref="gateway-session">session_store</code></li>
           <li>Load conversation history from transcript</li>
-          <li>Auto-compress if context exceeds 85% threshold</li>
+          <li>Hygiene-compress if context exceeds 85% (safety net; the agent's own
+            compressor triggers earlier at ~50%, see Compression sequence)</li>
           <li>Register agent in <code>_running_agents</code> map</li>
           <li>Execute and send response via adapter</li>
           <li>Persist transcript, clean up agent entry</li>
@@ -354,8 +356,8 @@
 
               GR->>GR: load conversation from transcript
 
-              opt Context Over 85 Percent
-                GR->>AG: auto-compress context
+              opt Context Over 85 Percent (hygiene safety net)
+                GR->>AG: hygiene auto-compress
               end
 
               GR->>AG: create AIAgent and register in _running_agents
@@ -392,11 +394,13 @@
     <p class="section-desc anim" style="--i:16">
       The TUI gateway supports two transports: <strong>stdio</strong> (the Ink terminal UI spawns
       <code data-ref="tui-gateway-server">tui_gateway</code> as a child process) and <strong>WebSocket</strong>
-      (the web dashboard's ChatPage connects via <code data-ref="tui-ws">tui_gateway/ws.py</code>).
-      Both use the same JSON-RPC wire protocol; the transport layer
+      (callers connect to <code data-ref="tui-ws">tui_gateway/ws.py</code> via the dashboard's
+      <code>/api/ws</code> sidecar). Both use the same JSON-RPC wire protocol; the transport layer
       (<code data-ref="tui-transport">tui_gateway/transport.py</code>) abstracts the I/O so the dispatcher
-      is shared. The stdio path is shown below &mdash; the WebSocket path is identical
-      except the startup handshake happens over <code>/api/ws</code> instead of stdin/stdout.
+      is shared. The dashboard's primary chat input/output runs over a separate
+      <code>/api/pty</code> PTY-WS bridge (see Web Dashboard Flow below); the JSON-RPC
+      sidecar carries structured metadata (tool-call sidebar, slash launcher, model badge)
+      bound to the same session.
     </p>
 
     <div class="grid-2 anim" style="--i:17">
@@ -524,14 +528,14 @@
     <div class="sec-head anim" style="--i:15; color:var(--teal)">
       <span class="dot" style="background:var(--teal)"></span> Sequence 2c
     </div>
-    <h2 class="anim" style="--i:15">Web Dashboard Flow</h2>
-    <p class="section-desc anim" style="--i:15">
+    <h2 class="anim" style="--i:16">Web Dashboard Flow</h2>
+    <p class="section-desc anim" style="--i:17">
       The web dashboard is a React 19 + Vite SPA served by a FastAPI backend. Its chat page
       reuses the TUI gateway over WebSocket &mdash; the browser connects to the same JSON-RPC
       server that drives the terminal TUI. REST endpoints handle config, sessions, and analytics.
     </p>
 
-    <section class="diagram-shell anim" style="--i:16">
+    <section class="diagram-shell anim" style="--i:18">
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
@@ -552,7 +556,8 @@
         sequenceDiagram
           participant B as Browser (React SPA)
           participant FA as FastAPI Backend
-          participant GW as TUIGateway (Python)
+          participant PTY as PTY (hermes --tui)
+          participant GW as TUIGateway (in PTY)
           participant AG as AIAgent
           participant LLM as LLMProvider
 
@@ -565,12 +570,19 @@
 
           B->>FA: WebSocket /api/pty
           activate FA
-          FA->>GW: bridge to TUIGateway
+          FA->>PTY: spawn `hermes --tui` behind POSIX PTY
+          activate PTY
+          PTY->>GW: in-process tui_gateway dispatcher
           activate GW
-          GW-->>B: connection established
+          PTY-->>B: ANSI stream via xterm.js
+
+          Note over B,FA: Browser also opens /api/ws for JSON-RPC metadata
+          B->>FA: WebSocket /api/ws
+          FA->>GW: handle_ws bound to same session
           deactivate FA
 
-          B->>GW: JSON-RPC: user message
+          B->>PTY: user keystrokes (via /api/pty)
+          PTY->>GW: dispatch input
           GW->>AG: run_conversation()
           activate AG
           AG->>LLM: streaming inference
@@ -579,7 +591,11 @@
           deactivate LLM
           AG-->>GW: streamed tokens + tool events
           deactivate AG
-          GW-->>B: JSON-RPC events (text, tool progress, thinking)
+          GW-->>PTY: render output (ANSI)
+          PTY-->>B: token stream via /api/pty
+          GW-->>B: JSON-RPC tool events via /api/ws sidecar
+          deactivate GW
+          deactivate PTY
 
           Note over B,FA: REST endpoints for non-chat features
           B->>FA: GET /api/config, /api/sessions, /api/analytics
@@ -596,15 +612,15 @@
     <div class="sec-head anim" style="--i:16; color:var(--indigo)">
       <span class="dot" style="background:var(--indigo)"></span> Sequence 2d
     </div>
-    <h2 class="anim" style="--i:16">ACP Editor Flow</h2>
-    <p class="section-desc anim" style="--i:16">
+    <h2 class="anim" style="--i:17">ACP Editor Flow</h2>
+    <p class="section-desc anim" style="--i:18">
       The ACP (Agent Client Protocol) server lets editors like VS Code, Cursor, and Zed
       drive Hermes as a coding agent. The editor manages sessions, sends prompts, receives
       streaming events (text, thinking, tool progress), and handles approval requests for
       dangerous commands &mdash; all over stdio JSON-RPC.
     </p>
 
-    <section class="diagram-shell anim" style="--i:17">
+    <section class="diagram-shell anim" style="--i:19">
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
@@ -662,7 +678,16 @@
             loop Tool Calls
               AG->>AG: execute tools
               ACP-->>ED: tool_progress events
-              opt Dangerous Command
+              opt write_file or patch (edit approval)
+                ACP->>ACP: build_edit_proposal + check policy (ask/workspace/session)
+                alt Policy auto-approves (and not sensitive name)
+                  ACP-->>ED: tool_progress includes edit_diff (no separate prompt)
+                else Prompt required
+                  ACP-->>ED: request_permission with edit diff
+                  ED->>ACP: approval decision
+                end
+              end
+              opt Dangerous Command (non-edit)
                 ACP-->>ED: request_permission
                 ED->>ACP: approval decision
               end
@@ -689,15 +714,15 @@
     <div class="sec-head anim" style="--i:17; color:var(--slate)">
       <span class="dot" style="background:var(--slate)"></span> Sequence 2e
     </div>
-    <h2 class="anim" style="--i:17">MCP Server Flow</h2>
-    <p class="section-desc anim" style="--i:17">
+    <h2 class="anim" style="--i:18">MCP Server Flow</h2>
+    <p class="section-desc anim" style="--i:19">
       The MCP server exposes gateway conversations as tools that any MCP client (Claude Code,
       Cursor, Codex) can consume. It reads from SessionDB and the gateway sessions index &mdash;
       it doesn&rsquo;t run an agent itself. An EventBridge polls for new messages and streams
       updates to connected clients.
     </p>
 
-    <section class="diagram-shell anim" style="--i:17">
+    <section class="diagram-shell anim" style="--i:20">
       <p class="diagram-shell__hint">
         Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
       </p>
@@ -723,7 +748,7 @@
           participant SI as sessions.json
 
           MC->>MCP: list tools
-          MCP-->>MC: conversations_list, messages_read, messages_send, etc.
+          MCP-->>MC: conversations_list, conversation_get, messages_read, messages_send, events_poll, events_wait, attachments_fetch, permissions_list_open
 
           MC->>MCP: conversations_list(platform, search)
           activate MCP
@@ -755,6 +780,128 @@
           EB-->>MCP: new event or timeout
           MCP-->>MC: event data or empty
           deactivate MCP
+      </script>
+    </section>
+</section>
+
+    <!-- ============================== -->
+    <!-- SECTION 2f: CRON JOB FLOW       -->
+    <!-- ============================== -->
+
+<section id="cron-flow">
+    <div class="sec-head anim" style="--i:17; color:var(--amber)">
+      <span class="dot" style="background:var(--amber)"></span> Sequence 2f
+    </div>
+    <h2 class="anim" style="--i:18">Cron Job Execution</h2>
+    <p class="section-desc anim" style="--i:19">
+      The gateway daemon runs a 60-second tick in a background thread
+      (<code data-ref="cron-scheduler">cron/scheduler.py</code>).
+      Each tick acquires a non-blocking file lock so only one tick runs at a time
+      across overlapping processes, scans <code>~/.hermes/cron/jobs.json</code> for due jobs,
+      advances <code>next_run_at</code> under the lock (at-most-once semantics),
+      then dispatches each job to a worker thread that builds an isolated AIAgent
+      and delivers the response to the configured target.
+    </p>
+
+    <div class="grid-2 anim" style="--i:20">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Participants</div>
+        <ul class="step-list">
+          <li><code>Ticker</code> &mdash; Gateway background thread (60s loop)</li>
+          <li><code data-ref="cron-scheduler">Scheduler</code> &mdash; tick() in cron/scheduler.py</li>
+          <li><code data-ref="cron-jobs">jobs.json</code> &mdash; persistent job definitions</li>
+          <li><code>Lock</code> &mdash; ~/.hermes/cron/.tick.lock (fcntl/msvcrt)</li>
+          <li><code>Worker</code> &mdash; ThreadPoolExecutor worker per job</li>
+          <li><code data-ref="ai-agent">AIAgent</code> &mdash; fresh isolated session</li>
+          <li><code>Delivery</code> &mdash; live platform adapter or local sink</li>
+        </ul>
+      </div>
+      <div class="ve-card c-emerald">
+        <div class="ve-card__label">Key Steps</div>
+        <ul class="step-list">
+          <li>Non-blocking flock &mdash; skip tick if another holds the lock</li>
+          <li>Load due jobs from <code>jobs.json</code></li>
+          <li><strong>Advance <code>next_run_at</code> first, under the lock</strong> &mdash; at-most-once</li>
+          <li>Parallel dispatch (<code>HERMES_CRON_MAX_PARALLEL</code>, unbounded default)</li>
+          <li>Per job: build prompt with skills + prompt-injection scan</li>
+          <li>Run isolated AIAgent in a fresh session (no shared state with user sessions)</li>
+          <li>Deliver final response via gateway adapter or local; <code>[SILENT]</code> marker suppresses delivery</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="diagram-shell anim" style="--i:21">
+      <p class="diagram-shell__hint">
+        Ctrl/Cmd + wheel to zoom &middot; Scroll to pan &middot; Drag when zoomed &middot; Double-click to fit
+      </p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Smart fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1 zoom">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">Loading...</span>
+        </div>
+        <div class="mermaid-viewport">
+          <div class="mermaid mermaid-canvas"></div>
+        </div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+        sequenceDiagram
+          participant T as Ticker (60s loop)
+          participant S as Scheduler.tick()
+          participant L as .tick.lock
+          participant J as jobs.json
+          participant W as Worker (ThreadPool)
+          participant AG as AIAgent
+          participant D as Delivery
+
+          T->>S: tick() every 60s
+          activate S
+          S->>L: flock LOCK_EX | LOCK_NB
+          alt Lock held by another tick
+            L-->>S: BlockingIOError
+            S-->>T: skip (return 0)
+          else Lock acquired
+            S->>J: get_due_jobs()
+            J-->>S: due jobs list
+            opt No jobs due
+              S-->>T: return 0
+            end
+
+            loop For each due job (under lock)
+              S->>J: advance_next_run(job_id)
+              Note over S,J: at-most-once: bumped BEFORE execution
+            end
+
+            S->>W: dispatch jobs (ThreadPool, max_parallel)
+            activate W
+
+            par Per-job execution
+              W->>W: build prompt (skills + injection scan)
+              opt Injection detected
+                W->>D: deliver "job blocked" notice
+              end
+              W->>AG: run_conversation() in fresh session
+              activate AG
+              AG-->>W: final response + output
+              deactivate AG
+
+              alt Response is [SILENT]
+                W->>W: suppress delivery (output still saved)
+              else Has content
+                W->>D: deliver to target platform or local
+                D-->>W: ack
+              end
+            end
+
+            W-->>S: all jobs done
+            deactivate W
+            S->>L: flock LOCK_UN
+            S-->>T: return job count
+          end
+          deactivate S
       </script>
     </section>
 </section>
@@ -1139,8 +1286,9 @@
     <h2 class="anim" style="--i:34">Subagent Delegation</h2>
     <p class="section-desc anim" style="--i:35">
       The delegate tool spawns isolated child agents for focused subtasks. Children inherit
-      a restricted toolset (no delegate, clarify, memory, or execute_code), run in quiet mode,
-      and are limited to 2 levels of nesting depth. Up to 3 tasks execute concurrently via
+      a restricted toolset (no delegate, clarify, memory, send_message, or execute_code),
+      run in quiet mode, and are limited to depth 1 by default (configurable up to 3 via
+      <code>delegation.max_spawn_depth</code>). Up to 3 tasks execute concurrently via
       ThreadPoolExecutor.
     </p>
 
@@ -1148,9 +1296,9 @@
       <div class="ve-card c-rose">
         <div class="ve-card__label">Constraints</div>
         <ul class="step-list">
-          <li>Max delegation depth: <strong>2 levels</strong></li>
+          <li>Max delegation depth: <strong>1 by default</strong> (configurable up to 3)</li>
           <li>Max concurrent tasks: <strong>3</strong></li>
-          <li>Blocked tools: delegate, clarify, memory, execute_code</li>
+          <li>Blocked tools: delegate, clarify, memory, send_message, execute_code</li>
           <li>Child runs with <code>quiet_mode=True</code></li>
           <li>Child skips context files and memory loading</li>
         </ul>
@@ -1195,7 +1343,7 @@
           PA->>DT: invoke delegate with task list
           activate DT
 
-          DT->>DT: check depth limit max 2 levels
+          DT->>DT: check depth limit (max 1 by default)
           DT->>DT: resolve delegation credentials
 
           alt Single Task
@@ -1396,8 +1544,10 @@
     <!-- Plugin hook reference -->
     <div class="callout anim" style="--i:44">
       <strong>Plugin Lifecycle Hooks.</strong>
-      Plugins fire at specific points in the sequences above. Writing a plugin?
-      Here's where each hook executes:
+      Plugins fire at specific points in the sequences above.
+      See <a href="data-model.html#plugin-system" style="color:var(--accent)">Data Model
+      &sect; Plugin System</a> for the full 14-hook list and registration mechanism;
+      the two cards below show where each category fires relative to the diagrams on this page.
     </div>
     <div class="grid-2 gap-24 anim" style="--i:45">
       <div class="ve-card c-emerald">
