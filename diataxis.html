@@ -521,22 +521,43 @@
     <details class="collapsible anim" style="--i:25">
       <summary>File System Layout (~/.hermes/)</summary>
       <div class="collapsible__body" style="font-family:var(--font-mono);font-size:12px;line-height:1.7;white-space:pre">~/.hermes/
-├── config.yaml          <span style="color:var(--text-dim)">— main configuration</span>
+# Configuration &amp; secrets
+├── config.yaml          <span style="color:var(--text-dim)">— main configuration (YAML)</span>
 ├── .env                 <span style="color:var(--text-dim)">— API keys (0600 perms)</span>
-├── auth.json            <span style="color:var(--text-dim)">— credential pool state</span>
-├── SOUL.md              <span style="color:var(--text-dim)">— agent personality</span>
-├── MEMORY.md            <span style="color:var(--text-dim)">— agent knowledge store</span>
-├── USER.md              <span style="color:var(--text-dim)">— user profile store</span>
-├── state.db             <span style="color:var(--text-dim)">— SQLite sessions + messages</span>
+├── auth.json            <span style="color:var(--text-dim)">— credential pool state, OAuth tokens</span>
+├── SOUL.md              <span style="color:var(--text-dim)">— agent persona override</span>
+
+# Persistent state (SQLite)
+├── state.db             <span style="color:var(--text-dim)">— SessionDB: sessions, messages, FTS5</span>
+├── kanban.db            <span style="color:var(--text-dim)">— Kanban board (profile-agnostic)</span>
+
+# Memory (built-in provider)
+├── memories/
+│   ├── MEMORY.md        <span style="color:var(--text-dim)">— agent knowledge store (§-delimited)</span>
+│   └── USER.md          <span style="color:var(--text-dim)">— user profile store (§-delimited)</span>
+
+# Skills &amp; plugins (user-installed)
 ├── skills/              <span style="color:var(--text-dim)">— installed skills (SKILL.md files)</span>
-├── plugins/             <span style="color:var(--text-dim)">— user plugins</span>
-├── scripts/             <span style="color:var(--text-dim)">— cron pre-run scripts</span>
+├── plugins/             <span style="color:var(--text-dim)">— user plugins (if any)</span>
+
+# Cron jobs
 ├── cron/
 │   ├── jobs.json        <span style="color:var(--text-dim)">— scheduled job definitions</span>
-│   └── output/          <span style="color:var(--text-dim)">— job execution logs</span>
-├── sessions/            <span style="color:var(--text-dim)">— legacy session files</span>
-├── profiles/            <span style="color:var(--text-dim)">— multi-instance profiles</span>
-└── hermes-agent/        <span style="color:var(--text-dim)">— the codebase itself</span></div>
+│   ├── output/          <span style="color:var(--text-dim)">— job execution logs</span>
+│   └── .tick.lock       <span style="color:var(--text-dim)">— file lock for tick() (fcntl/msvcrt)</span>
+├── scripts/             <span style="color:var(--text-dim)">— cron pre-run scripts</span>
+
+# Profiles &amp; sessions
+├── profiles/            <span style="color:var(--text-dim)">— multi-instance profiles (each has its own subtree)</span>
+├── sessions/            <span style="color:var(--text-dim)">— per-session transcripts (gateway)</span>
+
+# Runtime caches &amp; logs
+├── checkpoints/         <span style="color:var(--text-dim)">— batch_runner resume state</span>
+├── logs/                <span style="color:var(--text-dim)">— agent.log, errors.log, gateway.log</span>
+├── image_cache/         <span style="color:var(--text-dim)">— images returned by tools</span>
+├── pastes/              <span style="color:var(--text-dim)">— large-paste promotion cache</span>
+├── sandboxes/           <span style="color:var(--text-dim)">— per-session sandboxes (when in use)</span>
+└── hermes-agent/        <span style="color:var(--text-dim)">— the codebase itself (when bundled this way)</span></div>
     </details>
 
     <!-- ============================== -->
