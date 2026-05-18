@@ -681,7 +681,7 @@
               opt write_file or patch (edit approval)
                 ACP->>ACP: build_edit_proposal + check policy (ask/workspace/session)
                 alt Policy auto-approves (and not sensitive name)
-                  Note over ACP: edit diff emitted with tool_progress; no prompt
+                  ACP-->>ED: tool_progress includes edit_diff (no separate prompt)
                 else Prompt required
                   ACP-->>ED: request_permission with edit diff
                   ED->>ACP: approval decision
@@ -889,7 +889,7 @@
               deactivate AG
 
               alt Response is [SILENT]
-                Note over W,D: suppress delivery; output still saved
+                W->>W: suppress delivery (output still saved)
               else Has content
                 W->>D: deliver to target platform or local
                 D-->>W: ack
