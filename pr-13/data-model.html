@@ -947,46 +947,66 @@ graph TD
       <script type="text/plain" class="diagram-source">
 classDiagram
     class PluginManager {
-        -Dict~str,PluginInfo~ _plugins
-        -List~str~ _enabled
-        -List~str~ _disabled
-        +discover_plugins() List~PluginInfo~
-        +load_plugin(name) PluginInfo
-        +register_all()
-        +get_tools() List~ToolEntry~
-        +get_hooks() Dict
-        +get_commands() Dict
+        -Dict~str,LoadedPlugin~ plugins
+        -Set~str~ _plugin_tool_names
+        -Dict hooks
+        +discover_and_load(force) None
+        +invoke_hook(hook_name, kwargs) List
+        +list_plugins() List
+        +find_plugin_skill(qualified_name) Path
+        +list_plugin_skills(plugin_name) List
+        +remove_plugin_skill(qualified_name) None
+    }
+
+    class PluginManifest {
+        +str name
+        +str version
+        +str description
+        +str author
+        +str source         : bundled, user, project, entrypoint
+        +str kind           : standalone, backend, exclusive, platform
+        +str key            : path-derived (e.g. image_gen/openai)
+        +str path
+        +List requires_env
+        +List provides_tools
+        +List provides_hooks
+    }
+
+    class LoadedPlugin {
+        +PluginManifest manifest
+        +ModuleType module
+        +List tools_registered
+        +List hooks_registered
+        +List commands_registered
+        +bool enabled
+        +Optional~str~ error
     }
 
     class PluginContext {
-        +plugin_name: str
-        +hermes_home: str
-        +register_tool(schema, handler)
-        +register_hook(event, callback)
-        +register_command(name, handler)
-        +register_cli_command(name, parser)
-        +register_skill(skill_data)
-        +register_context_engine(engine)
-        +inject_message(role, content)
-        +dispatch_tool(name, args)
+        +PluginManifest manifest
+        +PluginLlm llm
+        +register_tool(name, toolset, schema, handler, ...) None
+        +register_hook(hook_name, callback) None
+        +register_command(name, ...) None
+        +register_cli_command(name, parser) None
+        +register_skill(...) None
+        +register_context_engine(engine) None
+        +register_image_gen_provider(provider) None
+        +register_video_gen_provider(provider) None
+        +register_web_search_provider(provider) None
+        +register_browser_provider(provider) None
+        +register_platform(...) None
+        +inject_message(content, role) bool
+        +dispatch_tool(name, args, kwargs) str
     }
 
-    class PluginInfo {
-        +name: str
-        +version: str
-        +source: str
-        +description: str
-        +pip_dependencies: List
-        +hooks: List
-        +enabled: bool
-    }
-
-    PluginManager "1" *-- "0..*" PluginInfo : manages
+    PluginManager "1" *-- "0..*" LoadedPlugin : plugins
+    LoadedPlugin "1" *-- "1" PluginManifest : manifest
     PluginManager ..> PluginContext : creates per plugin
-    PluginContext ..> ToolRegistry : register_tool
-    PluginContext ..> AIAgent : register_hook
+    PluginContext ..> ToolRegistry : register_tool / dispatch_tool
+    PluginContext ..> AIAgent : register_hook / inject_message
 
-    note for PluginManager "Discovery order:\n1. Bundled (repo/plugins/)\n2. User (~/.hermes/plugins/)\n3. Project (.hermes/plugins/)\n4. Pip (entry-point group)"
+    note for PluginManager "Discovery order (later wins on key collision):\n1. Bundled (repo/plugins/) — skips memory, context_engine, platforms, model-providers\n2. Bundled platforms (repo/plugins/platforms/)\n3. User (~/.hermes/plugins/) — gated by plugins.enabled\n4. Project (./.hermes/plugins/) — only with HERMES_ENABLE_PROJECT_PLUGINS=1\n5. Pip entry-point group (importlib.metadata)"
       </script>
   </section>
 
@@ -999,10 +1019,11 @@ classDiagram
           <tr><td><span class="col-name">name</span></td><td>str</td><td>Unique plugin identifier</td></tr>
           <tr><td><span class="col-name">version</span></td><td>str</td><td>Semver version</td></tr>
           <tr><td><span class="col-name">description</span></td><td>str</td><td>Human-readable description</td></tr>
-          <tr><td><span class="col-name">pip_dependencies</span></td><td>list</td><td>Auto-installed pip packages</td></tr>
-          <tr><td><span class="col-name">hooks</span></td><td>list</td><td>Lifecycle hooks this plugin uses</td></tr>
-          <tr><td><span class="col-name">kind</span></td><td>str</td><td>Plugin category (<code>platform</code>, <code>memory</code>, etc.)</td></tr>
-          <tr><td><span class="col-name">required_env</span></td><td>list</td><td>Required environment variables (platform plugins)</td></tr>
+          <tr><td><span class="col-name">author</span></td><td>str</td><td>Plugin author</td></tr>
+          <tr><td><span class="col-name">requires_env</span></td><td>list</td><td>Required env vars (strings or dicts with details)</td></tr>
+          <tr><td><span class="col-name">provides_tools</span></td><td>list</td><td>Tool names this plugin will register</td></tr>
+          <tr><td><span class="col-name">provides_hooks</span></td><td>list</td><td>Lifecycle hooks this plugin will register</td></tr>
+          <tr><td><span class="col-name">kind</span></td><td>str</td><td>Plugin category (<code>standalone</code>, <code>backend</code>, <code>exclusive</code>, <code>platform</code>)</td></tr>
         </tbody>
       </table>
     </div>
