@@ -245,7 +245,7 @@
 
     <!-- Extension point cards -->
     <div class="ve-card c-howto anim" style="--i:16; margin-bottom:16px">
-      <div class="ve-card__label">Add a New Tool (3 files)</div>
+      <div class="ve-card__label">Add a New Tool (2 files)</div>
       <div class="grid-2 gap-24" style="margin:0">
         <div>
           <div class="prose">
@@ -259,10 +259,11 @@
         <div>
           <ul class="node-list">
             <li>Create <code>tools/your_tool.py</code> with schema + handler + <code>registry.register()</code></li>
-            <li>Add import to <code data-ref="model-tools">model_tools.py</code> <code>_modules</code> list</li>
-            <li>Add to <code data-ref="toolsets">toolsets.py</code> (<code>_HERMES_CORE_TOOLS</code> or new toolset)</li>
-            <li>Tools self-register at import time &mdash; no manifest file</li>
-            <li>Provide a <code>check_fn</code> for runtime availability gating</li>
+            <li>That's it for discovery &mdash; <code data-ref="tool-registry">discover_builtin_tools()</code> in
+              <code>tools/registry.py</code> auto-imports every <code>tools/*.py</code> at startup</li>
+            <li>Add the tool name to <code data-ref="toolsets">toolsets.py</code> (<code>_HERMES_CORE_TOOLS</code>
+              for default availability, or a new <code>TOOLSETS</code> entry for a niche group)</li>
+            <li>Provide a <code>check_fn</code> for runtime availability gating (env vars, optional deps)</li>
           </ul>
         </div>
       </div>
