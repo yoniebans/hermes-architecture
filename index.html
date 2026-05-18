@@ -163,7 +163,7 @@
           editor["Editor / IDE"]
           mcpClient["MCP Client"]
           cron["Cron Timer"]
-          subgraph hermes["Hermes Agent System"]
+
           subgraph hermes["Hermes Agent System"]
             core["Core Agent Engine"]
           end
@@ -180,7 +180,7 @@
           editor -->|"ACP"| core
           mcpClient -->|"MCP"| core
           cron -->|"scheduled jobs"| core
-          core -->|"inference"| llm
+
           core -->|"inference"| llm
           core -->|"messages"| platforms
           core -->|"commands"| compute
