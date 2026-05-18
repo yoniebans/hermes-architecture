@@ -263,7 +263,7 @@
           cli --> core
           tui --> core
           webdash --> core
-          webdash -.->|"WebSocket<br/>(ChatPage)"| tui
+          webdash -.->|"PTY-WS spawns hermes --tui<br/>(ChatPage)"| tui
           gw --> core
           acp --> core
           mcp --> core
@@ -309,8 +309,12 @@
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
             React 19 + Vite browser SPA (<code data-ref="web-dashboard">web/</code>). Config, sessions,
-            logs, analytics. Plugin-extensible tabs. Chat page embeds the TUI via
-            WebSocket to <code data-ref="tui-gateway-server">tui_gateway</code>. FastAPI backend.
+            logs, analytics. Plugin-extensible tabs. Chat tab embeds the TUI by
+            opening <code>/api/pty</code> on the FastAPI backend
+            (<code data-ref="web-server">hermes_cli/web_server.py</code>), which spawns
+            <code>hermes --tui</code> behind a POSIX pseudo-terminal; xterm.js renders
+            the ANSI in-browser. A second <code>/api/ws</code> JSON-RPC sidecar carries
+            structured metadata (tool-call sidebar, slash launcher, model badge).
           </div>
         </div>
       </div>

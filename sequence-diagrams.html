@@ -392,11 +392,13 @@
     <p class="section-desc anim" style="--i:16">
       The TUI gateway supports two transports: <strong>stdio</strong> (the Ink terminal UI spawns
       <code data-ref="tui-gateway-server">tui_gateway</code> as a child process) and <strong>WebSocket</strong>
-      (the web dashboard's ChatPage connects via <code data-ref="tui-ws">tui_gateway/ws.py</code>).
-      Both use the same JSON-RPC wire protocol; the transport layer
+      (callers connect to <code data-ref="tui-ws">tui_gateway/ws.py</code> via the dashboard's
+      <code>/api/ws</code> sidecar). Both use the same JSON-RPC wire protocol; the transport layer
       (<code data-ref="tui-transport">tui_gateway/transport.py</code>) abstracts the I/O so the dispatcher
-      is shared. The stdio path is shown below &mdash; the WebSocket path is identical
-      except the startup handshake happens over <code>/api/ws</code> instead of stdin/stdout.
+      is shared. The dashboard's primary chat input/output runs over a separate
+      <code>/api/pty</code> PTY-WS bridge (see Web Dashboard Flow below); the JSON-RPC
+      sidecar carries structured metadata (tool-call sidebar, slash launcher, model badge)
+      bound to the same session.
     </p>
 
     <div class="grid-2 anim" style="--i:17">
@@ -552,7 +554,8 @@
         sequenceDiagram
           participant B as Browser (React SPA)
           participant FA as FastAPI Backend
-          participant GW as TUIGateway (Python)
+          participant PTY as PTY (hermes --tui)
+          participant GW as TUIGateway (in PTY)
           participant AG as AIAgent
           participant LLM as LLMProvider
 
@@ -565,12 +568,19 @@
 
           B->>FA: WebSocket /api/pty
           activate FA
-          FA->>GW: bridge to TUIGateway
+          FA->>PTY: spawn `hermes --tui` behind POSIX PTY
+          activate PTY
+          PTY->>GW: in-process tui_gateway dispatcher
           activate GW
-          GW-->>B: connection established
+          PTY-->>B: ANSI stream via xterm.js
+
+          Note over B,FA: Browser also opens /api/ws for JSON-RPC metadata
+          B->>FA: WebSocket /api/ws
+          FA->>GW: handle_ws bound to same session
           deactivate FA
 
-          B->>GW: JSON-RPC: user message
+          B->>PTY: user keystrokes (via /api/pty)
+          PTY->>GW: dispatch input
           GW->>AG: run_conversation()
           activate AG
           AG->>LLM: streaming inference
@@ -579,7 +589,11 @@
           deactivate LLM
           AG-->>GW: streamed tokens + tool events
           deactivate AG
-          GW-->>B: JSON-RPC events (text, tool progress, thinking)
+          GW-->>PTY: render output (ANSI)
+          PTY-->>B: token stream via /api/pty
+          GW-->>B: JSON-RPC tool events via /api/ws sidecar
+          deactivate GW
+          deactivate PTY
 
           Note over B,FA: REST endpoints for non-chat features
           B->>FA: GET /api/config, /api/sessions, /api/analytics
