@@ -333,8 +333,12 @@
         <div class="ve-card__label">ACP Server</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
           <div class="desc" style="color:var(--text-dim);font-size:12px">
-            Agent Client Protocol for Cursor/VS Code.
+            Agent Client Protocol for Cursor/VS Code/Zed.
             Sessions, prompts, fork, cancel, slash commands.
+            Pre-execution <strong>edit approval</strong> guard
+            (<code data-ref="acp-edit-approval">acp_adapter/edit_approval.py</code>)
+            bound via ContextVar gates <code>write_file</code> and <code>patch</code>;
+            policies: ask, workspace_session, session.
           </div>
         </div>
       </div>

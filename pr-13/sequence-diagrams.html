@@ -677,7 +677,16 @@
             loop Tool Calls
               AG->>AG: execute tools
               ACP-->>ED: tool_progress events
-              opt Dangerous Command
+              opt write_file or patch (edit approval)
+                ACP->>ACP: build_edit_proposal + check policy (ask/workspace/session)
+                alt Policy auto-approves (and not sensitive name)
+                  Note over ACP: edit diff emitted with tool_progress; no prompt
+                else Prompt required
+                  ACP-->>ED: request_permission with edit diff
+                  ED->>ACP: approval decision
+                end
+              end
+              opt Dangerous Command (non-edit)
                 ACP-->>ED: request_permission
                 ED->>ACP: approval decision
               end

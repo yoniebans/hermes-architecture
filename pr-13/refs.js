@@ -90,6 +90,9 @@ window.ATLAS_REFS = {
     "acp-adapter": {
       "path": "acp_adapter"
     },
+    "acp-edit-approval": {
+      "path": "acp_adapter/edit_approval.py"
+    },
     "web-dashboard": {
       "path": "web"
     },
