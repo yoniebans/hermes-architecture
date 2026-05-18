@@ -1013,6 +1013,7 @@ classDiagram
         <tbody>
           <tr><td><span class="col-name">Memory Provider</span></td><td>At most 1 active external provider</td></tr>
           <tr><td><span class="col-name">Context Engine</span></td><td>At most 1 replaces built-in compressor</td></tr>
+          <tr><td><span class="col-name">Model Provider</span></td><td>Inference backend (<code>kind: model-provider</code>); registers default/aux model + API mode; lives in <code>plugins/model-providers/</code></td></tr>
           <tr><td><span class="col-name">General Plugin</span></td><td>Opt-in via config.yaml enable list</td></tr>
           <tr><td><span class="col-name">Dashboard Plugin</span></td><td>JS bundle + manifest.json for web UI tabs</td></tr>
           <tr><td><span class="col-name">Platform Plugin</span></td><td>Registers adapter via <code>PlatformRegistry</code>; lives in <code>plugins/platforms/</code></td></tr>

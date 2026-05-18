@@ -806,6 +806,7 @@
             tool["Tool<br/><small>tools/*.py + register</small>"]
             plugin["Plugin<br/><small>plugin.yaml + register(ctx)</small>"]
             memplugin["Memory Provider<br/><small>MemoryProvider ABC</small>"]
+            modelplugin["Model Provider<br/><small>plugin.yaml kind: model-provider</small>"]
             adapter["Platform Adapter<br/><small>BasePlatformAdapter subclass</small>"]
             env["Exec Backend<br/><small>BaseEnvironment subclass</small>"]
           end
@@ -815,6 +816,7 @@
             e2["1 Python file<br/><small>3 touch points</small>"]
             e3["1 folder + 2 files<br/><small>Uses PluginContext API</small>"]
             e3b["1 folder + 2 files<br/><small>Lifecycle hooks + ABC</small>"]
+            e3c["1 folder + 2 files<br/><small>Provider config + ProviderProfile</small>"]
             e4["1 Python class<br/><small>3 abstract methods</small>"]
             e5["1 Python class<br/><small>2 abstract methods</small>"]
           end
@@ -823,14 +825,15 @@
           tool --> e2
           plugin --> e3
           memplugin --> e3b
+          modelplugin --> e3c
           adapter --> e4
           env --> e5
 
           classDef ext fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
           classDef eff fill:#933eea11,stroke:#933eea44,stroke-width:1px
 
-          class skill,tool,plugin,memplugin,adapter,env ext
-          class e1,e2,e3,e3b,e4,e5 eff
+          class skill,tool,plugin,memplugin,modelplugin,adapter,env ext
+          class e1,e2,e3,e3b,e3c,e4,e5 eff
       </script>
     </section>
 
