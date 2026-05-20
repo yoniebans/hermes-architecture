@@ -1,0 +1,166 @@
+window.ATLAS_REFS = {
+  "repo": "NousResearch/hermes-agent",
+  "branch": "main",
+  "refs": {
+    "platform-registry": { "path": "gateway/platform_registry.py" },
+    "tool-registry": {
+      "path": "tools/registry.py"
+    },
+    "ai-agent": {
+      "path": "run_agent.py"
+    },
+    "ai-agent.run-conversation": {
+      "path": "run_agent.py"
+    },
+    "cli": {
+      "path": "cli.py"
+    },
+    "gateway-runner": {
+      "path": "gateway/run.py"
+    },
+    "gateway-session": {
+      "path": "gateway/session.py"
+    },
+    "session-db": {
+      "path": "hermes_state.py"
+    },
+    "prompt-builder": {
+      "path": "agent/prompt_builder.py"
+    },
+    "context-compressor": {
+      "path": "agent/context_compressor.py"
+    },
+    "prompt-caching": {
+      "path": "agent/prompt_caching.py"
+    },
+    "auxiliary-client": {
+      "path": "agent/auxiliary_client.py"
+    },
+    "memory-provider": {
+      "path": "agent/memory_provider.py"
+    },
+    "skill-commands": {
+      "path": "agent/skill_commands.py"
+    },
+    "trajectory": {
+      "path": "agent/trajectory.py"
+    },
+    "tool-approval": {
+      "path": "tools/approval.py"
+    },
+    "terminal-tool": {
+      "path": "tools/terminal_tool.py"
+    },
+    "file-tools": {
+      "path": "tools/file_tools.py"
+    },
+    "web-tools": {
+      "path": "tools/web_tools.py"
+    },
+    "browser-tool": {
+      "path": "tools/browser_tool.py"
+    },
+    "code-execution-tool": {
+      "path": "tools/code_execution_tool.py"
+    },
+    "delegate-tool": {
+      "path": "tools/delegate_tool.py"
+    },
+    "mcp-tool": {
+      "path": "tools/mcp_tool.py"
+    },
+    "toolsets": {
+      "path": "toolsets.py"
+    },
+    "model-tools": {
+      "path": "model_tools.py"
+    },
+    "cron": {
+      "path": "cron/jobs.py"
+    },
+    "tui-entry": {
+      "path": "ui-tui/src/entry.tsx"
+    },
+    "tui-app": {
+      "path": "ui-tui/src/app.tsx"
+    },
+    "tui-gateway-server": {
+      "path": "tui_gateway/server.py"
+    },
+    "acp-adapter": {
+      "path": "acp_adapter"
+    },
+    "acp-edit-approval": {
+      "path": "acp_adapter/edit_approval.py"
+    },
+    "cron-scheduler": {
+      "path": "cron/scheduler.py"
+    },
+    "cron-jobs": {
+      "path": "cron/jobs.py"
+    },
+    "hermes-constants": {
+      "path": "hermes_constants.py"
+    },
+    "tirith-security": {
+      "path": "tools/tirith_security.py"
+    },
+    "web-dashboard": {
+      "path": "web"
+    },
+    "web-server": {
+      "path": "hermes_cli/web_server.py"
+    },
+    "memory-manager": {
+      "path": "agent/memory_manager.py"
+    },
+    "credential-pool": {
+      "path": "agent/credential_pool.py"
+    },
+    "plugins": {
+      "path": "plugins"
+    },
+    "plugin-manager": {
+      "path": "hermes_cli/plugins.py"
+    },
+    "config": {
+      "path": "hermes_cli/config.py"
+    },
+    "context-engine": {
+      "path": "agent/context_engine.py"
+    },
+    "memory-plugins": {
+      "path": "plugins/memory"
+    },
+    "tui-gateway-client": {
+      "path": "ui-tui/src/gatewayClient.ts"
+    },
+    "tui-ws": {
+      "path": "tui_gateway/ws.py"
+    },
+    "tui-transport": {
+      "path": "tui_gateway/transport.py"
+    },
+    "web-chat-page": {
+      "path": "web/src/pages/ChatPage.tsx"
+    },
+    "web-gateway-client": {
+      "path": "web/src/lib/gatewayClient.ts"
+    },
+    "tool-guardrails": {
+      "path": "agent/tool_guardrails.py"
+    },
+    "kanban-db": {
+      "path": "hermes_cli/kanban_db.py"
+    },
+    "kanban-tools": {
+      "path": "tools/kanban_tools.py"
+    },
+    "kanban-dashboard": {
+      "path": "plugins/kanban/dashboard/plugin_api.py"
+    },
+    "teams-adapter": {
+      "path": "plugins/platforms/teams/adapter.py"
+    }
+  }
+};
