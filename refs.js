@@ -3,6 +3,7 @@ window.ATLAS_REFS = {
   "branch": "main",
   "refs": {
     "platform-registry": { "path": "gateway/platform_registry.py" },
+    "bitwarden-secrets": { "path": "agent/secret_sources/bitwarden.py" },
     "tool-registry": {
       "path": "tools/registry.py"
     },
