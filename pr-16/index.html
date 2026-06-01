@@ -120,7 +120,7 @@
         <div class="kpi-card__label">Memory Providers</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-card__value" style="color:var(--slate)">6</div>
+        <div class="kpi-card__value" style="color:var(--slate)">7</div>
         <div class="kpi-card__label">Entry Points</div>
       </div>
     </div>
@@ -215,10 +215,10 @@
     <div class="sec-head anim" style="--i:10; color:var(--teal)">
       <span class="dot" style="background:var(--teal)"></span> Level 2 &mdash; Container Diagram
     </div>
-    <h2 class="anim" style="--i:11">Six entry points, one core engine</h2>
+    <h2 class="anim" style="--i:11">Seven entry points, one core engine</h2>
     <p class="section-desc anim" style="--i:12">
-      Hermes deploys in six modes &mdash; CLI, TUI (React/Ink), Web Dashboard, Gateway, ACP Server,
-      and MCP Server &mdash; all driving the same AIAgent core. The core delegates to an intelligence
+      Hermes deploys in seven modes &mdash; CLI, TUI (React/Ink), Web Dashboard, Desktop (Electron),
+      Gateway, ACP Server, and MCP Server &mdash; all driving the same AIAgent core. The core delegates to an intelligence
       layer, a tool system, persistent state, and a cron scheduler.
     </p>
 
@@ -245,6 +245,7 @@
             cli["CLI Interface<br/><small>hermes chat</small>"]
             tui["TUI<br/><small>hermes --tui</small>"]
             webdash["Web Dashboard<br/><small>hermes web</small>"]
+            desktop["Desktop<br/><small>hermes desktop</small>"]
             gw["Gateway Daemon<br/><small>hermes gateway</small>"]
             acp["ACP Server<br/><small>hermes acp</small>"]
             mcp["MCP Server<br/><small>hermes mcp serve</small>"]
@@ -265,6 +266,7 @@
           tui --> core
           webdash --> core
           webdash -.->|"PTY-WS spawns hermes --tui<br/>(ChatPage)"| tui
+          desktop --> core
           gw --> core
           acp --> core
           mcp --> core
@@ -279,7 +281,7 @@
           classDef core fill:#0d948822,stroke:#0d9488,stroke-width:2px
           classDef sub fill:#0284c711,stroke:#0284c744,stroke-width:1.5px
 
-          class cli,tui,webdash,gw,acp,mcp entry
+          class cli,tui,webdash,desktop,gw,acp,mcp entry
           class core core
           class intel,tools,memprov,state,cronmod sub
       </script>
@@ -320,7 +322,17 @@
         </div>
       </div>
     </div>
-    <div class="grid-3 gap-24 anim" style="--i:14">
+    <div class="grid-4 gap-24 anim" style="--i:14">
+      <div class="ve-card c-amber">
+        <div class="ve-card__label">Desktop</div>
+        <div class="inner-card" style="background:transparent;border:none;padding:0">
+          <div class="desc" style="color:var(--text-dim);font-size:12px">
+            Electron native shell (<code data-ref="desktop-app">apps/desktop/</code>). Streaming chat,
+            side-by-side previews, file browser, voice, settings UI. Same agent, sessions, and
+            memory as every other surface. Built and launched via <code>hermes desktop</code>.
+          </div>
+        </div>
+      </div>
       <div class="ve-card c-amber">
         <div class="ve-card__label">Gateway</div>
         <div class="inner-card" style="background:transparent;border:none;padding:0">
