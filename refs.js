@@ -109,6 +109,9 @@ window.ATLAS_REFS = {
     "web-dashboard": {
       "path": "web"
     },
+    "desktop-app": {
+      "path": "apps/desktop"
+    },
     "web-server": {
       "path": "hermes_cli/web_server.py"
     },
