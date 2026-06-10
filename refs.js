@@ -165,6 +165,12 @@ window.ATLAS_REFS = {
     },
     "teams-adapter": {
       "path": "plugins/platforms/teams/adapter.py"
+    },
+    "photon-adapter": {
+      "path": "plugins/platforms/photon/adapter.py"
+    },
+    "photon-sidecar": {
+      "path": "plugins/platforms/photon/sidecar/index.mjs"
     }
   }
 };
