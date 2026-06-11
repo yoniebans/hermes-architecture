@@ -89,7 +89,7 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">Diátaxis Documentation Map &mdash; v0.14.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">Diátaxis Documentation Map &mdash; v0.16.0 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       The C4 diagrams show <em>what</em> Hermes is built from and <em>how</em> parts connect.
       This page fills in the rest: <em>why</em> the architecture is shaped this way, <em>how</em>
@@ -190,7 +190,7 @@
 
     <div class="prose anim" style="--i:10">
       <p>
-        That's the entire system. Everything else &mdash; the 30+ tools, 27 platform adapters, credential pool,
+        That's the entire system. Everything else &mdash; the 30+ tools, 28 platform adapters, credential pool,
         context compressor, cron scheduler &mdash; is <strong>supporting infrastructure</strong> around this single loop.
       </p>
     </div>
@@ -201,7 +201,7 @@
         <div>
           <h3 style="color:var(--tutorial)">Ring 1: Entry Points</h3>
           <p style="font-size:13px;color:var(--text-dim);line-height:1.6">
-            CLI, TUI, Web Dashboard, Gateway, ACP, MCP Server. These accept messages from
+            CLI, TUI, Web Dashboard, Desktop, Gateway, ACP, MCP Server. These accept messages from
             different worlds and normalize them. They are <em>thin</em> &mdash; as little logic as possible.
           </p>
         </div>
@@ -224,7 +224,7 @@
     </div>
 
     <div class="callout callout--tutorial anim" style="--i:12">
-      <strong>The key insight for newcomers:</strong> Hermes is NOT a monolith with 27 messaging
+      <strong>The key insight for newcomers:</strong> Hermes is NOT a monolith with 28 messaging
       integrations. It's a single agent loop with a <em>pluggable front door</em> (platforms) and
       a <em>pluggable toolkit</em> (tools). Everything else is glue.
     </div>
