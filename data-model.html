@@ -89,7 +89,7 @@
 <!-- ──────── HERO ──────── -->
 <section id="overview">
   <h1 class="anim" style="--i:0">Hermes Agent</h1>
-  <p class="subtitle anim" style="--i:1">Data Model &mdash; v0.16.0 &mdash; Nous Research</p>
+  <p class="subtitle anim" style="--i:1">Data Model &mdash; v0.18.2 &mdash; Nous Research</p>
   <p class="lead anim" style="--i:2">The data structures at the heart of Hermes Agent &mdash; the database schema that persists sessions and messages, the message format that flows between the agent and LLM providers, the tool registry that powers 40+ capabilities, the skill file format, the layered configuration system, and the pluggable memory provider interface.</p>
 
   <div class="kpi-row anim" style="--i:3">
@@ -97,7 +97,7 @@
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--teal)">40+</div><div class="kpi-card__label">Config keys</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--amber)">40+</div><div class="kpi-card__label">Registered tools</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--emerald)">56</div><div class="kpi-card__label">Toolset groups</div></div>
-    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">11</div><div class="kpi-card__label">Schema versions</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" style="color:var(--indigo)">21</div><div class="kpi-card__label">Schema versions</div></div>
     <div class="kpi-card"><div class="kpi-card__value" style="color:var(--slate)">11</div><div class="kpi-card__label">Auxiliary tasks</div></div>
   </div>
 </section>
@@ -203,9 +203,9 @@ graph TD
   </div>
   <h2 class="anim" style="--i:11">SQLite Schema</h2>
   <p class="section-desc anim" style="--i:12">
-    All state lives in <code>~/.hermes/state.db</code> &mdash; a SQLite database with WAL mode for
-    concurrent reads. Schema version 11. FTS5 for full-text search across message content,
-    tool names, and tool-call arguments, with a trigram index for CJK/substring queries.
+    Durable conversation, routing, usage, and delegation state lives in <code>~/.hermes/state.db</code>
+    &mdash; a SQLite database with WAL mode for concurrent reads. Schema version 21. FTS5 indexes
+    message content, tool names, and tool-call arguments, with a trigram index for CJK/substring queries.
   </p>
 
   <div class="callout anim" style="--i:13">
@@ -270,6 +270,7 @@ graph TD
         <tr><td><span class="col-name">tool_call_id</span></td><td><span class="col-type">TEXT</span></td><td>Links tool result to its call</td></tr>
         <tr><td><span class="col-name">tool_calls</span></td><td><span class="col-type">TEXT</span></td><td>JSON-encoded array of tool calls</td></tr>
         <tr><td><span class="col-name">tool_name</span></td><td><span class="col-type">TEXT</span></td><td>Which tool produced this result</td></tr>
+        <tr><td><span class="col-name">effect_disposition</span></td><td><span class="col-type">TEXT</span></td><td>Known side-effect outcome for interrupted/replayed tool calls</td></tr>
         <tr><td><span class="col-name">timestamp</span></td><td><span class="col-type">REAL NOT NULL</span></td><td>Epoch timestamp</td></tr>
         <tr><td><span class="col-name">token_count</span></td><td><span class="col-type">INTEGER</span></td><td>Estimated tokens</td></tr>
         <tr><td><span class="col-name">finish_reason</span></td><td><span class="col-type">TEXT</span></td><td><span class="col-version">v2</span> stop | length | tool_calls</td></tr>
@@ -280,6 +281,33 @@ graph TD
         <tr><td><span class="col-name">codex_message_items</span></td><td><span class="col-type">TEXT</span></td><td>JSON-encoded Codex message items</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="grid-2 gap-24 anim" style="--i:16">
+    <div class="ve-card c-indigo">
+      <h3>session_model_usage</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
+        Per-model token and cost attribution for sessions that switch models mid-conversation.
+        Rows are keyed by session, model, provider, base URL, and billing mode.
+      </p>
+      <ul class="node-list">
+        <li>Accumulates API calls, tokens, and estimated/actual cost</li>
+        <li>Backfilled from aggregate session totals at schema v20</li>
+        <li>Drives the Insights model breakdown</li>
+      </ul>
+    </div>
+    <div class="ve-card c-rose">
+      <h3>async_delegations</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">
+        Durable lifecycle and delivery state for background subagents. Completed results survive
+        process restarts and return to the conversation as a fresh turn.
+      </p>
+      <ul class="node-list">
+        <li>Tracks dispatch owner, task payload, state, and result</li>
+        <li>Pending/delivered state prevents duplicate completion injection</li>
+        <li>Delivery claims coordinate competing consumers</li>
+      </ul>
+    </div>
   </div>
 
   <!-- FTS5 + triggers -->
@@ -330,6 +358,8 @@ AFTER UPDATE ON messages →
 erDiagram
     sessions ||--o{ messages : "contains"
     sessions ||--o| sessions : "parent_session_id"
+    sessions ||--o{ session_model_usage : "attributes usage"
+    sessions ||--o{ async_delegations : "origin / parent"
     messages ||--|| messages_fts : "FTS5 sync"
     messages ||--|| messages_fts_trigram : "FTS5 trigram sync"
 
@@ -366,6 +396,7 @@ erDiagram
         TEXT tool_call_id
         TEXT tool_calls "JSON array"
         TEXT tool_name
+        TEXT effect_disposition "side-effect outcome"
         REAL timestamp
         INTEGER token_count
         TEXT finish_reason "v2"
@@ -374,6 +405,31 @@ erDiagram
         TEXT reasoning_details "v6 JSON"
         TEXT codex_reasoning_items "v6 JSON"
         TEXT codex_message_items "JSON"
+    }
+
+    session_model_usage {
+        TEXT session_id FK
+        TEXT model PK
+        TEXT billing_provider PK
+        TEXT billing_base_url PK
+        TEXT billing_mode PK
+        INTEGER api_call_count
+        INTEGER input_tokens
+        INTEGER output_tokens
+        REAL estimated_cost_usd
+        REAL actual_cost_usd
+    }
+
+    async_delegations {
+        TEXT delegation_id PK
+        TEXT origin_session
+        TEXT parent_session_id
+        TEXT state
+        TEXT task_json
+        TEXT result_json
+        TEXT delivery_state
+        TEXT delivery_claim
+        REAL completed_at
     }
 
     messages_fts {
@@ -390,7 +446,7 @@ erDiagram
     }
 
     schema_version {
-        INTEGER version "currently 11"
+        INTEGER version "currently 21"
     }
       </script>
   </section>
@@ -410,6 +466,9 @@ erDiagram
         <tr><td><span class="col-version">v7–v9</span></td><td>Declarative column reconciliation &mdash; new columns added via schema diff, no explicit migrations</td></tr>
         <tr><td><span class="col-version">v10</span></td><td>Added <code>messages_fts_trigram</code> (trigram FTS5 for CJK/substring search) with row backfill</td></tr>
         <tr><td><span class="col-version">v11</span></td><td>FTS5 re-indexed to cover <code>content || tool_name || tool_calls</code> (inline-mode triggers replace external-content); enables <code>session_search</code> to find tool names and tool-call arguments, not just message content</td></tr>
+        <tr><td><span class="col-version">v12&ndash;v19</span></td><td>Declarative columns plus gateway/session routing, active-message, handoff, and compression state</td></tr>
+        <tr><td><span class="col-version">v20</span></td><td>Added <code>session_model_usage</code> and backfilled per-model usage attribution from session aggregates</td></tr>
+        <tr><td><span class="col-version">v21</span></td><td>Added durable <code>async_delegations</code> lifecycle and completion-delivery state</td></tr>
       </tbody>
     </table>
   </div>

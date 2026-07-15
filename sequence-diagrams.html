@@ -89,7 +89,7 @@
 
     <!-- ====== HEADER ====== -->
     <h1 class="anim" style="--i:0">Hermes Agent</h1>
-    <p class="subtitle anim" style="--i:1">Interaction Sequences &mdash; v0.16.0 &mdash; Nous Research</p>
+    <p class="subtitle anim" style="--i:1">Interaction Sequences &mdash; v0.18.2 &mdash; Nous Research</p>
     <p class="lead anim" style="--i:2">
       How messages, tools, and decisions flow through time. These sequence diagrams
       trace the lifecycle of every interaction &mdash; from a user typing in the CLI,
@@ -1285,19 +1285,18 @@
     </div>
     <h2 class="anim" style="--i:34">Subagent Delegation</h2>
     <p class="section-desc anim" style="--i:35">
-      The delegate tool spawns isolated child agents for focused subtasks. Children inherit
-      a restricted toolset (no delegate, clarify, memory, send_message, or execute_code),
-      run in quiet mode, and are limited to depth 1 by default (configurable up to 3 via
-      <code>delegation.max_spawn_depth</code>). Up to 3 tasks execute concurrently via
-      ThreadPoolExecutor.
+      Top-level model-facing delegations dispatch in the background and return immediately.
+      Children run in isolated contexts with a restricted toolset; completion state is persisted
+      in SQLite and re-enters the originating conversation as a fresh turn. Depth defaults to 1,
+      and up to 3 children run concurrently.
     </p>
 
     <div class="grid-2 anim" style="--i:36">
       <div class="ve-card c-rose">
         <div class="ve-card__label">Constraints</div>
         <ul class="step-list">
-          <li>Max delegation depth: <strong>1 by default</strong> (configurable up to 3)</li>
-          <li>Max concurrent tasks: <strong>3</strong></li>
+          <li>Max delegation depth: <strong>1 by default</strong></li>
+          <li>Max concurrent children: <strong>3</strong> by default</li>
           <li>Blocked tools: delegate, clarify, memory, send_message, execute_code</li>
           <li>Child runs with <code>quiet_mode=True</code></li>
           <li>Child skips context files and memory loading</li>
@@ -1336,66 +1335,35 @@
         sequenceDiagram
           participant PA as ParentAgent
           participant DT as DelegateTool
+          participant AD as AsyncDelegation
+          participant DB as state.db
           participant CA as ChildAgent
-          participant LLM as LLMProvider
-          participant MM as MemoryManager
+          participant CQ as CompletionQueue
 
-          PA->>DT: invoke delegate with task list
+          PA->>DT: invoke delegate_task
           activate DT
-
-          DT->>DT: check depth limit (max 1 by default)
-          DT->>DT: resolve delegation credentials
-
-          alt Single Task
-            DT->>DT: _build_child_agent
-            Note over DT: Intersect toolsets with parent
-            Note over DT: Strip blocked tools
-            DT->>CA: create AIAgent with quiet_mode
-            activate CA
-            DT->>PA: register child in _active_children
-            DT->>CA: _run_single_child with goal
-            CA->>LLM: run_conversation
-            activate LLM
-            LLM-->>CA: response
-            deactivate LLM
-            CA-->>DT: task result
-            deactivate CA
-
-          else Batch Tasks up to 3
-            par Concurrent Child Agents
-              DT->>CA: _build_child_agent for task 1
-              activate CA
-              CA->>LLM: run_conversation
-              activate LLM
-              LLM-->>CA: response
-              deactivate LLM
-              CA-->>DT: result 1
-              deactivate CA
-            and
-              DT->>CA: _build_child_agent for task 2
-              activate CA
-              CA->>LLM: run_conversation
-              activate LLM
-              LLM-->>CA: response
-              deactivate LLM
-              CA-->>DT: result 2
-              deactivate CA
-            and
-              DT->>CA: _build_child_agent for task 3
-              activate CA
-              CA->>LLM: run_conversation
-              activate LLM
-              LLM-->>CA: response
-              deactivate LLM
-              CA-->>DT: result 3
-              deactivate CA
-            end
-          end
-
-          DT->>DT: collect all results
-          DT->>MM: notify memory provider
-          DT-->>PA: aggregated delegation results
+          DT->>DT: check depth and concurrency limits
+          DT->>DT: build isolated child agent(s)
+          DT->>AD: dispatch async runner
+          AD->>DB: persist running delegation + task payload
+          AD-->>DT: delegation_id
+          DT-->>PA: dispatched handle (turn continues)
           deactivate DT
+
+          AD->>CA: run child or concurrent batch
+          activate CA
+          CA-->>AD: summary result
+          deactivate CA
+          AD->>DB: persist completion as pending
+          AD->>CQ: enqueue async_delegation event
+          CQ-->>PA: fresh completion turn
+          PA->>DB: claim and acknowledge delivery
+
+          opt Process restarts before delivery
+            DB-->>CQ: restore pending completion
+            CQ-->>PA: route to originating session
+            PA->>DB: mark delivered
+          end
       </script>
     </section>
 
