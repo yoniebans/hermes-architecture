@@ -57,7 +57,7 @@ footer{border-top:1px solid var(--border);margin-top:40px;padding-top:16px;font-
 <h1>How Hermes stores conversations once callers hold stores</h1>
 <p class="lead">Hermes keeps every conversation it has: the session, its messages, the token cost of each turn, and the bookkeeping the gateway needs to route chats to sessions and to decide which process may act on a session. A profile is one Hermes setup with its own folder, its <b>Hermes home</b>, which holds its configuration and data; one machine can run several. Each profile keeps its conversations in one SQLite database file, <code>state.db</code>, in its Hermes home.</p>
 <p class="lead">On <code>main</code>, every part of Hermes that stores conversations works with <code>SessionDB</code>: one class over SQLite, assembled from mixins spread over 21 modules. Some parts also run their own SQL on its connections or open the file themselves, and the rules for waiting on a busy file and for what may run inside a transaction are spread across them.</p>
-<p class="lead">After three pull requests, every caller holds a <b>store</b>: the SQLite backend opened on one profile's data. The store's type is the <b>storage interface</b>, the list of what Hermes may ask storage to do, in Hermes's own terms: save a message, claim a turn (take a session's next queued message and start running it), list sessions. The <b>SQLite backend</b> implements the interface. It holds every statement, the schema, the connections and how concurrent writers wait, and it does what <code>main</code> does today. Every query Hermes runs on conversation storage goes through a store. Outside the stores stay only a few direct copies of database files (Today beside after says which, and why), some of <code>main</code>'s code that nothing calls, and three small shared SQLite helper modules.</p>
+<p class="lead">After four pull requests, every caller holds a <b>store</b>: the SQLite backend opened on one profile's data. The store's type is the <b>storage interface</b>, the list of what Hermes may ask storage to do, in Hermes's own terms: save a message, claim a turn (take a session's next queued message and start running it), list sessions. The <b>SQLite backend</b> implements the interface. It holds every statement, the schema, the connections and how concurrent writers wait, and it does what <code>main</code> does today. Every query Hermes runs on conversation storage goes through a store. Outside the stores stay only a few direct copies of database files (Today beside after says which, and why), some of <code>main</code>'s code that nothing calls, and three small shared SQLite helper modules.</p>
 <div class="why"><b>Why this shape.</b> Storage changes in one place. A second backend, PostgreSQL for example, implements the interface and is named in the one module that assembles storage; no caller changes. The rules for concurrent writers are kept in the backend instead of in every caller.</div>
 </div>
 
@@ -140,7 +140,7 @@ footer{border-top:1px solid var(--border);margin-top:40px;padding-top:16px;font-
 <section id="backend">
 <h2>4 The SQLite backend</h2>
 <div class="prose">
-<p>The SQLite backend implements every repository, and a store is this backend opened on one profile's file. It holds every statement, the schema, the connections and how concurrent writers wait, and it does what <code>main</code> does today. A check called <b>the SQL map</b> pairs each of its statements with the <code>main</code> statement it came from and states the reason for every difference; it passes with no unexplained difference. Its schema is <code>main</code>'s, and so are the holder's waits (below).</p>
+<p>The SQLite backend implements every repository, and a store is this backend opened on one profile's file. It holds every statement, the schema, the connections and how concurrent writers wait, and it does what <code>main</code> does today. A check called <b>the SQL map</b> pairs each of its statements with the <code>main</code> statement it came from and states the reason for every difference; it passes with no unexplained difference, and PR 4 removes it once the stack lands, because the <code>main</code> code it compares with is deleted by PR 3. Its schema is <code>main</code>'s, and so are the holder's waits (below).</p>
 <p>Inside a process, the backend keeps one <b>holder</b> for each profile's <code>state.db</code>: the object that holds that file's writer connection, its write lock and its read connections. The backend's <b>registry</b> is its per-process record of that one holder per file, and hands it out. Every writable store on the file uses that one holder, so writers in one process take turns there. A read-only store builds its own read-only holder, which never writes, creates, migrates or repairs the file. Between processes, SQLite itself lets one writer at a time hold a file's write lock. A write that finds the file busy pauses for a short random time and runs again, until its patience runs out.</p>
 </div>
 <div class="fig" id="f4">
@@ -222,7 +222,7 @@ footer{border-top:1px solid var(--border);margin-top:40px;padding-top:16px;font-
 <tr><td>Plugin authors</td><td>Plugins that import <code>hermes_state</code>, <code>SessionDB</code>'s module on <code>main</code>, keep working through a stand-in. The <code>SessionDB</code> class is removed; its name survives only in the stand-in, which forwards the names the plugin guide lists to stores and warns once per process; any other name raises an error that points at the guide. It is due to be removed in v0.26.0; the latest release on <code>main</code> is v0.22.7. Plugin context engines, outside code that compresses a conversation's context, are handed the stand-in's <code>SessionDB</code> on the same profile's store.</td></tr>
 </table>
 <div class="prose">
-<p>Each pull request's description carries its proof: PR 1's contract suite on the reference backend; PR 2's contract suite and own tests on the SQLite backend, and the SQL map; PR 3's end-to-end suite, which drives Hermes as a user does on <code>main</code> and on PR 3 and compares what each records, and the whole test tree.</p>
+<p>Each pull request's description carries its proof: PR 1's contract suite on the reference backend; PR 2's contract suite and own tests on the SQLite backend, and the SQL map, which PR 4 removes once the stack lands because it compares with code PR 3 deletes; PR 3's end-to-end suite, which drives Hermes as a user does on <code>main</code> and on PR 3 and compares what each records, and the whole test tree.</p>
 <h3>What differs</h3>
 <p>What users see differs only in some shutdown edge cases and a few lines of text Hermes prints; operators also see a few changes in logs and database files; PR 3 lists every one with its reason. Among them:</p>
 <ul>
@@ -236,7 +236,7 @@ footer{border-top:1px solid var(--border);margin-top:40px;padding-top:16px;font-
 <section id="lands">
 <h2>How it lands</h2>
 <div class="prose">
-<p>The change lands as three pull requests, and callers move only onto code that has already been checked: PR 1 and PR 2 add code that nothing in Hermes uses yet, and PR 3 moves the callers onto it.</p>
+<p>The change lands as four pull requests, and callers move only onto code that has already been checked: PR 1 and PR 2 add code that nothing in Hermes uses yet, and PR 3 moves the callers onto it.</p>
 </div>
 <div class="fig" id="f7">
 <div class="ftitle">Callers stay on SessionDB until the backend exists and serves it, then move one caller group at a time, and SessionDB goes last</div>
@@ -244,16 +244,18 @@ footer{border-top:1px solid var(--border);margin-top:40px;padding-top:16px;font-
 </div>
 <div class="prose">
 <p>PR 3 moves the callers in six caller groups, in this order: the agent; the tools, ACP, plugins and cron; the TUI gateway; the CLI; the gateway; then evals and scripts. Its first commit puts <code>SessionDB</code> on the backend's holder and registry, so callers that have moved and callers that have not share one holder per file while the move is under way. Hermes is not meant to run at every commit in between, since a moved caller group expects a store where one not yet moved still passes a <code>SessionDB</code>. What holds at every commit is checked there: the tree imports and collects its tests, and the mixed-caller cases (a process using <code>SessionDB</code> and stores together) pass at every commit that still has <code>SessionDB</code>, commits 1 to 23. The whole test tree and the end-to-end comparison run at its head.</p>
+<p>PR 4 removes what has no use once the first three have landed. Its first commit deletes the tests that compare the backend with <code>main</code>'s old store: they can run only against a checkout of the code PR 3 deletes, and CI skips them. 52 files go and 46 are trimmed, 15,271 lines in all. The SQL map goes next (31 files, 14,768 lines). Last goes the code that opened a second handle on the file behind an object that is not a store; after PR 3 only its own tests reach it (2 files go and 10 change, 295 lines removed). The stand-in for outside plugins stays until v0.26.0, and so does the reference backend, which keeps the contract suite running on more than one backend.</p>
 </div>
 <table class="t">
 <tr><th>Pull request</th><th>What it makes true</th><th>What is checked (the proof is in its description)</th></tr>
 <tr><td>PR 1: the interface</td><td>the interface, its reference backend held in memory, and the contract suite exist; nothing in Hermes imports them</td><td>the contract suite on the reference backend</td></tr>
-<tr><td>PR 2: the SQLite backend</td><td>the backend exists; nothing opens it yet</td><td>the contract suite and the backend's own tests on the backend; the SQL map against <code>main</code></td></tr>
+<tr><td>PR 2: the SQLite backend</td><td>the backend exists; nothing opens it yet</td><td>the contract suite and the backend's own tests on the backend; the SQL map against <code>main</code>, which PR 4 removes once the stack lands because it compares with code PR 3 deletes</td></tr>
 <tr><td>PR 3: the callers</td><td>callers hold stores, with the exceptions under Today beside after; the <code>SessionDB</code> class is removed, and its name survives only in the stand-in for outside plugins</td><td>at every commit, imports, test collection and the mixed-caller cases; at its head, the end-to-end suite against <code>main</code> and the whole test tree; every difference from <code>main</code>, with its reason</td></tr>
+<tr><td>PR 4: the cleanup</td><td>the checks that compared with the old store, and the code that only served the move, are gone; Hermes's behaviour does not change</td><td>at its head, the backend's and the contract suite's tests, the tests of every file that imports a module it changes, and the project's checks</td></tr>
 </table>
 </section>
 
-<footer>Measured at main <code>ed1afb082e</code>, PR 1 <code>b53ed25af9</code>, PR 2 <code>fa1ffc78e9</code> and PR 3 <code>4443605f8e</code>; the <code>hermes uninstall --data</code> counts at main <code>5e7c2b254d</code> and PR 3 <code>5976e0f439</code>. <a href="storage-coverage.html">PR 1's coverage table</a> names what replaces each <code>SessionDB</code> method, own-SQL call and direct open on <code>main</code>. Figures drawn with p5.js 1.11.3, inlined; the page makes no network request.</footer>
+<footer>Measured at main <code>ed1afb082e</code>, PR 1 <code>b53ed25af9</code>, PR 2 <code>fa1ffc78e9</code>, PR 3 <code>4443605f8e</code> and PR 4 <code>187e9f1dfc</code>; the <code>hermes uninstall --data</code> counts at main <code>5e7c2b254d</code> and PR 3 <code>5976e0f439</code>. <a href="storage-coverage.html">PR 1's coverage table</a> names what replaces each <code>SessionDB</code> method, own-SQL call and direct open on <code>main</code>. Figures drawn with p5.js 1.11.3, inlined; the page makes no network request.</footer>
 </main>
 <script>
 // Shared helpers for every figure. Instance-mode p5, drawn in fixed logical units and scaled to the column.
@@ -470,8 +472,8 @@ mount('f1', 1000, 694, p => {
   hline(p, 20, 980, 342);
 
   // After
-  label(p, 'After the three pull requests', 20, 364, { align: 'left', bold: true, size: 15, col: PAL.fg });
-  label(p, 'each caller holds a store for one profile; every query on conversation storage goes through a store', 20 + textW(p, 'After the three pull requests', 15, p.BOLD) + 10, 364, { align: 'left', size: 13 });
+  label(p, 'After the four pull requests', 20, 364, { align: 'left', bold: true, size: 15, col: PAL.fg });
+  label(p, 'each caller holds a store for one profile; every query on conversation storage goes through a store', 20 + textW(p, 'After the four pull requests', 15, p.BOLD) + 10, 364, { align: 'left', size: 13 });
   rowName('1 callers', 402); rowName('3 stores', 511); rowName('4 backend', 583); rowName('files', 652);
   callers.forEach((c, i) => box(p, cx(i) - CW / 2, 384, CW, 36, 'app', c));
   // the backend: the code every store runs, drawn around the stores rather than as a tier below them
@@ -639,7 +641,7 @@ mount('f6', 1000, 596, p => {
   ];
   const Y0 = 48, PITCH = 102, BH = 92, CX = [190, 600], CW = 380;
   label(p, 'main', CX[0] + CW / 2, 24, { bold: true, size: 15, col: PAL.fg });
-  label(p, 'after the three pull requests', CX[1] + CW / 2, 24, { bold: true, size: 15, col: PAL.fg });
+  label(p, 'after the four pull requests', CX[1] + CW / 2, 24, { bold: true, size: 15, col: PAL.fg });
   // the profile's store, drawn as in f1: a store whose tab is the storage interface, its type
   const store = (x, y, w, h) => {
     box(p, x, y, w, h, 'backend', null, null);
